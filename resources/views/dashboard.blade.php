@@ -20,6 +20,14 @@
                         Anda berhasil login ke dashboard admin.
                     </p>
 
+                    <!-- Tombol menuju halaman dataset -->
+                    <div class="mb-6">
+                        <a href="{{ route('sales') }}"
+                           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                            Lihat Data Penjualan
+                        </a>
+                    </div>
+
                     <hr class="mb-6">
 
                     <h3 class="text-xl font-semibold mb-3">
@@ -47,7 +55,8 @@
                         Grafik Prediksi Penjualan
                     </h3>
 
-                    <img src="{{ asset('prediction_graph.png') }}" style="width:100%;max-width:800px;">
+                    <!-- Grafik Chart.js -->
+                    <canvas id="salesChart"></canvas>
 
                 </div>
 
@@ -55,4 +64,41 @@
 
         </div>
     </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const labels = @json($labels);
+        const values = @json($values);
+
+        const ctx = document.getElementById('salesChart');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Penjualan Bunga',
+                    data: values,
+                    borderWidth: 2,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
 </x-app-layout>
