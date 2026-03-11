@@ -18,6 +18,27 @@ Data Penjualan Bunga
 Dataset Penjualan
 </h2>
 
+@if(session('success'))
+<div style="color:green; margin-bottom:15px;">
+{{ session('success') }}
+</div>
+@endif
+
+<form action="{{ route('upload.dataset') }}" method="POST" enctype="multipart/form-data" style="margin-bottom:20px;">
+
+@csrf
+
+<input type="file" name="dataset" required>
+
+<button type="submit"
+style="background:#2563eb;color:white;padding:6px 12px;border-radius:4px;margin-left:10px;">
+
+Upload Dataset
+
+</button>
+
+</form>
+
 <table class="table-auto w-full border">
 
 <thead>
