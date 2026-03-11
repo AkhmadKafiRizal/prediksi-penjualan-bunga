@@ -45,6 +45,9 @@ Route::get('/data-penjualan', [SalesController::class, 'index'])
     ->middleware(['auth'])
     ->name('sales');
 
+Route::post('/upload-dataset', [SalesController::class, 'upload'])
+    ->middleware(['auth'])
+    ->name('upload.dataset');
 
 /*
 |--------------------------------------------------------------------------

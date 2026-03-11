@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+
 class SalesController extends Controller
 {
     public function index()
@@ -26,5 +28,21 @@ class SalesController extends Controller
             'header' => $header,
             'rows' => $rows
         ]);
+    }
+
+    public function upload(Request $request)
+    {
+        $request->validate([
+            'dataset' => 'required|mimes:csv,txt'
+        ]);
+
+        $file = $request->file('dataset');
+
+        $destination = base_path('dataset');
+
+        $file->move($destination, 'cleaned_flower_sales_dataset.csv');
+
+        return redirect()->route('sales')
+            ->with('success', 'Dataset berhasil diperbarui');
     }
 }
