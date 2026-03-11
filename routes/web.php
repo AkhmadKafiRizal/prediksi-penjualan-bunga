@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PredictionController;
+use App\Http\Controllers\SalesController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,13 +26,24 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| Dashboard (harus login klo mo masuk)
+| Dashboard (Machine Learning Prediction)
 |--------------------------------------------------------------------------
 */
 
 Route::get('/dashboard', [PredictionController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+
+
+/*
+|--------------------------------------------------------------------------
+| Data Penjualan Bunga
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/data-penjualan', [SalesController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('sales');
 
 
 /*
@@ -49,7 +61,7 @@ Route::middleware('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Rute Autentikasi (login, register, logout, dll)
+| Rute Autentikasi
 |--------------------------------------------------------------------------
 */
 
