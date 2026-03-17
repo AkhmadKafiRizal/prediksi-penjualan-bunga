@@ -28,6 +28,20 @@
                         </a>
                     </div>
 
+                    <!-- ============================== -->
+                    <!-- TAMBAHAN: Statistik Dataset -->
+                    <!-- ============================== -->
+
+                    <div class="mb-6">
+                        <h3 class="text-xl font-semibold mb-3">
+                            Statistik Dataset
+                        </h3>
+
+                        <p><strong>Total Data Dataset:</strong> {{ $totalData }}</p>
+                        <p><strong>Periode Data:</strong> {{ $totalData }} bulan</p>
+                        <p><strong>Prediksi Berikutnya:</strong> bulan ke-{{ $nextPeriod }}</p>
+                    </div>
+
                     <hr class="mb-6">
 
                     <h3 class="text-xl font-semibold mb-3">
