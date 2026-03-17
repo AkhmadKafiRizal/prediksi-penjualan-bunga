@@ -32,12 +32,23 @@ class PredictionController extends Controller
             fclose($handle);
         }
 
+        // ==============================
+        // TAMBAHAN: Statistik Dataset
+        // ==============================
+
+        $totalData = count($values);
+        $nextPeriod = $totalData + 1;
+
         return view('dashboard', [
             'prediction' => $data['prediction'] ?? 0,
             'mae' => $data['mae'] ?? 0,
             'rmse' => $data['rmse'] ?? 0,
             'labels' => $labels,
-            'values' => $values
+            'values' => $values,
+
+            // tambahan kirim ke view
+            'totalData' => $totalData,
+            'nextPeriod' => $nextPeriod
         ]);
     }
 }
