@@ -18,6 +18,13 @@ Data Penjualan Bunga
 Dataset Penjualan
 </h2>
 
+@if($lastUpload)
+<div style="margin-bottom:15px;color:#555;">
+Dataset terakhir diperbarui:
+<strong>{{ $lastUpload }}</strong>
+</div>
+@endif
+
 @if(session('success'))
 <div style="color:green; margin-bottom:15px;">
 {{ session('success') }}

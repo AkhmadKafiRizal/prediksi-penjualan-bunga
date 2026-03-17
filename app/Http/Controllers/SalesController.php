@@ -24,9 +24,21 @@ class SalesController extends Controller
             fclose($handle);
         }
 
+        // ==============================
+        // Ambil waktu upload dataset
+        // ==============================
+
+        $timeFile = storage_path('app/dataset_time.txt');
+        $lastUpload = null;
+
+        if (file_exists($timeFile)) {
+            $lastUpload = file_get_contents($timeFile);
+        }
+
         return view('sales', [
             'header' => $header,
-            'rows' => $rows
+            'rows' => $rows,
+            'lastUpload' => $lastUpload
         ]);
     }
 
@@ -41,6 +53,17 @@ class SalesController extends Controller
         $destination = base_path('dataset');
 
         $file->move($destination, 'cleaned_flower_sales_dataset.csv');
+
+        // ==============================
+        // Simpan waktu upload dataset
+        // ==============================
+
+        $timeFile = storage_path('app/dataset_time.txt');
+
+        file_put_contents(
+            $timeFile,
+            date('d-m-Y H:i:s')
+        );
 
         return redirect()->route('sales')
             ->with('success', 'Dataset berhasil diperbarui');
