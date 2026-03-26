@@ -1,36 +1,66 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ config('app.name', 'FloraPredict') }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+   @vite(['resources/css/flora.css', 'resources/js/app.js'])
+</head>
+<body>
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+    {{-- ══════════════════════ --}}
+    {{-- NAVBAR - selalu di atas --}}
+    {{-- ══════════════════════ --}}
+    <nav>
+    <a href="{{ route('dashboard') }}" class="nav-brand">
+        <div class="logo-icon">🌸</div>
+        FloraPredict
+    </a>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <div class="nav-links">
+        <a href="{{ route('dashboard') }}"
+           class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+           Dashboard
+        </a>
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
+        <a href="{{ route('sales') }}"
+           class="nav-link {{ request()->routeIs('sales') ? 'active' : '' }}">
+           Data Penjualan
+        </a>
+    </div>
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
-
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
-            </main>
+    <div class="nav-right">
+        <div class="nav-user">
+            <div class="avatar">
+                {{ substr(Auth::user()->name, 0, 1) }}
+            </div>
+            <span>{{ Auth::user()->name }}</span>
         </div>
-    </body>
+
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button class="btn-logout">Logout</button>
+        </form>
+    </div>
+</nav>
+
+
+    {{-- Page header (judul halaman) --}}
+    @isset($header)
+    <div class="flora-page-header">
+        <div class="flora-page-header-inner">
+            {{ $header }}
+        </div>
+    </div>
+    @endisset
+
+    {{-- Konten halaman --}}
+    <main>
+        {{ $slot }}
+    </main>
+
+</body>
 </html>
