@@ -1,7 +1,9 @@
 import pandas as pd
 import os
-import matplotlib.pyplot as plt
 import json
+
+# import matplotlib.pyplot as plt 
+# INI YANG DIHAPUS YA HAPUS KARENA SUDAH PAKAI CHART.JS
 
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error
@@ -26,8 +28,12 @@ dataset_path = os.path.join(
 
 try:
     data = pd.read_csv(dataset_path)
-except Exception as e:
-    print(json.dumps({"prediction":0,"mae":0,"rmse":0}))
+except Exception:
+    print(json.dumps({
+        "prediction": 0,
+        "mae": 0,
+        "rmse": 0
+    }))
     exit()
 
 # ====================================
@@ -35,7 +41,11 @@ except Exception as e:
 # ====================================
 
 if "QUANTITYORDERED" not in data.columns:
-    print(json.dumps({"prediction":0,"mae":0,"rmse":0}))
+    print(json.dumps({
+        "prediction": 0,
+        "mae": 0,
+        "rmse": 0
+    }))
     exit()
 
 # ====================================
@@ -52,7 +62,9 @@ Y = data["QUANTITYORDERED"]
 # ====================================
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, Y, test_size=0.2, shuffle=False
+    X, Y,
+    test_size=0.2,
+    shuffle=False
 )
 
 # ====================================
@@ -80,7 +92,10 @@ rmse = mean_squared_error(y_test, y_pred) ** 0.5
 # ====================================
 
 next_month = len(data) + 1
-next_data = pd.DataFrame({"X": [next_month]})
+
+next_data = pd.DataFrame({
+    "X": [next_month]
+})
 
 prediction = model.predict(next_data)
 prediction_value = int(prediction[0])
@@ -89,35 +104,37 @@ prediction_value = int(prediction[0])
 # 10. Membuat grafik
 # ====================================
 
-plt.figure()
+# plt.figure()
+# plt.plot(X, Y)
+# plt.plot(X_test, y_pred)
+# plt.scatter(next_month, prediction_value)
+# plt.title("Grafik Prediksi Penjualan Bunga")
+# plt.xlabel("Periode")
+# plt.ylabel("Jumlah Penjualan")
+# plt.legend()
 
-plt.plot(X, Y, label="Data Penjualan Aktual")
+# INI YANG DIHAPUS YA HAPUS KARENA SUDAH PAKAI CHART.JS
 
-plt.plot(X_test, y_pred, label="Prediksi Model")
-
-plt.scatter(next_month, prediction_value, label="Prediksi Bulan Berikutnya")
-
-plt.title("Grafik Prediksi Penjualan Bunga")
-plt.xlabel("Periode")
-plt.ylabel("Jumlah Penjualan")
-plt.legend()
-
-# ====================================
-# 11. Simpan grafik ke Laravel
-# ====================================
-
-graph_path = os.path.join(
-    BASE_DIR,
-    "..",
-    "public",
-    "prediction_graph.png"
-)
-
-plt.savefig(graph_path)
-plt.close()
 
 # ====================================
-# 12. Output untuk Laravel (JSON)
+# 11. Simpan grafik PNG
+# ====================================
+
+# graph_path = os.path.join(
+#     BASE_DIR,
+#     "..",
+#     "public",
+#     "prediction_graph.png"
+# )
+
+# plt.savefig(graph_path)
+# plt.close()
+
+# INI YANG DIHAPUS YA HAPUS KARENA SUDAH PAKAI CHART.JS
+
+
+# ====================================
+# 12. Output JSON untuk Laravel
 # ====================================
 
 result = {
