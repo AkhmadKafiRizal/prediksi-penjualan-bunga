@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import json
+import pymysql
 
 # import matplotlib.pyplot as plt 
 # INI YANG DIHAPUS YA HAPUS KARENA SUDAH PAKAI CHART.JS
@@ -10,24 +11,44 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 
 # ====================================
-# 1. Menentukan lokasi dataset
-# ====================================
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-dataset_path = os.path.join(
-    BASE_DIR,
-    "..",
-    "dataset",
-    "cleaned_flower_sales_dataset.csv"
-)
-
-# ====================================
-# 2. Membaca dataset
+# 1. Menentukan koneksi database
 # ====================================
 
 try:
-    data = pd.read_csv(dataset_path)
+    connection = pymysql.connect(
+        host="127.0.0.1",
+        user="root",
+        password="",
+        database="prediksi_bunga"
+    )
+except Exception:
+    print(json.dumps({
+        "prediction": 0,
+        "mae": 0,
+        "rmse": 0
+    }))
+    exit()
+
+# ====================================
+# 2. Membaca dataset dari database
+# ====================================
+
+try:
+    query = """
+    SELECT bulan, tahun, jumlah_penjualan
+    FROM penjualans
+    ORDER BY tahun, bulan
+    """
+    
+    data = pd.read_sql(query, connection)
+
+    connection.close()
+
+    # menyesuaikan nama kolom agar kode lama tetap berjalan
+    data.rename(columns={
+        "jumlah_penjualan": "QUANTITYORDERED"
+    }, inplace=True)
+
 except Exception:
     print(json.dumps({
         "prediction": 0,
@@ -115,7 +136,6 @@ prediction_value = int(prediction[0])
 
 # INI YANG DIHAPUS YA HAPUS KARENA SUDAH PAKAI CHART.JS
 
-
 # ====================================
 # 11. Simpan grafik PNG
 # ====================================
@@ -131,7 +151,6 @@ prediction_value = int(prediction[0])
 # plt.close()
 
 # INI YANG DIHAPUS YA HAPUS KARENA SUDAH PAKAI CHART.JS
-
 
 # ====================================
 # 12. Output JSON untuk Laravel

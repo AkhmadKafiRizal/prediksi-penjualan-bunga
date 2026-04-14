@@ -33,11 +33,65 @@ class PredictionController extends Controller
         }
 
         // ==============================
-        // TAMBAHAN: Statistik Dataset
+        // Statistik Dataset
         // ==============================
 
         $totalData = count($values);
         $nextPeriod = $totalData + 1;
+
+        // ==============================
+        // TAMBAHAN: Periode Dataset
+        // ==============================
+
+        $firstYearMonth = null;
+        $lastYearMonth = null;
+
+        if (($handle = fopen($file, 'r')) !== false) {
+
+            $header = fgetcsv($handle);
+
+            while (($row = fgetcsv($handle)) !== false) {
+
+                $yearMonth = $row[0]; // kolom YEAR_MONTH
+
+                if ($firstYearMonth === null) {
+                    $firstYearMonth = $yearMonth;
+                }
+
+                $lastYearMonth = $yearMonth;
+            }
+
+            fclose($handle);
+        }
+
+        function formatBulanIndonesia($yearMonth)
+        {
+            if (!$yearMonth) return '';
+
+            [$year, $month] = explode('-', $yearMonth);
+
+            $namaBulan = [
+                1 => 'Januari',
+                2 => 'Februari',
+                3 => 'Maret',
+                4 => 'April',
+                5 => 'Mei',
+                6 => 'Juni',
+                7 => 'Juli',
+                8 => 'Agustus',
+                9 => 'September',
+                10 => 'Oktober',
+                11 => 'November',
+                12 => 'Desember'
+            ];
+
+            return $namaBulan[(int)$month] . ' ' . $year;
+        }
+
+        $periodeDataset =
+            formatBulanIndonesia($firstYearMonth)
+            . ' – ' .
+            formatBulanIndonesia($lastYearMonth);
 
         return view('dashboard', [
             'prediction' => $data['prediction'] ?? 0,
@@ -46,9 +100,11 @@ class PredictionController extends Controller
             'labels' => $labels,
             'values' => $values,
 
-            // tambahan kirim ke view
             'totalData' => $totalData,
-            'nextPeriod' => $nextPeriod
+            'nextPeriod' => $nextPeriod,
+
+            // TAMBAHAN
+            'periodeDataset' => $periodeDataset
         ]);
     }
 }
