@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
+
 class PredictionController extends Controller
 {
     public function index()
@@ -13,23 +15,21 @@ class PredictionController extends Controller
 
         $data = json_decode($output, true);
 
-        // membaca dataset untuk grafik
-        $file = base_path('dataset/cleaned_flower_sales_dataset.csv');
+        // ==============================
+        // Membaca dataset dari database
+        // ==============================
+
+        $dataset = DB::table('penjualans')
+            ->orderBy('tahun')
+            ->orderBy('bulan')
+            ->get();
 
         $labels = [];
         $values = [];
 
-        if (($handle = fopen($file, 'r')) !== false) {
-
-            $header = fgetcsv($handle);
-
-            while (($row = fgetcsv($handle)) !== false) {
-
-                $labels[] = count($labels) + 1;
-                $values[] = (int)$row[1]; // kolom QUANTITYORDERED
-            }
-
-            fclose($handle);
+        foreach ($dataset as $row) {
+            $labels[] = count($labels) + 1;
+            $values[] = (int) $row->jumlah_penjualan;
         }
 
         // ==============================
@@ -40,36 +40,14 @@ class PredictionController extends Controller
         $nextPeriod = $totalData + 1;
 
         // ==============================
-        // TAMBAHAN: Periode Dataset
+        // Periode Dataset
         // ==============================
 
-        $firstYearMonth = null;
-        $lastYearMonth = null;
+        $first = $dataset->first();
+        $last = $dataset->last();
 
-        if (($handle = fopen($file, 'r')) !== false) {
-
-            $header = fgetcsv($handle);
-
-            while (($row = fgetcsv($handle)) !== false) {
-
-                $yearMonth = $row[0]; // kolom YEAR_MONTH
-
-                if ($firstYearMonth === null) {
-                    $firstYearMonth = $yearMonth;
-                }
-
-                $lastYearMonth = $yearMonth;
-            }
-
-            fclose($handle);
-        }
-
-        function formatBulanIndonesia($yearMonth)
+        function formatBulanIndonesia($tahun, $bulan)
         {
-            if (!$yearMonth) return '';
-
-            [$year, $month] = explode('-', $yearMonth);
-
             $namaBulan = [
                 1 => 'Januari',
                 2 => 'Februari',
@@ -85,13 +63,17 @@ class PredictionController extends Controller
                 12 => 'Desember'
             ];
 
-            return $namaBulan[(int)$month] . ' ' . $year;
+            return $namaBulan[(int)$bulan] . ' ' . $tahun;
         }
 
-        $periodeDataset =
-            formatBulanIndonesia($firstYearMonth)
-            . ' – ' .
-            formatBulanIndonesia($lastYearMonth);
+        $periodeDataset = '';
+
+        if ($first && $last) {
+            $periodeDataset =
+                formatBulanIndonesia($first->tahun, $first->bulan)
+                . ' – ' .
+                formatBulanIndonesia($last->tahun, $last->bulan);
+        }
 
         return view('dashboard', [
             'prediction' => $data['prediction'] ?? 0,
@@ -103,7 +85,6 @@ class PredictionController extends Controller
             'totalData' => $totalData,
             'nextPeriod' => $nextPeriod,
 
-            // TAMBAHAN
             'periodeDataset' => $periodeDataset
         ]);
     }
