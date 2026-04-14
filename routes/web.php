@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\SalesController;
+use App\Http\Controllers\ImportPenjualanController; // TAMBAHAN
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -48,6 +49,20 @@ Route::get('/data-penjualan', [SalesController::class, 'index'])
 Route::post('/upload-dataset', [SalesController::class, 'upload'])
     ->middleware(['auth'])
     ->name('upload.dataset');
+
+
+/*
+|--------------------------------------------------------------------------
+| Import Dataset CSV ke Database
+
+
+Route::get('/import-dataset', [ImportPenjualanController::class, 'import'])
+    ->middleware(['auth'])
+    ->name('import.dataset');
+    
+Sudah selesai di import, jadi jangan dihidupkan lagi, bisa mengakibatkan duplikasi ke database
+|--------------------------------------------------------------------------
+*/
 
 /*
 |--------------------------------------------------------------------------

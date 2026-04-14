@@ -293,7 +293,7 @@
             <div class="db-stat-label">Total Data Dataset</div>
             <div class="db-stat-value v-rose">{{ $totalData }}</div>
             <div class="db-stat-meta">
-                <span class="db-dot d-rose"></span> Periode: {{ $totalData }} bulan
+                <span class="db-dot d-rose"></span> Periode: {{ $periodeDataset }}
             </div>
         </div>
 
@@ -345,7 +345,7 @@
 
             <div class="db-period-strip">
                 <span class="db-period-lbl">Periode aktif:</span>
-                <span class="db-period-val">{{ $totalData }} bulan</span>
+                <span class="db-period-val">{{ $periodeDataset }}</span>
             </div>
         </div>
 
