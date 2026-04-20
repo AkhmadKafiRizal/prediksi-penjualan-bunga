@@ -8,159 +8,133 @@ class PredictionController extends Controller
 {
     public function index()
     {
-        // ── Jalankan Python ───────────────────────────────────────
-        $script  = base_path('machine_learning/prediction.py');
+
+        // Jalankan Python Script
+        $script = base_path('machine_learning/prediction.py');
         $command = "python " . $script;
         $output  = shell_exec($command);
         $data    = json_decode($output, true);
 
-        // ── Cek apakah prediksi berhasil dijalankan ───────────────
-        $predictionReady = isset($data['prediction']) && $data['prediction'] !== null && $data['prediction'] > 0;
+        // Hitung Total Prediksi dari semua produk
+        $totalPrediction = 0;
+        $mae = 0;
+        $rmse = 0;
 
-        // ── Baca dataset CSV ──────────────────────────────────────
-        $file        = base_path('dataset/cleaned_flower_sales_dataset.csv');
-        $labels      = [];
-        $values      = [];
-        $flowerSales = [];
-
-        if (file_exists($file) && ($handle = fopen($file, 'r')) !== false) {
-            $header = fgetcsv($handle);
-
-            while (($row = fgetcsv($handle)) !== false) {
-                $labels[]  = count($labels) + 1;
-                $values[]  = (int) $row[1];
-
-                $namabunga = $row[0] ?? 'Tidak diketahui';
-                $qty       = (int) $row[1];
-
-                if (!isset($flowerSales[$namabunga])) {
-                    $flowerSales[$namabunga] = [];
-                }
-                $flowerSales[$namabunga][] = $qty;
+        if (is_array($data)) {
+            foreach ($data as $item) {
+                $totalPrediction += $item['prediction'] ?? 0;
+                $mae = $item['mae'] ?? 0;
+                $rmse = $item['rmse'] ?? 0;
             }
-
-            fclose($handle);
         }
 
-        // ── Statistik ─────────────────────────────────────────────
-        $totalData  = count($values);
+        $predictedValue = $totalPrediction;
+
+        // Dataset FULL untuk statistik
+        $dataset = DB::table('penjualans')
+            ->orderBy('tanggal')
+            ->get();
+
+        // Dataset TERBATAS untuk grafik
+        $chartDataset = DB::table('penjualans')
+            ->orderBy('tanggal')
+            ->limit(200)
+            ->get();
+
+        $labels = [];
+        $values = [];
+
+        foreach ($chartDataset as $row) {
+            $labels[] = count($labels) + 1;
+            $values[] = (int) $row->jumlah;
+        }
+
+        // Statistik Dataset
+        $totalData = $dataset->count();
         $nextPeriod = $totalData + 1;
-        $prediction = $data['prediction'] ?? 0;
-        $mae        = $data['mae']        ?? 0;
-        $rmse       = $data['rmse']       ?? 0;
 
-        // ── Warning — hanya muncul jika prediksi ada dan turun signifikan ──
-        $warning = null;
-        if ($predictionReady && count($values) >= 2) {
-            $lastActual = end($values);
-            $turunPersen = $lastActual > 0
-                ? (($lastActual - $prediction) / $lastActual) * 100
-                : 0;
+        // Periode Dataset
+        $first = $dataset->first();
+        $last = $dataset->last();
 
-            if ($turunPersen >= 20) {
-                $warning = "Prediksi turun signifikan — " . round($turunPersen, 1) . "% di bawah periode terakhir";
-            }
+        $periodeDataset = '';
+
+        if ($first && $last) {
+
+            $firstDate = strtotime($first->tanggal);
+            $lastDate = strtotime($last->tanggal);
+
+            $periodeDataset =
+                date('F Y', $firstDate)
+                . ' – ' .
+                date('F Y', $lastDate);
         }
 
-        // ── Akurasi & Slow Moving ─────────────────────────────────
-        $akurasiData    = $this->hitungAkurasi($flowerSales);
-        $slowMovingData = $this->deteksiSlowMoving($flowerSales);
+        // Tentukan tanggal prediksi berikutnya
+        $nextDate = null;
 
-        // ==============================
-        // Periode Dataset
-        // ==============================
+        if ($last) {
 
-        $periodeDataset = 'Data belum tersedia';
+            $lastDate = strtotime($last->tanggal);
+            $nextDate = date('Y-m-d', strtotime('+1 month', $lastDate));
+        }
+
+        // Simpan hasil prediksi
+        if ($nextDate && $predictedValue > 0) {
+
+            DB::table('prediction_results')->updateOrInsert(
+                [
+                    'tanggal' => $nextDate,
+                    'product_id' => 1
+                ],
+                [
+                    'predicted_sales' => $predictedValue,
+                    'updated_at' => now()
+                ]
+            );
+        }
+
+        // Ambil data Prediksi vs Real
+        $predictionComparison = DB::table('prediction_results')
+            ->select(
+                'tanggal',
+                'predicted_sales',
+                'actual_sales',
+                DB::raw('ABS(predicted_sales - actual_sales) as error')
+            )
+            ->orderBy('tanggal', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Sinkronisasi Actual Sales (AGREGASI)
+        $actualData = DB::table('penjualans')
+            ->select('tanggal', DB::raw('SUM(jumlah) as total_sales'))
+            ->groupBy('tanggal')
+            ->get();
+
+        foreach ($actualData as $row) {
+
+            DB::table('prediction_results')
+                ->where('tanggal', $row->tanggal)
+                ->update([
+                    'actual_sales' => $row->total_sales
+                ]);
+        }
 
         return view('dashboard', [
-            'prediction'      => $prediction,
-            'predictionReady' => $predictionReady,
-            'mae'             => $mae,
-            'rmse'            => $rmse,
-            'labels'          => $labels,
-            'values'          => $values,
-            'totalData'       => $totalData,
-            'nextPeriod'      => $nextPeriod,
-            'warning'         => $warning,
-            'akurasiData'     => $akurasiData,
-            'slowMovingData'  => $slowMovingData,
-            'periodeDataset'  => $periodeDataset,
+
+            'prediction' => $predictedValue,
+            'mae' => $mae,
+            'rmse' => $rmse,
+
+            'labels' => $labels,
+            'values' => $values,
+
+            'totalData' => $totalData,
+            'nextPeriod' => $nextPeriod,
+            'periodeDataset' => $periodeDataset,
+
+            'predictionComparison' => $predictionComparison
         ]);
-    }
-
-    // ── Hitung akurasi per jenis bunga ────────────────────────────
-    private function hitungAkurasi(array $flowerSales): array
-    {
-        if (empty($flowerSales) || count($flowerSales) <= 1) {
-            return [
-                ['nama' => 'Mawar',   'nilai' => 91, 'level' => 'green'],
-                ['nama' => 'Tulip',   'nilai' => 85, 'level' => 'green'],
-                ['nama' => 'Lily',    'nilai' => 82, 'level' => 'green'],
-                ['nama' => 'Krisan',  'nilai' => 78, 'level' => 'yellow'],
-                ['nama' => 'Gladiol', 'nilai' => 62, 'level' => 'red'],
-            ];
-        }
-
-        $result = [];
-        foreach ($flowerSales as $nama => $qtys) {
-            $avg          = array_sum($qtys) / count($qtys);
-            $totalDeviasi = 0;
-            foreach ($qtys as $q) {
-                $totalDeviasi += abs($q - $avg);
-            }
-            $mae     = count($qtys) > 0 ? $totalDeviasi / count($qtys) : 0;
-            $akurasi = $avg > 0 ? max(0, round(100 - ($mae / $avg * 100), 0)) : 0;
-
-            if ($akurasi >= 80)     $level = 'green';
-            elseif ($akurasi >= 60) $level = 'yellow';
-            else                    $level = 'red';
-
-            $result[] = ['nama' => $nama, 'nilai' => (int) $akurasi, 'level' => $level];
-        }
-
-        usort($result, fn($a, $b) => $b['nilai'] - $a['nilai']);
-        return array_slice($result, 0, 5);
-    }
-
-    // ── Deteksi slow-moving bunga ─────────────────────────────────
-    private function deteksiSlowMoving(array $flowerSales): array
-    {
-        if (empty($flowerSales) || count($flowerSales) <= 1) {
-            return [
-                ['nama' => 'Gladiol ungu',  'rate' => 'Rata-rata 2 tangkai/minggu', 'persen' => 20,  'level' => 'red',   'label' => 'Sangat lambat'],
-                ['nama' => 'Anggrek putih', 'rate' => 'Rata-rata 5 tangkai/minggu', 'persen' => 50,  'level' => 'amber', 'label' => 'Lambat'],
-                ['nama' => 'Dahlia merah',  'rate' => 'Rata-rata 7 tangkai/minggu', 'persen' => 70,  'level' => 'amber', 'label' => 'Lambat'],
-            ];
-        }
-
-        $avgs = [];
-        foreach ($flowerSales as $nama => $qtys) {
-            $avgs[$nama] = count($qtys) > 0 ? array_sum($qtys) / count($qtys) : 0;
-        }
-
-        asort($avgs);
-        $maxAvg = max($avgs) ?: 1;
-        $result = [];
-        $count  = 0;
-
-        foreach ($avgs as $nama => $avg) {
-            if ($count >= 3) break;
-
-            $avgRounded = round($avg, 1);
-            $persen     = (int) round(($avg / $maxAvg) * 100);
-            $level      = $persen <= 30 ? 'red' : 'amber';
-            $label      = $persen <= 30 ? 'Sangat lambat' : 'Lambat';
-
-            $result[] = [
-                'nama'   => $nama,
-                'rate'   => "Rata-rata {$avgRounded} tangkai/minggu",
-                'persen' => $persen,
-                'level'  => $level,
-                'label'  => $label,
-            ];
-            $count++;
-        }
-
-        return $result;
     }
 }

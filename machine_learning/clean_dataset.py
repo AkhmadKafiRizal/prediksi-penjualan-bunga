@@ -2,38 +2,50 @@ import pandas as pd
 
 print("Memulai proses cleaning dataset...")
 
-# membaca dataset baru
-df = pd.read_csv('machine_learning/flowershopdata.csv')
+df = pd.read_csv("machine_learning/retail_sales.csv")
 
-# tampilkan jumlah data awal
 print("Jumlah data awal:", len(df))
+print("Kolom dataset:", df.columns)
 
-# hapus data duplikat
-df = df.drop_duplicates()
+df.columns = df.columns.str.lower()
 
-print("Jumlah data setelah hapus duplikat:", len(df))
+df = df.dropna()
 
-# ambil kolom yang dibutuhkan
-df = df[['Name', 'Date']]
+df = df[df["sales"] > 0]
+df = df[df["price"] > 0]
 
-# ubah Date ke datetime
-df['Date'] = pd.to_datetime(df['Date'], format='mixed', dayfirst=True, errors='coerce')
+print("Jumlah data setelah cleaning:", len(df))
 
-# hapus tanggal yang tidak valid
-df = df.dropna(subset=['Date'])
+df["date"] = pd.to_datetime(df["date"])
 
-# ambil bulan dan tahun
-df['bulan'] = df['Date'].dt.month
-df['tahun'] = df['Date'].dt.year
+df_agg = df.groupby(["date", "item_id"]).agg({
+    "sales": "sum",
+    "price": "mean",
+    "promo": "max"
+}).reset_index()
 
-# hitung jumlah transaksi per bulan
-sales = df.groupby(['tahun', 'bulan']).size().reset_index(name='jumlah_penjualan')
+print("Jumlah data setelah agregasi:", len(df_agg))
 
-print("Hasil agregasi:")
-print(sales)
+# ubah item_1 -> 1
+df_agg["product_id"] = df_agg["item_id"].str.replace("item_", "").astype(int)
 
-# simpan dataset baru
-sales.to_csv('machine_learning/cleaned_flower_sales_dataset.csv', index=False)
+df_agg = df_agg.rename(columns={
+    "date": "tanggal",
+    "sales": "jumlah",
+    "price": "harga"
+})
 
-print("Cleaning selesai.")
-print("File baru dibuat: cleaned_flower_sales_dataset.csv")
+df_final = df_agg[
+    ["product_id", "tanggal", "jumlah", "harga", "promo"]
+]
+
+# simpan CSV yang bersih untuk MySQL
+df_final.to_csv(
+    "machine_learning/cleaned_flower_sales_dataset.csv",
+    index=False,
+    sep=",",
+    encoding="utf-8"
+)
+
+print("Cleaning selesai!")
+print("Total data akhir:", len(df_final))
