@@ -1,364 +1,330 @@
 <x-app-layout>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,700;1,600&display=swap');
+/* ── Base ── */
+.fp-eyebrow {
+    font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: #e85d75; margin-bottom: 0.25rem;
+}
+.fp-title { font-size: 1.7rem; font-weight: 700; color: #1a1a2e; }
+.fp-header { margin-bottom: 1.75rem; }
+.fp-inner { max-width: 1100px; margin: 0 auto; }
 
-.db-wrap * { font-family: 'Plus Jakarta Sans', sans-serif; }
-
-.db-wrap {
-    max-width: 1160px;
-    margin: 0 auto;
-    padding: 2.5rem 1.5rem 5rem;
+/* ── Alert banner ── */
+.fp-alert-banner {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.85rem 1.1rem; border-radius: 12px;
+    font-size: 0.84rem; font-weight: 500; margin-bottom: 1.5rem;
+}
+.fp-alert-warn {
+    background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412;
+}
+.fp-alert-info {
+    background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;
+}
+.fp-alert-none {
+    background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;
 }
 
-/* ══ HERO ══ */
-.db-hero {
-    position: relative;
-    background: linear-gradient(135deg, #1a0a10 0%, #3d0f20 55%, #1a0a10 100%);
-    border-radius: 24px;
-    padding: 2.5rem 2.5rem;
-    margin-bottom: 1.5rem;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-}
-
-.db-hero::before {
-    content: '🌸';
-    position: absolute;
-    font-size: 180px;
-    right: -10px; bottom: -40px;
-    opacity: 0.06;
-    transform: rotate(-15deg);
-    pointer-events: none;
-}
-
-.db-hero::after {
-    content: '';
-    position: absolute;
-    top: -80px; left: -60px;
-    width: 260px; height: 260px;
-    background: radial-gradient(circle, rgba(244,63,94,0.2), transparent 70%);
-    pointer-events: none;
-}
-
-.db-hero-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: rgba(244,63,94,0.2);
-    border: 1px solid rgba(244,63,94,0.35);
-    border-radius: 99px;
-    padding: 0.28rem 0.9rem;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #fda4af;
-    margin-bottom: 1rem;
-}
-
-.db-hero-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.95rem;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1.2;
-    margin-bottom: 0.5rem;
-}
-
-.db-hero-sub {
-    font-size: 0.85rem;
-    color: rgba(255,255,255,0.45);
-}
-
-.db-hero-box {
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 18px;
-    padding: 1.4rem 2rem;
-    text-align: center;
-    backdrop-filter: blur(8px);
-    min-width: 200px;
-}
-
-.db-hero-box .hb-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #fda4af;
-    margin-bottom: 0.4rem;
-}
-
-.db-hero-box .hb-value {
-    font-family: 'DM Mono', monospace;
-    font-size: 2.8rem;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1;
-    margin-bottom: 0.3rem;
-}
-
-.db-hero-box .hb-sub {
-    font-size: 0.73rem;
-    color: rgba(255,255,255,0.4);
-}
-
-/* ══ STAT CARDS ══ */
-.db-stats {
+/* ── KPI Grid ── */
+.dash-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 14px;
+    margin-bottom: 20px;
 }
-
-.db-stat {
+.dash-card {
     background: #fff;
-    border-radius: 18px;
-    border: 1px solid #f5e8eb;
-    padding: 1.4rem 1.5rem;
-    box-shadow: 0 4px 20px rgba(244,63,94,0.06);
-    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #ece8f0;
+    box-shadow: 0 2px 12px rgba(232,93,117,0.06);
     position: relative;
     overflow: hidden;
 }
-
-.db-stat:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 14px 36px rgba(244,63,94,0.13);
+.dash-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #e85d75, #f4a0b0);
+    border-radius: 16px 16px 0 0;
 }
-
-.db-stat-icon {
-    width: 42px; height: 42px;
-    border-radius: 13px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    margin-bottom: 1rem;
+.dash-card small {
+    font-size: 0.7rem; color: #a1a1b5;
+    text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;
 }
-
-.ic-pink  { background: #fff1f2; }
-.ic-blue  { background: #eff6ff; }
-.ic-green { background: #ecfdf5; }
-
-.db-stat-label {
-    font-size: 0.67rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #a8a29e;
-    margin-bottom: 0.4rem;
-}
-
-.db-stat-value {
+.dash-card h2 {
+    font-size: 2rem; margin: 8px 0 0;
     font-family: 'DM Mono', monospace;
-    font-size: 2.1rem;
-    font-weight: 700;
-    line-height: 1;
-    margin-bottom: 0.55rem;
+    color: #1a1a2e; font-weight: 500;
+}
+.dash-card h2.rose { color: #e85d75; }
+.dash-card-sub {
+    font-size: 0.72rem; color: #a1a1b5; margin-top: 4px;
 }
 
-.v-rose  { color: #e11d48; }
-.v-blue  { color: #2563eb; }
-.v-green { color: #059669; }
-
-.db-stat-meta {
-    display: flex; align-items: center; gap: 0.4rem;
-    font-size: 0.77rem; color: #a8a29e;
-}
-
-.db-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-.d-rose  { background: #f43f5e; }
-.d-blue  { background: #3b82f6; }
-.d-green { background: #10b981; }
-
-/* ══ BOTTOM GRID ══ */
-.db-bottom {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 1.25rem;
-    align-items: start;
-}
-
-/* metrics */
-.db-metrics {
+/* ── Box ── */
+.dash-box {
     background: #fff;
-    border-radius: 18px;
-    border: 1px solid #f5e8eb;
-    box-shadow: 0 4px 20px rgba(244,63,94,0.06);
-    padding: 1.5rem;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #ece8f0;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(232,93,117,0.06);
 }
-
-.db-panel-head { margin-bottom: 1.25rem; }
-.db-panel-title { font-size: 0.95rem; font-weight: 700; color: #1c1917; margin-bottom: 0.2rem; }
-.db-panel-sub   { font-size: 0.77rem; color: #a8a29e; }
-
-.db-metric-row {
-    background: #faf7f5;
-    border: 1px solid #f0e8ec;
-    border-radius: 12px;
-    padding: 1rem 1.15rem;
-    display: flex;
-    align-items: center;
+.dash-box-header {
+    display: flex; align-items: center;
     justify-content: space-between;
-    margin-bottom: 0.75rem;
+    margin-bottom: 16px;
 }
-.db-metric-row:last-of-type { margin-bottom: 1.25rem; }
-
-.db-metric-name { font-size: 0.84rem; font-weight: 600; color: #44403c; }
-.db-metric-desc { font-size: 0.71rem; color: #a8a29e; margin-top: 1px; }
-.db-metric-val  {
-    font-family: 'DM Mono', monospace;
-    font-size: 1.55rem;
-    font-weight: 700;
-    color: #1c1917;
+.dash-box-title {
+    font-size: 0.875rem; font-weight: 700; color: #1a1a2e;
+}
+.dash-box-sub {
+    font-size: 0.72rem; color: #a1a1b5; margin-top: 2px;
 }
 
-.db-period-strip {
-    border-top: 1px solid #f5ece8;
-    padding-top: 1.1rem;
-    display: flex; align-items: center; gap: 0.6rem;
+/* ── Prediction belum jalan ── */
+.fp-prediction-empty {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 2.5rem 1rem; text-align: center;
+    color: #c0bbd0;
+}
+.fp-prediction-empty svg { margin-bottom: 0.75rem; }
+.fp-prediction-empty p { font-size: 0.84rem; }
+.fp-prediction-empty span { font-size: 0.75rem; color: #d0bbd0; margin-top: 0.3rem; display: block; }
+
+/* ── Two col ── */
+.dash-two-col {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
 }
 
-.db-period-lbl { font-size: 0.72rem; color: #a8a29e; }
-.db-period-val {
-    background: #fff1f2;
-    color: #be123c;
-    border-radius: 8px;
-    padding: 0.22rem 0.6rem;
-    font-size: 0.77rem;
-    font-weight: 700;
-    font-family: 'DM Mono', monospace;
+/* ── Akurasi bar ── */
+.acc-row {
+    display: flex; align-items: center;
+    margin-bottom: 12px; font-size: 0.8rem; color: #4a4a6a;
 }
+.acc-label { min-width: 90px; font-weight: 500; }
+.bar-bg {
+    flex: 1; height: 7px;
+    background: #f1eef3; margin: 0 10px; border-radius: 5px;
+}
+.bar { height: 100%; border-radius: 5px; transition: width 0.6s ease; }
+.green  { background: linear-gradient(90deg, #22c55e, #4ade80); }
+.yellow { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.red    { background: linear-gradient(90deg, #ef4444, #f87171); }
+.acc-val { font-size: 0.75rem; font-weight: 700; min-width: 34px; text-align: right; }
+.acc-val.green  { color: #16a34a; }
+.acc-val.yellow { color: #d97706; }
+.acc-val.red    { color: #dc2626; }
 
-/* chart */
-.db-chart {
-    background: #fff;
-    border-radius: 18px;
-    border: 1px solid #f5e8eb;
-    box-shadow: 0 4px 20px rgba(244,63,94,0.06);
-    padding: 1.5rem;
+/* ── Slow moving ── */
+.slow-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; background: #fdf5f7;
+    border-radius: 10px; margin-bottom: 8px;
+    border: 1px solid #f9e4e9;
 }
+.slow-name { font-size: 0.84rem; font-weight: 600; color: #1a1a2e; flex: 1; }
+.slow-rate { font-size: 0.72rem; color: #9090aa; }
+.slow-badge {
+    font-size: 0.68rem; font-weight: 700; padding: 3px 8px;
+    border-radius: 20px; white-space: nowrap;
+}
+.badge-red    { background: #fee2e2; color: #991b1b; }
+.badge-amber  { background: #fff7ed; color: #92400e; }
 
-.db-chart-head {
-    display: flex; align-items: flex-start; justify-content: space-between;
-    margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;
+/* ── Stats row ── */
+.stats-row {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 10px; margin-top: 12px;
 }
+.stat-item {
+    background: #fdf5f7; border-radius: 10px;
+    padding: 12px 14px; border: 1px solid #f9e4e9;
+}
+.stat-label { font-size: 0.7rem; color: #a1a1b5; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-val   { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; font-family: 'DM Mono', monospace; margin-top: 4px; }
+.stat-val.rose { color: #e85d75; }
 
-.db-chart-badge {
-    display: inline-flex; align-items: center; gap: 0.35rem;
-    background: #fff1f2; color: #be123c;
-    border-radius: 99px; padding: 0.3rem 0.85rem;
-    font-size: 0.71rem; font-weight: 700;
-}
-.db-chart-badge::before {
-    content: ''; width: 6px; height: 6px;
-    border-radius: 50%; background: #f43f5e;
-}
-
-/* ══ RESPONSIVE ══ */
-@media (max-width: 900px) { .db-bottom { grid-template-columns: 1fr; } }
-@media (max-width: 640px) {
-    .db-stats { grid-template-columns: 1fr; }
-    .db-hero  { padding: 1.75rem 1.25rem; }
-    .db-hero-title { font-size: 1.5rem; }
-}
+canvas { max-height: 200px; }
 </style>
 
-<div class="db-wrap">
+<div class="fp-inner">
 
-    {{-- ── HERO ── --}}
-    <div class="db-hero">
-        <div>
-            <div class="db-hero-eyebrow">🌸 FloraPredict · Ringkasan Sistem</div>
-            <h1 class="db-hero-title">Sistem Prediksi<br>Penjualan Bunga</h1>
-            <p class="db-hero-sub">Selamat datang kembali — berikut ringkasan data dan prediksi terkini.</p>
+    {{-- Header --}}
+    <div class="fp-header">
+        <div class="fp-eyebrow">FloraPredict</div>
+        <h1 class="fp-title">Dashboard</h1>
+    </div>
+
+    {{-- Alert Banner — hanya muncul jika ada warning --}}
+    @if(isset($warning) && $warning)
+        <div class="fp-alert-banner fp-alert-warn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="flex-shrink:0">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+            </svg>
+            {{ $warning }}
         </div>
+    @elseif($predictionReady)
+        <div class="fp-alert-banner fp-alert-none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="flex-shrink:0">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Model prediksi aktif — hasil tersedia untuk periode ke-{{ $nextPeriod }}
+        </div>
+    @else
+        <div class="fp-alert-banner fp-alert-info">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="flex-shrink:0">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
+            </svg>
+            Prediksi belum dijalankan — jalankan model untuk melihat hasil prediksi stok
+        </div>
+    @endif
 
-        <div class="db-hero-box">
-            <div class="hb-label">Prediksi Bulan Berikutnya</div>
-            <div class="hb-value">{{ number_format($prediction) }}</div>
-            <div class="hb-sub">bunga · bulan ke-{{ $nextPeriod }}</div>
+    {{-- KPI Cards --}}
+    <div class="dash-grid">
+        <div class="dash-card">
+            <small>Total Data</small>
+            <h2>{{ $totalData }}</h2>
+            <div class="dash-card-sub">baris dataset tersedia</div>
+        </div>
+        <div class="dash-card">
+            <small>Hasil Prediksi</small>
+            @if($predictionReady)
+                <h2 class="rose">{{ number_format($prediction) }}</h2>
+                <div class="dash-card-sub">prediksi periode ke-{{ $nextPeriod }}</div>
+            @else
+                <h2 class="rose" style="font-size:1.1rem;margin-top:12px;color:#c0bbd0">Belum ada</h2>
+                <div class="dash-card-sub">model belum dijalankan</div>
+            @endif
+        </div>
+        <div class="dash-card">
+            <small>Periode</small>
+            <h2>ke-{{ $nextPeriod }}</h2>
+            <div class="dash-card-sub">periode prediksi berikutnya</div>
         </div>
     </div>
 
-    {{-- ── STAT CARDS ── --}}
-    <div class="db-stats">
+    {{-- Chart + Akurasi --}}
+    <div class="dash-two-col">
 
-        <div class="db-stat">
-            <div class="db-stat-icon ic-pink">💐</div>
-            <div class="db-stat-label">Total Data Dataset</div>
-            <div class="db-stat-value v-rose">{{ $totalData }}</div>
-            <div class="db-stat-meta">
-                <span class="db-dot d-rose"></span> Periode: {{ $periodeDataset }}
+        {{-- Grafik Penjualan --}}
+        <div class="dash-box">
+            <div class="dash-box-header">
+                <div>
+                    <div class="dash-box-title">Grafik Penjualan</div>
+                    <div class="dash-box-sub">Tren quantity ordered per periode</div>
+                </div>
             </div>
+            @if($totalData > 0)
+                <canvas id="chart"></canvas>
+            @else
+                <div class="fp-prediction-empty">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+                    </svg>
+                    <p>Belum ada data grafik</p>
+                    <span>Upload dataset terlebih dahulu</span>
+                </div>
+            @endif
         </div>
 
-        <div class="db-stat">
-            <div class="db-stat-icon ic-blue">📈</div>
-            <div class="db-stat-label">Prediksi Qty</div>
-            <div class="db-stat-value v-blue">{{ number_format($prediction) }}</div>
-            <div class="db-stat-meta">
-                <span class="db-dot d-blue"></span> Hasil model ML
+        {{-- Akurasi per Periode --}}
+        <div class="dash-box">
+            <div class="dash-box-header">
+                <div>
+                    <div class="dash-box-title">Akurasi per Periode</div>
+                    <div class="dash-box-sub">Konsistensi data penjualan</div>
+                </div>
             </div>
-        </div>
-
-        <div class="db-stat">
-            <div class="db-stat-icon ic-green">🎯</div>
-            <div class="db-stat-label">Periode Prediksi</div>
-            <div class="db-stat-value v-green">ke-{{ $nextPeriod }}</div>
-            <div class="db-stat-meta">
-                <span class="db-dot d-green"></span> dari total {{ $totalData }} data
+            @forelse($akurasiData ?? [] as $item)
+            <div class="acc-row">
+                <span class="acc-label">{{ $item['nama'] }}</span>
+                <div class="bar-bg">
+                    <div class="bar {{ $item['level'] }}" style="width:{{ $item['nilai'] }}%"></div>
+                </div>
+                <span class="acc-val {{ $item['level'] }}">{{ $item['nilai'] }}%</span>
             </div>
+            @empty
+            <div class="fp-prediction-empty">
+                <p>Tidak ada data akurasi</p>
+                <span>Upload dataset terlebih dahulu</span>
+            </div>
+            @endforelse
         </div>
 
     </div>
 
-    {{-- ── METRICS + CHART ── --}}
-    <div class="db-bottom">
+    {{-- MAE/RMSE + Slow Moving --}}
+    <div class="dash-two-col">
 
-        {{-- Evaluasi model --}}
-        <div class="db-metrics">
-            <div class="db-panel-head">
-                <div class="db-panel-title">Evaluasi Model ML</div>
-                <div class="db-panel-sub">Performa berdasarkan data historis</div>
-            </div>
-
-            <div class="db-metric-row">
+        {{-- Statistik Model --}}
+        <div class="dash-box">
+            <div class="dash-box-header">
                 <div>
-                    <div class="db-metric-name">MAE</div>
-                    <div class="db-metric-desc">Mean Absolute Error</div>
+                    <div class="dash-box-title">Statistik Model</div>
+                    <div class="dash-box-sub">Error rate hasil prediksi terakhir</div>
                 </div>
-                <div class="db-metric-val">{{ $mae }}</div>
             </div>
-
-            <div class="db-metric-row">
-                <div>
-                    <div class="db-metric-name">RMSE</div>
-                    <div class="db-metric-desc">Root Mean Square Error</div>
+            @if($predictionReady)
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-label">MAE</div>
+                        <div class="stat-val rose">{{ number_format($mae, 2) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">RMSE</div>
+                        <div class="stat-val rose">{{ number_format($rmse, 2) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Total Data</div>
+                        <div class="stat-val">{{ $totalData }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Periode Prediksi</div>
+                        <div class="stat-val">ke-{{ $nextPeriod }}</div>
+                    </div>
                 </div>
-                <div class="db-metric-val">{{ $rmse }}</div>
-            </div>
-
-            <div class="db-period-strip">
-                <span class="db-period-lbl">Periode aktif:</span>
-                <span class="db-period-val">{{ $periodeDataset }}</span>
-            </div>
+            @else
+                <div class="fp-prediction-empty">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/>
+                    </svg>
+                    <p>Model belum dijalankan</p>
+                    <span>MAE dan RMSE akan muncul setelah prediksi dijalankan</span>
+                </div>
+            @endif
         </div>
 
-        {{-- Grafik --}}
-        <div class="db-chart">
-            <div class="db-chart-head">
+        {{-- Slow Moving --}}
+        <div class="dash-box">
+            <div class="dash-box-header">
                 <div>
-                    <div class="db-panel-title">Grafik Penjualan Historis</div>
-                    <div class="db-panel-sub">Tren penjualan bunga dari data historis</div>
+                    <div class="dash-box-title">Slow-Moving Bunga</div>
+                    <div class="dash-box-sub">Bunga dengan penjualan paling lambat</div>
                 </div>
-                <span class="db-chart-badge">{{ $totalData }} data</span>
             </div>
-            <canvas id="salesChart" height="95"></canvas>
+            @forelse($slowMovingData ?? [] as $item)
+            <div class="slow-item">
+                <div style="flex:1">
+                    <div class="slow-name">{{ $item['nama'] }}</div>
+                    <div class="slow-rate">{{ $item['rate'] }}</div>
+                </div>
+                <span class="slow-badge badge-{{ $item['level'] }}">{{ $item['label'] }}</span>
+            </div>
+            @empty
+            <div class="fp-prediction-empty">
+                <p>Tidak ada data slow-moving</p>
+                <span>Upload dataset terlebih dahulu</span>
+            </div>
+            @endforelse
         </div>
 
     </div>
@@ -367,80 +333,40 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const labels = @json($labels);
-const values = @json($values);
+const labels = @json($labels ?? []);
+const values = @json($values ?? []);
 
-const ctx = document.getElementById('salesChart').getContext('2d');
-
-const grad = ctx.createLinearGradient(0, 0, 0, 360);
-grad.addColorStop(0,   'rgba(244,63,94,0.16)');
-grad.addColorStop(0.65,'rgba(244,63,94,0.03)');
-grad.addColorStop(1,   'rgba(244,63,94,0)');
-
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels,
-        datasets: [{
-            label: 'Penjualan Bunga',
-            data: values,
-            borderColor: '#f43f5e',
-            backgroundColor: grad,
-            borderWidth: 2.5,
-            pointBackgroundColor: '#f43f5e',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2.5,
-            pointRadius: 5,
-            pointHoverRadius: 8,
-            pointHoverBackgroundColor: '#be123c',
-            tension: 0.45,
-            fill: true,
-        }]
-    },
-    options: {
-        responsive: true,
-        interaction: { intersect: false, mode: 'index' },
-        plugins: {
-            legend: {
-                labels: {
-                    font: { family: 'Plus Jakarta Sans', size: 12, weight: '600' },
-                    color: '#78716c',
-                    usePointStyle: true,
-                    pointStyleWidth: 8,
-                }
-            },
-            tooltip: {
-                backgroundColor: '#1c1917',
-                titleColor: '#fda4af',
-                bodyColor: '#e7e5e4',
-                padding: 12,
-                cornerRadius: 10,
-                borderColor: 'rgba(244,63,94,0.25)',
-                borderWidth: 1,
-                titleFont: { family: 'Plus Jakarta Sans', weight: '700', size: 12 },
-                bodyFont:  { family: 'DM Mono', size: 13 },
-                callbacks: {
-                    label: c => '  ' + Number(c.parsed.y).toLocaleString('id-ID')
-                }
-            }
+if (document.getElementById('chart') && values.length > 0) {
+    new Chart(document.getElementById('chart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                borderColor: '#e85d75',
+                borderWidth: 2,
+                tension: 0.4,
+                pointRadius: 3,
+                pointBackgroundColor: '#e85d75',
+                backgroundColor: 'rgba(232,93,117,0.05)',
+                fill: true
+            }]
         },
-        scales: {
-            y: {
-                beginAtZero: false,
-                grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
-                ticks: {
-                    color: '#a8a29e',
-                    font: { family: 'DM Mono', size: 11 },
-                    callback: v => Number(v).toLocaleString('id-ID')
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    grid: { color: '#f1eef3' },
+                    ticks: { font: { family: 'DM Mono', size: 11 }, color: '#a1a1b5' }
+                },
+                x: {
+                    grid: { color: '#f1eef3' },
+                    ticks: { font: { family: 'DM Mono', size: 11 }, color: '#a1a1b5' }
                 }
-            },
-            x: {
-                grid: { display: false },
-                ticks: { color: '#a8a29e', font: { family: 'Plus Jakarta Sans', size: 11 } }
             }
         }
-    }
-});
+    });
+}
 </script>
 
 </x-app-layout>
