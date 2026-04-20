@@ -8,7 +8,11 @@ class PredictionController extends Controller
 {
     public function index()
     {
-        // jalankan python
+
+        // ==============================
+        // Jalankan Python Script
+        // ==============================
+
         $script = base_path('machine_learning/prediction.py');
         $command = "python " . $script;
         $output = shell_exec($command);
@@ -16,27 +20,57 @@ class PredictionController extends Controller
         $data = json_decode($output, true);
 
         // ==============================
-        // Membaca dataset dari database
+        // Hitung Total Prediksi
+        // ==============================
+
+        $totalPrediction = 0;
+        $mae = 0;
+        $rmse = 0;
+
+        if (is_array($data)) {
+
+            foreach ($data as $item) {
+
+                $totalPrediction += $item['prediction'] ?? 0;
+
+                $mae = $item['mae'] ?? 0;
+                $rmse = $item['rmse'] ?? 0;
+            }
+        }
+
+        $predictedValue = $totalPrediction;
+
+        // ==============================
+        // Dataset FULL untuk statistik
         // ==============================
 
         $dataset = DB::table('penjualans')
-            ->orderBy('tahun')
-            ->orderBy('bulan')
+            ->orderBy('tanggal')
+            ->get();
+
+        // ==============================
+        // Dataset TERBATAS untuk grafik
+        // ==============================
+
+        $chartDataset = DB::table('penjualans')
+            ->orderBy('tanggal')
+            ->limit(200)
             ->get();
 
         $labels = [];
         $values = [];
 
-        foreach ($dataset as $row) {
+        foreach ($chartDataset as $row) {
+
             $labels[] = count($labels) + 1;
-            $values[] = (int) $row->jumlah_penjualan;
+            $values[] = (int) $row->jumlah;
         }
 
         // ==============================
         // Statistik Dataset
         // ==============================
 
-        $totalData = count($values);
+        $totalData = $dataset->count();
         $nextPeriod = $totalData + 1;
 
         // ==============================
@@ -46,46 +80,100 @@ class PredictionController extends Controller
         $first = $dataset->first();
         $last = $dataset->last();
 
-        function formatBulanIndonesia($tahun, $bulan)
-        {
-            $namaBulan = [
-                1 => 'Januari',
-                2 => 'Februari',
-                3 => 'Maret',
-                4 => 'April',
-                5 => 'Mei',
-                6 => 'Juni',
-                7 => 'Juli',
-                8 => 'Agustus',
-                9 => 'September',
-                10 => 'Oktober',
-                11 => 'November',
-                12 => 'Desember'
-            ];
-
-            return $namaBulan[(int)$bulan] . ' ' . $tahun;
-        }
-
         $periodeDataset = '';
 
         if ($first && $last) {
+
+            $firstDate = strtotime($first->tanggal);
+            $lastDate = strtotime($last->tanggal);
+
             $periodeDataset =
-                formatBulanIndonesia($first->tahun, $first->bulan)
+                date('F Y', $firstDate)
                 . ' – ' .
-                formatBulanIndonesia($last->tahun, $last->bulan);
+                date('F Y', $lastDate);
         }
 
+        // ==============================
+        // Tentukan tanggal prediksi berikutnya
+        // ==============================
+
+        $nextDate = null;
+
+        if ($last) {
+
+            $lastDate = strtotime($last->tanggal);
+            $nextDate = date('Y-m-d', strtotime('+1 month', $lastDate));
+        }
+
+        // ==============================
+        // Simpan hasil prediksi
+        // ==============================
+
+        if ($nextDate && $predictedValue > 0) {
+
+            DB::table('prediction_results')->updateOrInsert(
+                [
+                    'tanggal' => $nextDate,
+                    'product_id' => 1
+                ],
+                [
+                    'predicted_sales' => $predictedValue,
+                    'updated_at' => now()
+                ]
+            );
+        }
+
+        // ==============================
+        // Ambil data Prediksi vs Real
+        // ==============================
+
+        $predictionComparison = DB::table('prediction_results')
+            ->select(
+                'tanggal',
+                'predicted_sales',
+                'actual_sales',
+                DB::raw('ABS(predicted_sales - actual_sales) as error')
+            )
+            ->orderBy('tanggal', 'desc')
+            ->limit(10)
+            ->get();
+
+        // ==============================
+        // Sinkronisasi Actual Sales
+        // ==============================
+
+        $actualData = DB::table('penjualans')
+            ->select('tanggal', DB::raw('SUM(jumlah) as total_sales'))
+            ->groupBy('tanggal')
+            ->get();
+
+        foreach ($actualData as $row) {
+
+            DB::table('prediction_results')
+                ->where('tanggal', $row->tanggal)
+                ->update([
+                    'actual_sales' => $row->total_sales
+                ]);
+        }
+
+        // ==============================
+        // Return ke Dashboard
+        // ==============================
+
         return view('dashboard', [
-            'prediction' => $data['prediction'] ?? 0,
-            'mae' => $data['mae'] ?? 0,
-            'rmse' => $data['rmse'] ?? 0,
+
+            'prediction' => $predictedValue,
+            'mae' => $mae,
+            'rmse' => $rmse,
+
             'labels' => $labels,
             'values' => $values,
 
             'totalData' => $totalData,
             'nextPeriod' => $nextPeriod,
+            'periodeDataset' => $periodeDataset,
 
-            'periodeDataset' => $periodeDataset
+            'predictionComparison' => $predictionComparison
         ]);
     }
 }

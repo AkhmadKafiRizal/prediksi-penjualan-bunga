@@ -1,25 +1,18 @@
 import pandas as pd
-import os
 import json
-import pymysql
-
-# import matplotlib.pyplot as plt 
-# INI YANG DIHAPUS YA HAPUS KARENA SUDAH PAKAI CHART.JS
+from sqlalchemy import create_engine
 
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 
 # ====================================
-# 1. Menentukan koneksi database
+# 1. Koneksi database (SQLAlchemy)
 # ====================================
 
 try:
-    connection = pymysql.connect(
-        host="127.0.0.1",
-        user="root",
-        password="",
-        database="prediksi_bunga"
+    engine = create_engine(
+        "mysql+pymysql://root:@localhost/prediksi_bunga"
     )
 except Exception:
     print(json.dumps({
@@ -30,24 +23,18 @@ except Exception:
     exit()
 
 # ====================================
-# 2. Membaca dataset dari database
+# 2. Ambil data dari database
 # ====================================
 
 try:
+
     query = """
-    SELECT bulan, tahun, jumlah_penjualan
+    SELECT product_id, tanggal, jumlah, harga, promo
     FROM penjualans
-    ORDER BY tahun, bulan
+    ORDER BY tanggal
     """
-    
-    data = pd.read_sql(query, connection)
 
-    connection.close()
-
-    # menyesuaikan nama kolom agar kode lama tetap berjalan
-    data.rename(columns={
-        "jumlah_penjualan": "QUANTITYORDERED"
-    }, inplace=True)
+    data = pd.read_sql(query, engine)
 
 except Exception:
     print(json.dumps({
@@ -58,10 +45,10 @@ except Exception:
     exit()
 
 # ====================================
-# 3. Validasi kolom
+# 3. Validasi data
 # ====================================
 
-if "QUANTITYORDERED" not in data.columns:
+if len(data) < 10:
     print(json.dumps({
         "prediction": 0,
         "mae": 0,
@@ -70,96 +57,246 @@ if "QUANTITYORDERED" not in data.columns:
     exit()
 
 # ====================================
-# 4. Membuat variabel waktu
+# 4. Feature engineering dari tanggal
 # ====================================
 
-data["X"] = range(1, len(data) + 1)
+data["tanggal"] = pd.to_datetime(data["tanggal"])
 
-X = data[["X"]]
-Y = data["QUANTITYORDERED"]
-
-# ====================================
-# 5. Membagi data training dan testing
-# ====================================
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, Y,
-    test_size=0.2,
-    shuffle=False
-)
+data["weekday"] = data["tanggal"].dt.weekday
+data["month"] = data["tanggal"].dt.month
 
 # ====================================
-# 6. Training model
+# 5. Ambil semua produk
 # ====================================
 
-model = LinearRegression()
-model.fit(X_train, y_train)
+product_ids = data["product_id"].unique()
+
+results = []
 
 # ====================================
-# 7. Prediksi data test
+# 6. Loop model per produk
 # ====================================
 
-y_pred = model.predict(X_test)
+for pid in product_ids:
 
-# ====================================
-# 8. Evaluasi model
-# ====================================
+    df = data[data["product_id"] == pid]
 
-mae = mean_absolute_error(y_test, y_pred)
-rmse = mean_squared_error(y_test, y_pred) ** 0.5
+    if len(df) < 10:
+        continue
 
-# ====================================
-# 9. Prediksi bulan berikutnya
-# ====================================
+    X = df[["harga", "promo", "weekday", "month"]]
+    Y = df["jumlah"]
 
-next_month = len(data) + 1
+    # ====================================
+    # 7. Split data training & testing
+    # ====================================
 
-next_data = pd.DataFrame({
-    "X": [next_month]
-})
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        Y,
+        test_size=0.2,
+        shuffle=False
+    )
 
-prediction = model.predict(next_data)
-prediction_value = int(prediction[0])
+    # ====================================
+    # 8. Training model
+    # ====================================
 
-# ====================================
-# 10. Membuat grafik
-# ====================================
+    model = LinearRegression()
+    model.fit(X_train, y_train)
 
-# plt.figure()
-# plt.plot(X, Y)
-# plt.plot(X_test, y_pred)
-# plt.scatter(next_month, prediction_value)
-# plt.title("Grafik Prediksi Penjualan Bunga")
-# plt.xlabel("Periode")
-# plt.ylabel("Jumlah Penjualan")
-# plt.legend()
+    # ====================================
+    # 9. Prediksi data test
+    # ====================================
 
-# INI YANG DIHAPUS YA HAPUS KARENA SUDAH PAKAI CHART.JS
+    y_pred = model.predict(X_test)
 
-# ====================================
-# 11. Simpan grafik PNG
-# ====================================
+    # ====================================
+    # 10. Evaluasi model
+    # ====================================
 
-# graph_path = os.path.join(
-#     BASE_DIR,
-#     "..",
-#     "public",
-#     "prediction_graph.png"
-# )
+    mae = mean_absolute_error(y_test, y_pred)
+    rmse = mean_squared_error(y_test, y_pred) ** 0.5
 
-# plt.savefig(graph_path)
-# plt.close()
+    # ====================================
+    # 11. Prediksi periode berikutnya
+    # ====================================
 
-# INI YANG DIHAPUS YA HAPUS KARENA SUDAH PAKAI CHART.JS
+    last_row = df.iloc[-1]
+
+    next_data = pd.DataFrame({
+        "harga": [last_row["harga"]],
+        "promo": [last_row["promo"]],
+        "weekday": [last_row["weekday"]],
+        "month": [last_row["month"]]
+    })
+
+    prediction = model.predict(next_data)
+    prediction_value = int(prediction[0])
+
+    results.append({
+        "product_id": int(pid),
+        "prediction": prediction_value,
+        "mae": round(mae, 2),
+        "rmse": round(rmse, 2)
+    })
 
 # ====================================
 # 12. Output JSON untuk Laravel
 # ====================================
 
-result = {
-    "prediction": prediction_value,
-    "mae": round(mae, 2),
-    "rmse": round(rmse, 2)
-}
+print(json.dumps(results, indent=4))import pandas as pd
+import json
+from sqlalchemy import create_engine
 
-print(json.dumps(result))
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.model_selection import train_test_split
+
+# ====================================
+# 1. Koneksi database (SQLAlchemy)
+# ====================================
+
+try:
+    engine = create_engine(
+        "mysql+pymysql://root:@localhost/prediksi_bunga"
+    )
+except Exception:
+    print(json.dumps({
+        "prediction": 0,
+        "mae": 0,
+        "rmse": 0
+    }))
+    exit()
+
+# ====================================
+# 2. Ambil data dari database
+# ====================================
+
+try:
+
+    query = """
+    SELECT product_id, tanggal, jumlah, harga, promo
+    FROM penjualans
+    ORDER BY tanggal
+    """
+
+    data = pd.read_sql(query, engine)
+
+except Exception:
+    print(json.dumps({
+        "prediction": 0,
+        "mae": 0,
+        "rmse": 0
+    }))
+    exit()
+
+# ====================================
+# 3. Validasi data
+# ====================================
+
+if len(data) < 10:
+    print(json.dumps({
+        "prediction": 0,
+        "mae": 0,
+        "rmse": 0
+    }))
+    exit()
+
+# ====================================
+# 4. Feature engineering dari tanggal
+# ====================================
+
+data["tanggal"] = pd.to_datetime(data["tanggal"])
+
+data["weekday"] = data["tanggal"].dt.weekday
+data["month"] = data["tanggal"].dt.month
+
+# ====================================
+# 5. Ambil semua produk
+# ====================================
+
+product_ids = data["product_id"].unique()
+
+results = []
+
+# ====================================
+# 6. Loop model per produk
+# ====================================
+
+for pid in product_ids:
+
+    df = data[data["product_id"] == pid].copy()
+
+    # pastikan urutan waktu benar
+    df = df.sort_values("tanggal")
+
+    if len(df) < 10:
+        continue
+
+    X = df[["harga", "promo", "weekday", "month"]]
+    Y = df["jumlah"]
+
+    # ====================================
+    # 7. Split data training & testing
+    # ====================================
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        Y,
+        test_size=0.2,
+        shuffle=False
+    )
+
+    # ====================================
+    # 8. Training model
+    # ====================================
+
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+
+    # ====================================
+    # 9. Prediksi data test
+    # ====================================
+
+    y_pred = model.predict(X_test)
+
+    # ====================================
+    # 10. Evaluasi model
+    # ====================================
+
+    mae = mean_absolute_error(y_test, y_pred)
+    rmse = mean_squared_error(y_test, y_pred) ** 0.5
+
+    # ====================================
+    # 11. Prediksi periode berikutnya
+    # ====================================
+
+    last_row = df.iloc[-1]
+
+    next_data = pd.DataFrame({
+        "harga": [last_row["harga"]],
+        "promo": [last_row["promo"]],
+        "weekday": [last_row["weekday"]],
+        "month": [last_row["month"]]
+    })
+
+    prediction = model.predict(next_data)
+    prediction_value = int(round(prediction[0]))
+
+    # cegah nilai negatif
+    if prediction_value < 0:
+        prediction_value = 0
+
+    results.append({
+        "product_id": int(pid),
+        "prediction": prediction_value,
+        "mae": round(mae, 2),
+        "rmse": round(rmse, 2)
+    })
+
+# ====================================
+# 12. Output JSON untuk Laravel
+# ====================================
+
+print(json.dumps(results, indent=4))
