@@ -70,37 +70,7 @@ class PredictionController extends Controller
         // Periode Dataset
         // ==============================
 
-        $first = $dataset->first();
-        $last = $dataset->last();
-
-        function formatBulanIndonesia($tahun, $bulan)
-        {
-            $namaBulan = [
-                1 => 'Januari',
-                2 => 'Februari',
-                3 => 'Maret',
-                4 => 'April',
-                5 => 'Mei',
-                6 => 'Juni',
-                7 => 'Juli',
-                8 => 'Agustus',
-                9 => 'September',
-                10 => 'Oktober',
-                11 => 'November',
-                12 => 'Desember'
-            ];
-
-            return $namaBulan[(int)$bulan] . ' ' . $tahun;
-        }
-
-        $periodeDataset = '';
-
-        if ($first && $last) {
-            $periodeDataset =
-                formatBulanIndonesia($first->tahun, $first->bulan)
-                . ' – ' .
-                formatBulanIndonesia($last->tahun, $last->bulan);
-        }
+        $periodeDataset = 'Data belum tersedia';
 
         return view('dashboard', [
             'prediction'      => $prediction,
@@ -114,6 +84,7 @@ class PredictionController extends Controller
             'warning'         => $warning,
             'akurasiData'     => $akurasiData,
             'slowMovingData'  => $slowMovingData,
+            'periodeDataset'  => $periodeDataset,
         ]);
     }
 
