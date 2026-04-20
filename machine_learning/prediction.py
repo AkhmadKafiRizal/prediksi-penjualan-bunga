@@ -1,33 +1,60 @@
 import pandas as pd
 import os
-import matplotlib.pyplot as plt
 import json
+import pymysql
+
+# import matplotlib.pyplot as plt 
+# INI YANG DIHAPUS YA HAPUS KARENA SUDAH PAKAI CHART.JS
 
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 
 # ====================================
-# 1. Menentukan lokasi dataset
-# ====================================
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-dataset_path = os.path.join(
-    BASE_DIR,
-    "..",
-    "dataset",
-    "cleaned_flower_sales_dataset.csv"
-)
-
-# ====================================
-# 2. Membaca dataset
+# 1. Menentukan koneksi database
 # ====================================
 
 try:
-    data = pd.read_csv(dataset_path)
-except Exception as e:
-    print(json.dumps({"prediction":0,"mae":0,"rmse":0}))
+    connection = pymysql.connect(
+        host="127.0.0.1",
+        user="root",
+        password="",
+        database="prediksi_bunga"
+    )
+except Exception:
+    print(json.dumps({
+        "prediction": 0,
+        "mae": 0,
+        "rmse": 0
+    }))
+    exit()
+
+# ====================================
+# 2. Membaca dataset dari database
+# ====================================
+
+try:
+    query = """
+    SELECT bulan, tahun, jumlah_penjualan
+    FROM penjualans
+    ORDER BY tahun, bulan
+    """
+    
+    data = pd.read_sql(query, connection)
+
+    connection.close()
+
+    # menyesuaikan nama kolom agar kode lama tetap berjalan
+    data.rename(columns={
+        "jumlah_penjualan": "QUANTITYORDERED"
+    }, inplace=True)
+
+except Exception:
+    print(json.dumps({
+        "prediction": 0,
+        "mae": 0,
+        "rmse": 0
+    }))
     exit()
 
 # ====================================
@@ -35,7 +62,11 @@ except Exception as e:
 # ====================================
 
 if "QUANTITYORDERED" not in data.columns:
-    print(json.dumps({"prediction":0,"mae":0,"rmse":0}))
+    print(json.dumps({
+        "prediction": 0,
+        "mae": 0,
+        "rmse": 0
+    }))
     exit()
 
 # ====================================
@@ -52,7 +83,9 @@ Y = data["QUANTITYORDERED"]
 # ====================================
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, Y, test_size=0.2, shuffle=False
+    X, Y,
+    test_size=0.2,
+    shuffle=False
 )
 
 # ====================================
@@ -80,7 +113,10 @@ rmse = mean_squared_error(y_test, y_pred) ** 0.5
 # ====================================
 
 next_month = len(data) + 1
-next_data = pd.DataFrame({"X": [next_month]})
+
+next_data = pd.DataFrame({
+    "X": [next_month]
+})
 
 prediction = model.predict(next_data)
 prediction_value = int(prediction[0])
@@ -89,35 +125,35 @@ prediction_value = int(prediction[0])
 # 10. Membuat grafik
 # ====================================
 
-plt.figure()
+# plt.figure()
+# plt.plot(X, Y)
+# plt.plot(X_test, y_pred)
+# plt.scatter(next_month, prediction_value)
+# plt.title("Grafik Prediksi Penjualan Bunga")
+# plt.xlabel("Periode")
+# plt.ylabel("Jumlah Penjualan")
+# plt.legend()
 
-plt.plot(X, Y, label="Data Penjualan Aktual")
-
-plt.plot(X_test, y_pred, label="Prediksi Model")
-
-plt.scatter(next_month, prediction_value, label="Prediksi Bulan Berikutnya")
-
-plt.title("Grafik Prediksi Penjualan Bunga")
-plt.xlabel("Periode")
-plt.ylabel("Jumlah Penjualan")
-plt.legend()
+# INI YANG DIHAPUS YA HAPUS KARENA SUDAH PAKAI CHART.JS
 
 # ====================================
-# 11. Simpan grafik ke Laravel
+# 11. Simpan grafik PNG
 # ====================================
 
-graph_path = os.path.join(
-    BASE_DIR,
-    "..",
-    "public",
-    "prediction_graph.png"
-)
+# graph_path = os.path.join(
+#     BASE_DIR,
+#     "..",
+#     "public",
+#     "prediction_graph.png"
+# )
 
-plt.savefig(graph_path)
-plt.close()
+# plt.savefig(graph_path)
+# plt.close()
+
+# INI YANG DIHAPUS YA HAPUS KARENA SUDAH PAKAI CHART.JS
 
 # ====================================
-# 12. Output untuk Laravel (JSON)
+# 12. Output JSON untuk Laravel
 # ====================================
 
 result = {

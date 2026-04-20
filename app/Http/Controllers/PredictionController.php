@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
+
 class PredictionController extends Controller
 {
     public function index()
@@ -63,6 +65,42 @@ class PredictionController extends Controller
         // ── Akurasi & Slow Moving ─────────────────────────────────
         $akurasiData    = $this->hitungAkurasi($flowerSales);
         $slowMovingData = $this->deteksiSlowMoving($flowerSales);
+
+        // ==============================
+        // Periode Dataset
+        // ==============================
+
+        $first = $dataset->first();
+        $last = $dataset->last();
+
+        function formatBulanIndonesia($tahun, $bulan)
+        {
+            $namaBulan = [
+                1 => 'Januari',
+                2 => 'Februari',
+                3 => 'Maret',
+                4 => 'April',
+                5 => 'Mei',
+                6 => 'Juni',
+                7 => 'Juli',
+                8 => 'Agustus',
+                9 => 'September',
+                10 => 'Oktober',
+                11 => 'November',
+                12 => 'Desember'
+            ];
+
+            return $namaBulan[(int)$bulan] . ' ' . $tahun;
+        }
+
+        $periodeDataset = '';
+
+        if ($first && $last) {
+            $periodeDataset =
+                formatBulanIndonesia($first->tahun, $first->bulan)
+                . ' – ' .
+                formatBulanIndonesia($last->tahun, $last->bulan);
+        }
 
         return view('dashboard', [
             'prediction'      => $prediction,
