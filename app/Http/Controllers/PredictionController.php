@@ -9,30 +9,20 @@ class PredictionController extends Controller
     public function index()
     {
 
-        // ==============================
         // Jalankan Python Script
-        // ==============================
-
         $script = base_path('machine_learning/prediction.py');
         $command = "python " . $script;
-        $output = shell_exec($command);
+        $output  = shell_exec($command);
+        $data    = json_decode($output, true);
 
-        $data = json_decode($output, true);
-
-        // ==============================
-        // Hitung Total Prediksi
-        // ==============================
-
+        // Hitung Total Prediksi dari semua produk
         $totalPrediction = 0;
         $mae = 0;
         $rmse = 0;
 
         if (is_array($data)) {
-
             foreach ($data as $item) {
-
                 $totalPrediction += $item['prediction'] ?? 0;
-
                 $mae = $item['mae'] ?? 0;
                 $rmse = $item['rmse'] ?? 0;
             }
@@ -40,18 +30,12 @@ class PredictionController extends Controller
 
         $predictedValue = $totalPrediction;
 
-        // ==============================
         // Dataset FULL untuk statistik
-        // ==============================
-
         $dataset = DB::table('penjualans')
             ->orderBy('tanggal')
             ->get();
 
-        // ==============================
         // Dataset TERBATAS untuk grafik
-        // ==============================
-
         $chartDataset = DB::table('penjualans')
             ->orderBy('tanggal')
             ->limit(200)
@@ -61,22 +45,15 @@ class PredictionController extends Controller
         $values = [];
 
         foreach ($chartDataset as $row) {
-
             $labels[] = count($labels) + 1;
             $values[] = (int) $row->jumlah;
         }
 
-        // ==============================
         // Statistik Dataset
-        // ==============================
-
         $totalData = $dataset->count();
         $nextPeriod = $totalData + 1;
 
-        // ==============================
         // Periode Dataset
-        // ==============================
-
         $first = $dataset->first();
         $last = $dataset->last();
 
@@ -93,10 +70,7 @@ class PredictionController extends Controller
                 date('F Y', $lastDate);
         }
 
-        // ==============================
         // Tentukan tanggal prediksi berikutnya
-        // ==============================
-
         $nextDate = null;
 
         if ($last) {
@@ -105,10 +79,7 @@ class PredictionController extends Controller
             $nextDate = date('Y-m-d', strtotime('+1 month', $lastDate));
         }
 
-        // ==============================
         // Simpan hasil prediksi
-        // ==============================
-
         if ($nextDate && $predictedValue > 0) {
 
             DB::table('prediction_results')->updateOrInsert(
@@ -123,10 +94,7 @@ class PredictionController extends Controller
             );
         }
 
-        // ==============================
         // Ambil data Prediksi vs Real
-        // ==============================
-
         $predictionComparison = DB::table('prediction_results')
             ->select(
                 'tanggal',
@@ -138,10 +106,7 @@ class PredictionController extends Controller
             ->limit(10)
             ->get();
 
-        // ==============================
-        // Sinkronisasi Actual Sales
-        // ==============================
-
+        // Sinkronisasi Actual Sales (AGREGASI)
         $actualData = DB::table('penjualans')
             ->select('tanggal', DB::raw('SUM(jumlah) as total_sales'))
             ->groupBy('tanggal')
@@ -155,10 +120,6 @@ class PredictionController extends Controller
                     'actual_sales' => $row->total_sales
                 ]);
         }
-
-        // ==============================
-        // Return ke Dashboard
-        // ==============================
 
         return view('dashboard', [
 

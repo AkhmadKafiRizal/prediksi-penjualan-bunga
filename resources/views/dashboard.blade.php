@@ -1,292 +1,177 @@
 <x-app-layout>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,700;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
 
-.db-wrap * { font-family: 'Plus Jakarta Sans', sans-serif; }
+*{font-family:'Plus Jakarta Sans',sans-serif}
 
-.db-wrap {
-    max-width: 1160px;
-    margin: 0 auto;
-    padding: 2.5rem 1.5rem 5rem;
-}
+.fp-eyebrow { font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;background:linear-gradient(135deg,#c0253a,#e85d75);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.3rem; }
+.fp-title { font-size:1.7rem;font-weight:700;color:#1a1a2e; }
+.fp-header { margin-bottom:1.75rem; }
+.fp-inner { max-width:1100px;margin:0 auto;padding:30px 20px; }
 
-/* HERO */
-.db-hero {
-    position: relative;
-    background: linear-gradient(135deg, #1a0a10 0%, #3d0f20 55%, #1a0a10 100%);
-    border-radius: 24px;
-    padding: 2.5rem 2.5rem;
-    margin-bottom: 1.5rem;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-}
+.fp-alert-banner { display:flex;align-items:center;gap:.75rem;padding:.85rem 1.1rem;border-radius:14px;font-size:.84rem;font-weight:500;margin-bottom:1.5rem; }
+.fp-alert-warn  { background:#fff7ed;border:1px solid #fed7aa;color:#9a3412; }
+.fp-alert-info  { background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af; }
+.fp-alert-none  { background:#f0fdf4;border:1px solid #bbf7d0;color:#166534; }
 
-.db-hero::before {
-    content: '🌸';
-    position: absolute;
-    font-size: 180px;
-    right: -10px;
-    bottom: -40px;
-    opacity: 0.06;
-    transform: rotate(-15deg);
-}
+.dash-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px; }
 
-.db-hero-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.95rem;
-    font-weight: 700;
-    color: #fff;
-}
+.dash-card { background:#fff;border-radius:18px;padding:20px;border:1px solid #f5e4e8;box-shadow:0 2px 14px rgba(232,93,117,.07); }
 
-.db-hero-sub {
-    font-size: 0.85rem;
-    color: rgba(255,255,255,0.45);
-}
+.dash-card small { font-size:.68rem;color:#b0a0b0;text-transform:uppercase;letter-spacing:.09em;font-weight:700; }
 
-.db-hero-box {
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 18px;
-    padding: 1.4rem 2rem;
-    text-align: center;
-    backdrop-filter: blur(8px);
-    min-width: 200px;
-}
+.dash-card h2 { font-size:2rem;margin:8px 0 0;font-family:'DM Mono',monospace;color:#1a1a2e;font-weight:500; }
 
-.hb-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: #fda4af;
-}
+.dash-card h2.rose { background:linear-gradient(135deg,#c0253a,#e85d75);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
 
-.hb-value {
-    font-family: 'DM Mono', monospace;
-    font-size: 2.8rem;
-    font-weight: 700;
-    color: #fff;
-}
+.dash-card-sub { font-size:.72rem;color:#b0a0b0;margin-top:4px; }
 
-.hb-sub {
-    font-size: 0.73rem;
-    color: rgba(255,255,255,0.4);
-}
+.dash-box { background:#fff;border-radius:18px;padding:20px;border:1px solid #f5e4e8;margin-bottom:16px;box-shadow:0 2px 14px rgba(232,93,117,.07); }
 
-/* STATS */
-.db-stats {
-    display: grid;
-    grid-template-columns: repeat(3,1fr);
-    gap:1rem;
-    margin-bottom:1.5rem;
-}
+.dash-box-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
 
-.db-stat {
-    background:#fff;
-    border-radius:18px;
-    border:1px solid #f5e8eb;
-    padding:1.4rem;
-}
+.dash-box-title { font-size:.875rem;font-weight:700;color:#1a1a2e; }
 
-/* BOTTOM GRID */
-.db-bottom {
-    display:grid;
-    grid-template-columns:320px 1fr;
-    gap:1.25rem;
-}
+.dash-box-sub { font-size:.72rem;color:#b0a0b0;margin-top:2px; }
 
-/* METRICS */
-.db-metrics {
-    background:#fff;
-    border-radius:18px;
-    border:1px solid #f5e8eb;
-    padding:1.5rem;
-}
+.dash-two-col { display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:16px; }
 
-.db-metric-row {
-    background:#faf7f5;
-    border:1px solid #f0e8ec;
-    border-radius:12px;
-    padding:1rem;
-    display:flex;
-    justify-content:space-between;
-    margin-bottom:0.7rem;
-}
+canvas { max-height:220px; }
 
-.db-metric-val {
-    font-family:'DM Mono',monospace;
-    font-size:1.5rem;
-    font-weight:700;
-}
+.fp-prediction-empty { display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1rem;text-align:center;color:#c0b0c0; }
 
-/* CHART */
-.db-chart {
-    background:#fff;
-    border-radius:18px;
-    border:1px solid #f5e8eb;
-    padding:1.5rem;
-}
+.fp-prediction-empty p { font-size:.84rem; }
 
-/* TABLE PREDICTION */
-.db-compare {
-    margin-top:1.5rem;
-    background:#fff;
-    border-radius:18px;
-    border:1px solid #f5e8eb;
-    padding:1.5rem;
-}
+.stats-row { display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px; }
 
-.db-table {
-    width:100%;
-    border-collapse:collapse;
-}
+.stat-item { background:#faf7f8;border-radius:12px;padding:14px 16px;border:1px solid #f5e0e5; }
 
-.db-table th {
-    text-align:left;
-    font-size:0.7rem;
-    text-transform:uppercase;
-    color:#a8a29e;
-    padding-bottom:0.6rem;
-}
+.stat-label { font-size:.68rem;color:#b0a0b0;font-weight:700;text-transform:uppercase; }
 
-.db-table td {
-    padding:0.55rem 0;
-    border-top:1px solid #f5ece8;
-    font-family:'DM Mono',monospace;
-}
+.stat-val { font-size:1.15rem;font-weight:700;color:#1a1a2e;font-family:'DM Mono',monospace;margin-top:5px; }
+
+.stat-val.rose { color:#e11d48; }
 
 </style>
 
-<div class="db-wrap">
 
-<div class="db-hero">
+<div class="fp-inner">
 
-<div>
-<h1 class="db-hero-title">Sistem Prediksi Penjualan Bunga</h1>
-<p class="db-hero-sub">Ringkasan data dan prediksi terkini</p>
-</div>
-
-<div class="db-hero-box">
-<div class="hb-label">Prediksi Bulan Berikutnya</div>
-<div class="hb-value">{{ number_format($prediction) }}</div>
-<div class="hb-sub">bunga · bulan ke-{{ $nextPeriod }}</div>
-</div>
-
+<div class="fp-header">
+<div class="fp-eyebrow">FloraPredict</div>
+<h1 class="fp-title">Dashboard</h1>
 </div>
 
 
-<div class="db-stats">
-
-<div class="db-stat">
-Total Dataset<br>
-<strong>{{ $totalData }}</strong><br>
-Periode {{ $periodeDataset }}
+@if(isset($warning) && $warning)
+<div class="fp-alert-banner fp-alert-warn">
+{{ $warning }}
 </div>
-
-<div class="db-stat">
-Prediksi Qty<br>
-<strong>{{ number_format($prediction) }}</strong>
+@elseif($predictionReady)
+<div class="fp-alert-banner fp-alert-none">
+Model prediksi aktif — hasil tersedia untuk periode ke-{{ $nextPeriod }}
 </div>
-
-<div class="db-stat">
-Periode Prediksi<br>
-<strong>ke-{{ $nextPeriod }}</strong>
-</div>
-
-</div>
-
-
-<div class="db-bottom">
-
-<div class="db-metrics">
-
-<div class="db-metric-row">
-<div>
-MAE<br>
-<small>Mean Absolute Error</small>
-</div>
-<div class="db-metric-val">{{ $mae }}</div>
-</div>
-
-<div class="db-metric-row">
-<div>
-RMSE<br>
-<small>Root Mean Square Error</small>
-</div>
-<div class="db-metric-val">{{ $rmse }}</div>
-</div>
-
-</div>
-
-<div class="db-chart">
-
-<h3>Grafik Penjualan Historis</h3>
-
-<canvas id="salesChart" height="95"></canvas>
-
-</div>
-
-</div>
-
-
-<div class="db-compare">
-
-<h3>Perbandingan Prediksi vs Real</h3>
-
-<table class="db-table">
-
-<thead>
-<tr>
-<th>Tanggal</th>
-<th>Prediksi</th>
-<th>Real</th>
-<th>Error</th>
-</tr>
-</thead>
-
-<tbody>
-
-@forelse($predictionComparison as $row)
-
-<tr>
-
-<td>{{ $row->tanggal }}</td>
-
-<td>{{ number_format($row->predicted_sales) }}</td>
-
-<td>
-@if($row->actual_sales)
-{{ number_format($row->actual_sales) }}
 @else
--
+<div class="fp-alert-banner fp-alert-info">
+Prediksi belum dijalankan — jalankan model untuk melihat hasil prediksi
+</div>
 @endif
-</td>
 
-<td>
-@if($row->actual_sales)
-{{ number_format(abs($row->predicted_sales - $row->actual_sales)) }}
+
+<div class="dash-grid">
+
+<div class="dash-card">
+<small>Total Data</small>
+<h2>{{ $totalData }}</h2>
+<div class="dash-card-sub">baris dataset tersedia</div>
+</div>
+
+<div class="dash-card">
+<small>Hasil Prediksi</small>
+@if($predictionReady)
+<h2 class="rose">{{ number_format($prediction) }}</h2>
+<div class="dash-card-sub">periode ke-{{ $nextPeriod }}</div>
 @else
--
+<h2 style="font-size:1rem;color:#bbb;margin-top:12px">Belum ada</h2>
 @endif
-</td>
+</div>
 
-</tr>
+<div class="dash-card">
+<small>Periode Prediksi</small>
+<h2>ke-{{ $nextPeriod }}</h2>
+<div class="dash-card-sub">periode berikutnya</div>
+</div>
 
-@empty
+</div>
 
-<tr>
-<td colspan="4">Belum ada data prediksi</td>
-</tr>
 
-@endforelse
+<div class="dash-two-col">
 
-</tbody>
+<div class="dash-box">
 
-</table>
+<div class="dash-box-header">
+<div>
+<div class="dash-box-title">Grafik Penjualan</div>
+<div class="dash-box-sub">Tren quantity ordered</div>
+</div>
+</div>
+
+@if($totalData > 0)
+<canvas id="chart"></canvas>
+@else
+<div class="fp-prediction-empty">
+<p>Belum ada data grafik</p>
+</div>
+@endif
+
+</div>
+
+
+<div class="dash-box">
+
+<div class="dash-box-header">
+<div>
+<div class="dash-box-title">Statistik Model</div>
+<div class="dash-box-sub">Error prediksi terakhir</div>
+</div>
+</div>
+
+@if($predictionReady)
+
+<div class="stats-row">
+
+<div class="stat-item">
+<div class="stat-label">MAE</div>
+<div class="stat-val rose">{{ number_format($mae,2) }}</div>
+</div>
+
+<div class="stat-item">
+<div class="stat-label">RMSE</div>
+<div class="stat-val rose">{{ number_format($rmse,2) }}</div>
+</div>
+
+<div class="stat-item">
+<div class="stat-label">Total Data</div>
+<div class="stat-val">{{ $totalData }}</div>
+</div>
+
+<div class="stat-item">
+<div class="stat-label">Periode</div>
+<div class="stat-val">ke-{{ $nextPeriod }}</div>
+</div>
+
+</div>
+
+@else
+
+<div class="fp-prediction-empty">
+<p>Model belum dijalankan</p>
+</div>
+
+@endif
+
+</div>
 
 </div>
 
@@ -297,47 +182,36 @@ RMSE<br>
 
 <script>
 
-const labels = @json($labels);
-const values = @json($values);
-const prediction = {{ $prediction }};
+const labels = @json($labels ?? []);
+const values = @json($values ?? []);
 
-const ctx = document.getElementById('salesChart').getContext('2d');
+if(document.getElementById('chart') && values.length>0){
 
-new Chart(ctx, {
+new Chart(document.getElementById('chart'),{
 
 type:'line',
 
 data:{
-labels:[...labels,'Prediksi'],
-
-datasets:[
-
-{
-label:'Penjualan Bunga',
-data:[...values,null],
-borderColor:'#f43f5e',
+labels:labels,
+datasets:[{
+data:values,
+borderColor:'#e85d75',
 borderWidth:2.5,
-tension:0.45
-},
-
-{
-label:'Prediksi',
-data:[...Array(values.length).fill(null),prediction],
-borderColor:'#ef4444',
-backgroundColor:'#ef4444',
-pointRadius:6,
-showLine:false
-}
-
-]
-
+tension:0.4,
+pointRadius:3,
+pointBackgroundColor:'#e85d75',
+fill:false
+}]
 },
 
 options:{
+plugins:{legend:{display:false}},
 responsive:true
 }
 
 });
+
+}
 
 </script>
 
