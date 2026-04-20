@@ -3,69 +3,51 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\SalesController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Entry point aplikasi
-|
-*/
-
-// Root route (smart redirect)
+// ── Root redirect ──────────────────────────────────────────────
 Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect()->route('dashboard');
-    }
-
-    return redirect()->route('login');
+    return auth()->check()
+        ? redirect()->route('dashboard')
+        : redirect()->route('login');
 })->name('home');
 
-
-/*
-|--------------------------------------------------------------------------
-| Dashboard (Machine Learning Prediction)
-|--------------------------------------------------------------------------
-*/
-
+// ── Dashboard ──────────────────────────────────────────────────
 Route::get('/dashboard', [PredictionController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+// ── Data Penjualan ─────────────────────────────────────────────
+Route::middleware(['auth'])->group(function () {
 
-/*
-|--------------------------------------------------------------------------
-| Data Penjualan Bunga
-|--------------------------------------------------------------------------
-*/
+    // Tampilkan tabel + search
+    Route::get('/data-penjualan', [SalesController::class, 'index'])
+        ->name('sales');
 
-Route::get('/data-penjualan', [SalesController::class, 'index'])
-    ->middleware(['auth'])
-    ->name('sales');
+    // Upload dataset (ganti seluruh CSV)
+    Route::post('/upload-dataset', [SalesController::class, 'upload'])
+        ->name('upload.dataset');
 
-Route::post('/upload-dataset', [SalesController::class, 'upload'])
-    ->middleware(['auth'])
-    ->name('upload.dataset');
+    // Edit 1 baris
+    Route::put('/data-penjualan/{index}', [SalesController::class, 'update'])
+        ->name('sales.update');
 
-/*
-|--------------------------------------------------------------------------
-| Profile (harus login)
-|--------------------------------------------------------------------------
-*/
+    // Hapus 1 baris
+    Route::delete('/data-penjualan/{index}', [SalesController::class, 'destroy'])
+        ->name('sales.destroy');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// ── Profile ────────────────────────────────────────────────────
+Route::middleware('auth')->group(function () {
+    Route::get('/profile',    [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile',  [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+Route::resource('products', ProductController::class)->middleware('auth');
+Route::resource('users', UserController::class)->middleware('auth');
 
-/*
-|--------------------------------------------------------------------------
-| Rute Autentikasi
-|--------------------------------------------------------------------------
-*/
-
+// ── Auth ───────────────────────────────────────────────────────
 require __DIR__.'/auth.php';
