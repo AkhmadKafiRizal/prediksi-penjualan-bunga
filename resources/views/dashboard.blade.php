@@ -68,7 +68,7 @@ canvas { max-height:220px; }
 <div class="fp-alert-banner fp-alert-warn">
 {{ $warning }}
 </div>
-@elseif($predictionReady)
+@elseif(isset($predictionReady) && $predictionReady)
 <div class="fp-alert-banner fp-alert-none">
 Model prediksi aktif — hasil tersedia untuk periode ke-{{ $nextPeriod }}
 </div>
@@ -89,7 +89,7 @@ Prediksi belum dijalankan — jalankan model untuk melihat hasil prediksi
 
 <div class="dash-card">
 <small>Hasil Prediksi</small>
-@if($predictionReady)
+@if(isset($predictionReady) && $predictionReady)
 <h2 class="rose">{{ number_format($prediction) }}</h2>
 <div class="dash-card-sub">periode ke-{{ $nextPeriod }}</div>
 @else
@@ -137,7 +137,7 @@ Prediksi belum dijalankan — jalankan model untuk melihat hasil prediksi
 </div>
 </div>
 
-@if($predictionReady)
+@if(isset($predictionReady) && $predictionReady)
 
 <div class="stats-row">
 
