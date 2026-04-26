@@ -5,7 +5,7 @@
 
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',sans-serif}
 
-.fp-main{max-width:1180px;margin:0 auto;padding:30px 20px;background:#fdf5f5}
+.fp-main{margin:0 auto;padding:30px 20px;background:#fdf5f5}
 .fp-breadcrumb{font-size:11px;color:#e8474f;font-weight:700;letter-spacing:.3px;margin-bottom:4px}
 .fp-title{font-size:26px;font-weight:800;color:#1a1a2e;margin-bottom:16px}
 .fp-status-ok{background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:10px 14px;font-size:13px;color:#15803d;display:flex;align-items:center;gap:7px;margin-bottom:18px}
