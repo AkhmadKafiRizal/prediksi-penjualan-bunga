@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SalesController extends Controller
 {
@@ -15,37 +16,6 @@ class SalesController extends Controller
         $this->timeFile = storage_path('app/dataset_time.txt');
     }
 
-    // ── Helper: baca CSV ──────────────────────────────────────────
-    private function readCsv(): array
-    {
-        $header = [];
-        $rows   = [];
-
-        if (!file_exists($this->csvFile)) return compact('header', 'rows');
-
-        if (($handle = fopen($this->csvFile, 'r')) !== false) {
-            $header = fgetcsv($handle);
-            while (($data = fgetcsv($handle)) !== false) {
-                $rows[] = $data;
-            }
-            fclose($handle);
-        }
-
-        return compact('header', 'rows');
-    }
-
-    // ── Helper: tulis ulang CSV ───────────────────────────────────
-    private function writeCsv(array $header, array $rows): void
-    {
-        $handle = fopen($this->csvFile, 'w');
-        fputcsv($handle, $header);
-        foreach ($rows as $row) {
-            fputcsv($handle, $row);
-        }
-        fclose($handle);
-    }
-
-    // ── Helper: waktu upload ──────────────────────────────────────
     private function lastUpload(): ?string
     {
         return file_exists($this->timeFile)
@@ -53,34 +23,69 @@ class SalesController extends Controller
             : null;
     }
 
-    // ==============================================================
-    // INDEX
-    // ==============================================================
     public function index(Request $request)
     {
-        ['header' => $header, 'rows' => $rows] = $this->readCsv();
-
         $search = $request->query('search');
+
+        $query = DB::table('penjualans')
+            ->leftJoin('products', 'penjualans.product_id', '=', 'products.id')
+            ->select(
+                'penjualans.id',
+                'penjualans.product_id',
+                'products.nama_bunga',
+                'penjualans.tanggal',
+                'penjualans.jumlah',
+                'penjualans.harga',
+                'penjualans.promo'
+            )
+            ->orderByDesc('penjualans.tanggal')
+            ->orderBy('penjualans.product_id');
+
         if ($search) {
-            $rows = array_values(array_filter($rows, function ($row) use ($search) {
-                foreach ($row as $cell) {
-                    if (stripos($cell, $search) !== false) return true;
-                }
-                return false;
-            }));
+            $query->where(function ($q) use ($search) {
+                $q->where('penjualans.tanggal', 'like', "%{$search}%")
+                    ->orWhere('penjualans.product_id', 'like', "%{$search}%")
+                    ->orWhere('products.nama_bunga', 'like', "%{$search}%")
+                    ->orWhere('penjualans.jumlah', 'like', "%{$search}%")
+                    ->orWhere('penjualans.harga', 'like', "%{$search}%")
+                    ->orWhere('penjualans.promo', 'like', "%{$search}%");
+            });
         }
 
+        $rows = $query->paginate(25)->withQueryString();
+
+        $totalData = DB::table('penjualans')->count();
+
+        $totalProduk = DB::table('penjualans')
+            ->distinct('product_id')
+            ->count('product_id');
+
+        $firstDate = DB::table('penjualans')->min('tanggal');
+        $lastDate  = DB::table('penjualans')->max('tanggal');
+
+        $periodeDataset = '-';
+
+        if ($firstDate && $lastDate) {
+            $periodeDataset =
+                date('F Y', strtotime($firstDate))
+                . ' – ' .
+                date('F Y', strtotime($lastDate));
+        }
+
+        $datasetReady = $totalData > 0 && $totalProduk > 0;
+
         return view('sales', [
-            'header'     => $header,
-            'rows'       => $rows,
-            'lastUpload' => $this->lastUpload(),
-            'search'     => $search,
+            'rows'           => $rows,
+            'lastUpload'     => $this->lastUpload(),
+            'search'         => $search,
+
+            'totalData'      => $totalData,
+            'totalProduk'    => $totalProduk,
+            'periodeDataset' => $periodeDataset,
+            'datasetReady'   => $datasetReady,
         ]);
     }
 
-    // ==============================================================
-    // UPLOAD — ganti seluruh dataset
-    // ==============================================================
     public function upload(Request $request)
     {
         $request->validate([
@@ -95,55 +100,51 @@ class SalesController extends Controller
         file_put_contents($this->timeFile, date('d-m-Y H:i:s'));
 
         return redirect()->route('sales')
-            ->with('success', 'Dataset berhasil diperbarui.');
+            ->with('success', 'Dataset berhasil diupload. Catatan: data utama sistem tetap menggunakan tabel penjualans di database.');
     }
 
-    // ==============================================================
-    // UPDATE — edit 1 baris
-    // ==============================================================
-    public function update(Request $request, int $index)
+    public function update(Request $request, int $id)
     {
         $request->validate([
-            'YEAR_MONTH'      => 'required|string|max:7',
-            'quantityOrdered' => 'required|numeric|min:0',
-            'sales'           => 'required|numeric|min:0',
+            'product_id' => 'required|integer|min:1',
+            'tanggal'    => 'required|date',
+            'jumlah'     => 'required|numeric|min:0',
+            'harga'      => 'required|numeric|min:0',
+            'promo'      => 'required|numeric|min:0|max:1',
         ]);
 
-        ['header' => $header, 'rows' => $rows] = $this->readCsv();
+        $exists = DB::table('penjualans')->where('id', $id)->exists();
 
-        if (!isset($rows[$index])) {
+        if (!$exists) {
             return redirect()->route('sales')->with('error', 'Data tidak ditemukan.');
         }
 
-        $rows[$index] = [
-            $request->YEAR_MONTH,
-            $request->quantityOrdered,
-            $request->sales,
-        ];
-
-        usort($rows, fn($a, $b) => strcmp($a[0], $b[0]));
-        $this->writeCsv($header, $rows);
+        DB::table('penjualans')
+            ->where('id', $id)
+            ->update([
+                'product_id' => $request->product_id,
+                'tanggal'    => $request->tanggal,
+                'jumlah'     => $request->jumlah,
+                'harga'      => $request->harga,
+                'promo'      => $request->promo,
+                'updated_at' => now(),
+            ]);
 
         return redirect()->route('sales')
-            ->with('success', 'Data periode ' . $request->YEAR_MONTH . ' berhasil diperbarui.');
+            ->with('success', 'Data penjualan berhasil diperbarui.');
     }
 
-    // ==============================================================
-    // DESTROY — hapus 1 baris
-    // ==============================================================
-    public function destroy(int $index)
+    public function destroy(int $id)
     {
-        ['header' => $header, 'rows' => $rows] = $this->readCsv();
+        $exists = DB::table('penjualans')->where('id', $id)->exists();
 
-        if (!isset($rows[$index])) {
+        if (!$exists) {
             return redirect()->route('sales')->with('error', 'Data tidak ditemukan.');
         }
 
-        $deleted = $rows[$index][0] ?? $index;
-        array_splice($rows, $index, 1);
-        $this->writeCsv($header, $rows);
+        DB::table('penjualans')->where('id', $id)->delete();
 
         return redirect()->route('sales')
-            ->with('success', 'Data periode ' . $deleted . ' berhasil dihapus.');
+            ->with('success', 'Data penjualan berhasil dihapus.');
     }
 }

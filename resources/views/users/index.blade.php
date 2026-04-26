@@ -8,7 +8,7 @@
 }
 .fp-title { font-size: 1.7rem; font-weight: 700; color: #1a1a2e; }
 .fp-header { margin-bottom: 1.75rem; }
-.fp-inner { max-width: 1100px; margin: 0 auto; }
+.fp-inner {  margin: 0 auto; }
 
 /* Buttons */
 .fp-btn {
