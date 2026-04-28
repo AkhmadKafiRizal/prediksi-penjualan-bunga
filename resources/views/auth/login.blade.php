@@ -18,6 +18,13 @@
 
     <div class="bg-white rounded-2xl shadow-xl p-8">
 
+        {{-- 🔴 ERROR MESSAGE --}}
+        @if ($errors->any())
+            <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-700 text-sm">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('login') }}" class="space-y-5">
             @csrf
 
@@ -25,7 +32,7 @@
                 <label class="block text-sm font-medium text-gray-700">
                     Email
                 </label>
-                <input type="email" name="email"
+                <input type="text" name="email"
                     class="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none"
                     required autofocus>
             </div>
