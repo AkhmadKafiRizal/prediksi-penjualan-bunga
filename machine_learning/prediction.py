@@ -28,7 +28,7 @@ try:
     FROM penjualans
     ORDER BY tanggal
     """
-
+#bukti Bahwa data diambil Dari database berdasarkan urutan tanggal.
     data = pd.read_sql(query, engine)
 
 except Exception:
@@ -49,8 +49,9 @@ if len(data) < 10:
 
 data["tanggal"] = pd.to_datetime(data["tanggal"])
 
-data["weekday"] = data["tanggal"].dt.weekday
-data["month"] = data["tanggal"].dt.month
+data["weekday"] = data["tanggal"].dt.weekday #weekday = hari dalam minggu
+data["month"] = data["tanggal"].dt.month #month = bulan
+#bukti menunjukkan fitur waktu
 
 # ====================================
 # 5. Ambil semua produk
@@ -91,7 +92,7 @@ for pid in product_ids:
         test_size=0.30,
         shuffle=False
     )
-
+#shuffle false karena memakai data time series. (TIDAK DIACAK) bukti
     X_val, X_test, y_val, y_test = train_test_split(
         X_temp,
         y_temp,
@@ -158,3 +159,5 @@ for pid in product_ids:
 # ====================================
 
 print(json.dumps(results, indent=4))
+print("Total data:", len(data))
+#Jalankan: python machine_learning/prediction.py melihat hasil di powershell
