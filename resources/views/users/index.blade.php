@@ -235,11 +235,11 @@
         </div>
         <div class="fp-stat-card">
             <div class="fp-stat-label">Kasir Aktif</div>
-            <div class="fp-stat-val green">{{ $users->where('is_active', true)->count() }}</div>
+            <div class="fp-stat-val green">{{ $users->where('status', 'aktif')->count() }}</div>
         </div>
         <div class="fp-stat-card">
             <div class="fp-stat-label">Kasir Nonaktif</div>
-            <div class="fp-stat-val rose">{{ $users->where('is_active', false)->count() }}</div>
+            <div class="fp-stat-val rose">{{ $users->where('status', 'nonaktif')->count() }}</div>
         </div>
     </div>
 
@@ -286,7 +286,7 @@
                             {{ $user->created_at->format('d M Y') }}
                         </td>
                         <td>
-                            @if($user->is_active)
+                            @if($user->status === 'aktif')
                                 <span class="badge-active">Aktif</span>
                             @else
                                 <span class="badge-inactive">Nonaktif</span>
@@ -300,17 +300,17 @@
                                         {{ $user->id }},
                                         '{{ addslashes($user->name) }}',
                                         '{{ $user->email }}',
-                                        {{ $user->is_active ? 1 : 0 }}
+                                        {{ $user->status === 'aktif' ? 1 : 0 }}
                                     )">✏️
                                 </button>
                                 <form action="{{ route('users.destroy', $user->id) }}" method="POST" style="display:inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit"
-                                        class="fp-btn fp-btn-sm {{ $user->is_active ? 'fp-btn-danger' : 'fp-btn-success' }}"
-                                        title="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}"
-                                        onclick="return confirm('{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }} kasir {{ $user->name }}?')">
-                                        {{ $user->is_active ? '🔒' : '🔓' }}
+                                        class="fp-btn fp-btn-sm {{ $user->status === 'aktif' ? 'fp-btn-danger' : 'fp-btn-success' }}"
+                                        title="{{ $user->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' }}"
+                                        onclick="return confirm('{{ $user->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' }} kasir {{ $user->name }}?')">
+                                        {{ $user->status === 'aktif' ? '🔒' : '🔓' }}
                                     </button>
                                 </form>
                             </div>

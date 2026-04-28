@@ -9,157 +9,68 @@ class PredictionController extends Controller
 {
     public function index()
     {
-        // Jalankan Python Script
-        $script = base_path('machine_learning/prediction.py');
-        $command = "python " . escapeshellarg($script);
-        $output  = shell_exec($command);
-        $data    = json_decode($output, true);
+        $productNames = $this->getProductNames();
 
-        // Default value
-        $totalPrediction = 0;
-        $mae = 0;
-        $rmse = 0;
-        $validationMae = 0;
-        $validationRmse = 0;
-        $predictionReady = false;
+        $latestDate = DB::table('prediction_results')
+    ->orderByDesc('updated_at')
+    ->value('tanggal');
 
-        // Ambil nama produk jika tabel products tersedia
-        $productNames = collect();
+        $savedPredictions = collect();
 
-        if (Schema::hasTable('products')) {
-            if (Schema::hasColumn('products', 'nama_bunga')) {
-                $productNames = DB::table('products')->pluck('nama_bunga', 'id');
-            } elseif (Schema::hasColumn('products', 'name')) {
-                $productNames = DB::table('products')->pluck('name', 'id');
-            } elseif (Schema::hasColumn('products', 'nama')) {
-                $productNames = DB::table('products')->pluck('nama', 'id');
-            }
+        if ($latestDate) {
+            $savedPredictions = DB::table('prediction_results')
+                ->where('tanggal', $latestDate)
+                ->orderBy('product_id')
+                ->get();
         }
 
-        // Baca output Python format array per produk
-        if (is_array($data) && count($data) > 0) {
-            $predictionReady = true;
-
-            $totalMae = 0;
-            $totalRmse = 0;
-            $totalValidationMae = 0;
-            $totalValidationRmse = 0;
-            $count = 0;
-
-            foreach ($data as $item) {
-                $totalPrediction += $item['prediction'] ?? 0;
-
-                $totalMae += $item['mae'] ?? 0;
-                $totalRmse += $item['rmse'] ?? 0;
-                $totalValidationMae += $item['validation_mae'] ?? 0;
-                $totalValidationRmse += $item['validation_rmse'] ?? 0;
-
-                $count++;
-            }
-
-            if ($count > 0) {
-                $mae = round($totalMae / $count, 2);
-                $rmse = round($totalRmse / $count, 2);
-                $validationMae = round($totalValidationMae / $count, 2);
-                $validationRmse = round($totalValidationRmse / $count, 2);
-            }
-        }
-
-        $productPredictions = collect($data ?? [])->map(function ($item) use ($productNames) {
-            $productId = $item['product_id'] ?? null;
-
+        $productPredictions = $savedPredictions->map(function ($item) use ($productNames) {
             return [
-                'product_id' => $productId,
-                'product_name' => $productNames[$productId] ?? ('Produk #' . ($productId ?? '-')),
-                'prediction' => $item['prediction'] ?? 0,
-                'mae' => $item['mae'] ?? 0,
-                'rmse' => $item['rmse'] ?? 0,
-                'validation_mae' => $item['validation_mae'] ?? 0,
-                'validation_rmse' => $item['validation_rmse'] ?? 0,
+                'product_id' => $item->product_id,
+                'product_name' => $productNames[$item->product_id] ?? ('Produk #' . $item->product_id),
+                'prediction' => $item->predicted_sales ?? 0,
+                'mae' => $item->mae ?? 0,
+                'rmse' => $item->rmse ?? 0,
+                'validation_mae' => $item->validation_mae ?? 0,
+                'validation_rmse' => $item->validation_rmse ?? 0,
             ];
         })->values();
 
+        $predictionReady = $productPredictions->count() > 0;
+        $predictedValue = $productPredictions->sum('prediction');
+
         $totalProducts = $productPredictions->count();
 
-        $topProducts = $productPredictions
-            ->sortByDesc('prediction')
-            ->take(5)
-            ->values();
+        $mae = $predictionReady ? round($productPredictions->avg('mae'), 2) : 0;
+        $rmse = $predictionReady ? round($productPredictions->avg('rmse'), 2) : 0;
+        $validationMae = $predictionReady ? round($productPredictions->avg('validation_mae'), 2) : 0;
+        $validationRmse = $predictionReady ? round($productPredictions->avg('validation_rmse'), 2) : 0;
 
-        $topBars = $productPredictions
-            ->sortByDesc('prediction')
-            ->take(10)
-            ->values();
+        $topProducts = $productPredictions->sortByDesc('prediction')->take(5)->values();
+        $topBars = $productPredictions->sortByDesc('prediction')->take(10)->values();
 
-        $predictedValue = $totalPrediction;
-
-        // Dataset FULL untuk statistik
-        $dataset = DB::table('penjualans')
-            ->orderBy('tanggal')
-            ->get();
-
+        $dataset = DB::table('penjualans')->orderBy('tanggal')->get();
         $totalData = $dataset->count();
 
-        // Periode Dataset
         $first = $dataset->first();
         $last = $dataset->last();
 
         $periodeDataset = '';
 
         if ($first && $last) {
-            $firstDate = strtotime($first->tanggal);
-            $lastDate = strtotime($last->tanggal);
-
-            $periodeDataset =
-                date('F Y', $firstDate)
+            $periodeDataset = date('F Y', strtotime($first->tanggal))
                 . ' – ' .
-                date('F Y', $lastDate);
+                date('F Y', strtotime($last->tanggal));
         }
 
-        // Tentukan tanggal prediksi berikutnya
-        $nextDate = null;
-
-        if ($last) {
-            $lastDate = strtotime($last->tanggal);
-            $nextDate = date('Y-m-d', strtotime('+1 month', $lastDate));
-        }
-
-        // Simpan hasil prediksi agregasi semua produk
-        if ($nextDate && $predictedValue > 0) {
-            DB::table('prediction_results')->updateOrInsert(
-                [
-                    'tanggal' => $nextDate,
-                    'product_id' => 1
-                ],
-                [
-                    'predicted_sales' => $predictedValue,
-                    'updated_at' => now()
-                ]
-            );
-        }
-
-        // Sinkronisasi Actual Sales (AGREGASI)
-        $actualData = DB::table('penjualans')
-            ->select('tanggal', DB::raw('SUM(jumlah) as total_sales'))
-            ->groupBy('tanggal')
-            ->get();
-
-        foreach ($actualData as $row) {
-            DB::table('prediction_results')
-                ->where('tanggal', $row->tanggal)
-                ->update([
-                    'actual_sales' => $row->total_sales
-                ]);
-        }
-
-        // Ambil data Prediksi vs Real
         $predictionComparison = DB::table('prediction_results')
             ->select(
                 'tanggal',
-                'predicted_sales',
-                'actual_sales',
-                DB::raw('ABS(predicted_sales - actual_sales) as error')
+                DB::raw('SUM(predicted_sales) as predicted_sales'),
+                DB::raw('SUM(COALESCE(actual_sales, 0)) as actual_sales'),
+                DB::raw('ABS(SUM(predicted_sales) - SUM(COALESCE(actual_sales, 0))) as error')
             )
+            ->groupBy('tanggal')
             ->orderBy('tanggal', 'desc')
             ->limit(10)
             ->get();
@@ -182,5 +93,79 @@ class PredictionController extends Controller
 
             'predictionComparison' => $predictionComparison
         ]);
+    }
+
+    public function generate()
+    {
+        $script = base_path('machine_learning/prediction.py');
+        $command = "python " . escapeshellarg($script);
+        $output = shell_exec($command);
+        $data = json_decode($output, true);
+
+        if (!is_array($data) || count($data) === 0) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Generate prediksi gagal. Output Python tidak valid.');
+        }
+
+        $last = DB::table('penjualans')->orderByDesc('tanggal')->first();
+
+        if (!$last) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Dataset penjualan belum tersedia.');
+        }
+
+        $nextDate = date('Y-m-d', strtotime('+1 month', strtotime($last->tanggal)));
+
+        foreach ($data as $item) {
+            $productId = $item['product_id'] ?? null;
+
+            if (!$productId) {
+                continue;
+            }
+
+            DB::table('prediction_results')->updateOrInsert(
+                [
+                    'tanggal' => $nextDate,
+                    'product_id' => $productId,
+                ],
+                [
+                    'predicted_sales' => $item['prediction'] ?? 0,
+                    'actual_sales' => DB::table('penjualans')
+                        ->where('tanggal', $nextDate)
+                        ->where('product_id', $productId)
+                        ->sum('jumlah'),
+                    'mae' => $item['mae'] ?? null,
+                    'rmse' => $item['rmse'] ?? null,
+                    'validation_mae' => $item['validation_mae'] ?? null,
+                    'validation_rmse' => $item['validation_rmse'] ?? null,
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ]
+            );
+        }
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Prediksi berhasil digenerate dan disimpan ke database.');
+    }
+
+    private function getProductNames()
+    {
+        if (!Schema::hasTable('products')) {
+            return collect();
+        }
+
+        if (Schema::hasColumn('products', 'nama_bunga')) {
+            return DB::table('products')->pluck('nama_bunga', 'id');
+        }
+
+        if (Schema::hasColumn('products', 'name')) {
+            return DB::table('products')->pluck('name', 'id');
+        }
+
+        if (Schema::hasColumn('products', 'nama')) {
+            return DB::table('products')->pluck('nama', 'id');
+        }
+
+        return collect();
     }
 }

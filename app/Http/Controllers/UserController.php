@@ -11,7 +11,10 @@ class UserController extends Controller
     // Tampilkan semua kasir
     public function index()
     {
-        $users = User::where('role', 'kasir')->orderBy('created_at', 'desc')->get();
+        $users = User::where('role', 'kasir')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return view('users.index', compact('users'));
     }
 
@@ -32,11 +35,11 @@ class UserController extends Controller
         ]);
 
         User::create([
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'password'  => Hash::make($request->password),
-            'role'      => 'kasir',
-            'is_active' => true,
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'role'     => 'kasir',
+            'status'   => 'aktif',
         ]);
 
         return redirect()->route('users.index')
@@ -55,10 +58,12 @@ class UserController extends Controller
             'email.unique'   => 'Email sudah digunakan',
         ]);
 
+        $isActive = $request->has('is_active');
+
         $updateData = [
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'is_active' => $request->has('is_active') ? true : false,
+            'name'   => $request->name,
+            'email'  => $request->email,
+            'status' => $isActive ? 'aktif' : 'nonaktif',
         ];
 
         // Update password hanya jika diisi
@@ -69,6 +74,7 @@ class UserController extends Controller
                 'password.min'       => 'Password minimal 6 karakter',
                 'password.confirmed' => 'Konfirmasi password tidak cocok',
             ]);
+
             $updateData['password'] = Hash::make($request->password);
         }
 
@@ -81,16 +87,20 @@ class UserController extends Controller
     // Nonaktifkan / aktifkan kasir (toggle)
     public function destroy(User $user)
     {
-        // Cegah admin nonaktifkan dirinya sendiri
         if ($user->id === auth()->id()) {
             return redirect()->route('users.index')
-                ->with('error', 'Tidak bisa menonaktifkan akun sendiri');
+                ->with('error   ', 'Tidak bisa menonaktifkan akun sendiri');
         }
 
-        $user->update(['is_active' => !$user->is_active]);
+        $newStatus = $user->status === 'aktif' ? 'nonaktif' : 'aktif';
 
-        $status = $user->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        $user->update([
+            'status' => $newStatus,
+        ]);
+
+        $statusText = $newStatus === 'aktif' ? 'diaktifkan' : 'dinonaktifkan';
+
         return redirect()->route('users.index')
-            ->with('success', "Akun kasir berhasil {$status}");
+            ->with('success', "Akun kasir berhasil {$statusText}");
     }
 }
