@@ -14,7 +14,7 @@ Route::get('/', function () {
         : redirect()->route('login');
 })->name('home');
 
-// ── Dashboard ──────────────────────────────────────────────────
+// ── Dashboard / Generate Prediksi ──────────────────────────────
 Route::get('/dashboard', [PredictionController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -26,7 +26,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/data-penjualan', [SalesController::class, 'index'])
         ->name('sales');
 
-    // Upload dataset (ganti seluruh CSV)
+    // Import CSV langsung ke database penjualans
     Route::post('/upload-dataset', [SalesController::class, 'upload'])
         ->name('upload.dataset');
 
@@ -42,10 +42,11 @@ Route::middleware(['auth'])->group(function () {
 
 // ── Profile ────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
-    Route::get('/profile',    [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile',  [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
 Route::resource('products', ProductController::class)->middleware('auth');
 Route::resource('users', UserController::class)->middleware('auth');
 

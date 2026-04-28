@@ -99,7 +99,6 @@
 .fp-btn-secondary:hover{
     background:#fcd5db;
 }
-
 </style>
 
 <div class="fp-inner">
@@ -135,11 +134,15 @@
             </label>
 
             <button type="submit" class="fp-btn fp-btn-primary">
-                Upload Dataset
+                Import ke Database
             </button>
 
+            <a href="{{ route('dashboard') }}" id="generate-prediction-btn" class="fp-btn fp-btn-secondary">
+                Generate Prediksi
+            </a>
+
             <span style="font-size:.77rem;color:#b0a0b0;">
-                * Upload disimpan sebagai file dataset. Data utama sistem berasal dari database penjualans.
+                * Upload CSV akan langsung masuk ke database penjualans dan digunakan sebagai dataset training.
             </span>
         </div>
     </form>
@@ -273,72 +276,63 @@
             </table>
         </div>
 
-        
-                                        <div class="fp-pagination" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
-    <div style="font-size:.82rem;color:#8a7a8a;">
-        Menampilkan
-        <strong>{{ $rows->firstItem() }}</strong>
-        sampai
-        <strong>{{ $rows->lastItem() }}</strong>
-        dari
-        <strong>{{ number_format($rows->total()) }}</strong>
-        data
-        <br>
-        <span style="font-size:.75rem;color:#b0a0b0;">
-            Halaman {{ $rows->currentPage() }} dari {{ $rows->lastPage() }}
-        </span>
-    </div>
+        <div class="fp-pagination" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+            <div style="font-size:.82rem;color:#8a7a8a;">
+                Menampilkan
+                <strong>{{ $rows->firstItem() }}</strong>
+                sampai
+                <strong>{{ $rows->lastItem() }}</strong>
+                dari
+                <strong>{{ number_format($rows->total()) }}</strong>
+                data
+                <br>
+                <span style="font-size:.75rem;color:#b0a0b0;">
+                    Halaman {{ $rows->currentPage() }} dari {{ $rows->lastPage() }}
+                </span>
+            </div>
 
-<div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+                @if($rows->currentPage() > 1)
+                    <a href="{{ $rows->url(1) }}" class="fp-btn fp-btn-outline fp-btn-sm">
+                        « Pertama
+                    </a>
+                @else
+                    <span class="fp-btn fp-btn-outline fp-btn-sm" style="opacity:.45;cursor:not-allowed;">
+                        « Pertama
+                    </span>
+                @endif
 
-    {{-- Pertama --}}
-    @if($rows->currentPage() > 1)
-        <a href="{{ $rows->url(1) }}" class="fp-btn fp-btn-outline fp-btn-sm">
-            « Pertama
-        </a>
-    @else
-        <span class="fp-btn fp-btn-outline fp-btn-sm" style="opacity:.45;cursor:not-allowed;">
-            « Pertama
-        </span>
-    @endif
+                @if($rows->onFirstPage())
+                    <span class="fp-btn fp-btn-secondary fp-btn-sm" style="opacity:.45;cursor:not-allowed;">
+                        ← Sebelumnya
+                    </span>
+                @else
+                    <a href="{{ $rows->previousPageUrl() }}" class="fp-btn fp-btn-secondary fp-btn-sm">
+                        ← Sebelumnya
+                    </a>
+                @endif
 
-    {{-- Sebelumnya (SECONDARY / soft pink) --}}
-    @if($rows->onFirstPage())
-        <span class="fp-btn fp-btn-secondary fp-btn-sm" style="opacity:.45;cursor:not-allowed;">
-            ← Sebelumnya
-        </span>
-    @else
-        <a href="{{ $rows->previousPageUrl() }}" class="fp-btn fp-btn-secondary fp-btn-sm">
-            ← Sebelumnya
-        </a>
-    @endif
+                @if($rows->hasMorePages())
+                    <a href="{{ $rows->nextPageUrl() }}" class="fp-btn fp-btn-primary fp-btn-sm">
+                        Berikutnya →
+                    </a>
+                @else
+                    <span class="fp-btn fp-btn-primary fp-btn-sm" style="opacity:.45;cursor:not-allowed;">
+                        Berikutnya →
+                    </span>
+                @endif
 
-    {{-- Berikutnya (PRIMARY / strong pink) --}}
-    @if($rows->hasMorePages())
-        <a href="{{ $rows->nextPageUrl() }}" class="fp-btn fp-btn-primary fp-btn-sm">
-            Berikutnya →
-        </a>
-    @else
-        <span class="fp-btn fp-btn-primary fp-btn-sm" style="opacity:.45;cursor:not-allowed;">
-            Berikutnya →
-        </span>
-    @endif
-
-    {{-- Terakhir --}}
-    @if($rows->currentPage() < $rows->lastPage())
-        <a href="{{ $rows->url($rows->lastPage()) }}" class="fp-btn fp-btn-outline fp-btn-sm">
-            Terakhir »
-        </a>
-    @else
-        <span class="fp-btn fp-btn-outline fp-btn-sm" style="opacity:.45;cursor:not-allowed;">
-            Terakhir »
-        </span>
-    @endif
-
-</div>
-                                        </div>
-
-
+                @if($rows->currentPage() < $rows->lastPage())
+                    <a href="{{ $rows->url($rows->lastPage()) }}" class="fp-btn fp-btn-outline fp-btn-sm">
+                        Terakhir »
+                    </a>
+                @else
+                    <span class="fp-btn fp-btn-outline fp-btn-sm" style="opacity:.45;cursor:not-allowed;">
+                        Terakhir »
+                    </span>
+                @endif
+            </div>
+        </div>
     </div>
 </div>
 
@@ -433,7 +427,13 @@ document.getElementById('upload-form').addEventListener('submit', function(e) {
         return;
     }
 
-    if (!confirm('Upload ini akan menyimpan file dataset baru.\n\nYakin ingin melanjutkan?')) {
+    if (!confirm('Upload CSV ini akan langsung menambahkan data ke database penjualans.\n\nYakin ingin melanjutkan?')) {
+        e.preventDefault();
+    }
+});
+
+document.getElementById('generate-prediction-btn').addEventListener('click', function(e) {
+    if (!confirm('Generate prediksi akan menjalankan model Machine Learning berdasarkan data terbaru di database.\n\nLanjutkan?')) {
         e.preventDefault();
     }
 });
