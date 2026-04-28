@@ -137,7 +137,7 @@
                 Import ke Database
             </button>
 
-            <a href="{{ route('dashboard') }}" id="generate-prediction-btn" class="fp-btn fp-btn-secondary">
+            <a href="{{ route('predictions.generate') }}" id="generate-prediction-btn" class="fp-btn fp-btn-secondary">
                 Generate Prediksi
             </a>
 

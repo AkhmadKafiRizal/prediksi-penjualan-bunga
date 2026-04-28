@@ -19,6 +19,10 @@ Route::get('/dashboard', [PredictionController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+Route::get('/generate-prediction', [PredictionController::class, 'generate'])
+    ->middleware(['auth', 'verified'])
+    ->name('predictions.generate');
+
 // ── Data Penjualan ─────────────────────────────────────────────
 Route::middleware(['auth'])->group(function () {
 

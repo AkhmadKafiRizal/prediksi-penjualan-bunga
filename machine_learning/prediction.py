@@ -159,5 +159,5 @@ for pid in product_ids:
 # ====================================
 
 print(json.dumps(results, indent=4))
-print("Total data:", len(data))
+#print("Total data:", len(data)) #dimatikan supaya web tidak error
 #Jalankan: python machine_learning/prediction.py melihat hasil di powershell
