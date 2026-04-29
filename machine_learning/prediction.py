@@ -1,35 +1,35 @@
 import pandas as pd
 import json
-from sqlalchemy import create_engine
+from pymongo import MongoClient
 
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 
 # ====================================
-# 1. Koneksi database (SQLAlchemy)
+# 1. Koneksi database MongoDB
 # ====================================
 
 try:
-    engine = create_engine(
-        "mysql+pymysql://root:@localhost/prediksi_bunga"
-    )
+    client = MongoClient("mongodb://localhost:27017/")
+    db = client["prediksi_bunga"]
+    collection = db["penjualans"]
 except Exception:
     print(json.dumps([]))
     exit()
 
 # ====================================
-# 2. Ambil data dari database
+# 2. Ambil data dari MongoDB
 # ====================================
 
 try:
-    query = """
-    SELECT product_id, tanggal, jumlah, harga, promo
-    FROM penjualans
-    ORDER BY tanggal
-    """
-#bukti Bahwa data diambil Dari database berdasarkan urutan tanggal.
-    data = pd.read_sql(query, engine)
+    records = list(collection.find())
+
+    data = pd.DataFrame(records)
+
+    # Hapus kolom bawaan MongoDB / kolom yang tidak dipakai model
+    kolom_dihapus = ["_id", "id", "created_at", "updated_at"]
+    data = data.drop(columns=[kolom for kolom in kolom_dihapus if kolom in data.columns])
 
 except Exception:
     print(json.dumps([]))
@@ -43,6 +43,11 @@ if len(data) < 10:
     print(json.dumps([]))
     exit()
 
+required_columns = ["product_id", "tanggal", "jumlah", "harga", "promo"]
+
+if not all(col in data.columns for col in required_columns):
+    print(json.dumps([]))
+    exit()
 # ====================================
 # 4. Feature engineering dari tanggal
 # ====================================
@@ -57,7 +62,7 @@ data["month"] = data["tanggal"].dt.month #month = bulan
 # 5. Ambil semua produk
 # ====================================
 
-product_ids = data["product_id"].unique()
+product_ids = sorted(data["product_id"].unique())
 
 results = []
 
@@ -161,3 +166,4 @@ for pid in product_ids:
 print(json.dumps(results, indent=4))
 #print("Total data:", len(data)) #dimatikan supaya web tidak error
 #Jalankan: python machine_learning/prediction.py melihat hasil di powershell
+#        # python machine_learning/prediction.py
