@@ -49,7 +49,10 @@ class PredictionController extends Controller
         $topProducts = $productPredictions->sortByDesc('prediction')->take(5)->values();
         $topBars = $productPredictions->sortByDesc('prediction')->take(10)->values();
 
-        $dataset = DB::table('penjualans')->orderBy('tanggal')->get();
+        $dataset = DB::connection('mongodb')
+                            ->table('penjualans')
+                            ->orderBy('tanggal', 'asc')
+                            ->get();
         $totalData = $dataset->count();
 
         $first = $dataset->first();
