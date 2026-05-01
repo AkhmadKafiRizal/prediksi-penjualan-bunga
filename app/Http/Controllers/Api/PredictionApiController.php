@@ -9,24 +9,53 @@ class PredictionApiController extends Controller
 {
     public function index()
     {
-        $data = DB::table('prediction_results as pr')
-            ->leftJoin('products as p', 'pr.product_id', '=', 'p.id')
-            ->select(
-                'pr.product_id',
-                'p.nama_bunga',
-                'pr.predicted_sales'
-            )
-            ->orderByDesc('pr.created_at')
+        /*
+        |--------------------------------------------------------------------------
+        | Ambil hasil prediksi terbaru dari MongoDB
+        |--------------------------------------------------------------------------
+        | Tidak memakai SQL alias / join karena data sudah berada di MongoDB.
+        */
+
+        $latestDate = DB::connection('mongodb')
+            ->table('prediction_results')
+            ->orderByDesc('updated_at')
+            ->value('tanggal');
+
+        if (!$latestDate) {
+            return response()->json([]);
+        }
+
+        $predictions = DB::connection('mongodb')
+            ->table('prediction_results')
+            ->where('tanggal', $latestDate)
+            ->orderBy('product_id', 'asc')
             ->get();
 
-        // Format ulang untuk mobile (clean JSON)
-        $result = $data->map(function ($item) {
+        /*
+        |--------------------------------------------------------------------------
+        | Ambil nama produk dari collection products
+        |--------------------------------------------------------------------------
+        | Join SQL diganti dengan mapping manual product_id => nama_bunga.
+        */
+
+        $productNames = DB::connection('mongodb')
+            ->table('products')
+            ->pluck('nama_bunga', 'id');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Format JSON untuk mobile
+        |--------------------------------------------------------------------------
+        */
+
+        $result = $predictions->map(function ($item) use ($productNames) {
             return [
-                'product_id'   => $item->product_id,
-                'nama_bunga'   => $item->nama_bunga ?? 'Produk #' . $item->product_id,
-                'prediction'   => (int) $item->predicted_sales,
+                'product_id' => (int) $item->product_id,
+                'nama_bunga' => $productNames[$item->product_id] ?? 'Produk #' . $item->product_id,
+                'prediction' => (int) ($item->predicted_sales ?? 0),
+                'tanggal' => $item->tanggal ?? null,
             ];
-        });
+        })->values();
 
         return response()->json($result);
     }
