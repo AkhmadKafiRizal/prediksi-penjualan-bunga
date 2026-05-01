@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class SalesController extends Controller
@@ -21,45 +22,74 @@ class SalesController extends Controller
             : null;
     }
 
+    private function mongo()
+    {
+        return DB::connection('mongodb');
+    }
+
+    private function getProductNames()
+    {
+        return $this->mongo()
+            ->table('products')
+            ->pluck('nama_bunga', 'id');
+    }
+
     public function index(Request $request)
     {
         $search = $request->query('search');
 
-        $query = DB::table('penjualans')
-            ->leftJoin('products', 'penjualans.product_id', '=', 'products.id')
-            ->select(
-                'penjualans.id',
-                'penjualans.product_id',
-                'products.nama_bunga',
-                'penjualans.tanggal',
-                'penjualans.jumlah',
-                'penjualans.harga',
-                'penjualans.promo'
-            )
-            ->orderByDesc('penjualans.tanggal')
-            ->orderBy('penjualans.product_id');
+        $productNames = $this->getProductNames();
+
+        $dataset = $this->mongo()
+            ->table('penjualans')
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('product_id', 'asc')
+            ->get()
+            ->map(function ($item) use ($productNames) {
+                $item->nama_bunga = $productNames[$item->product_id] ?? 'Produk #' . $item->product_id;
+                return $item;
+            });
 
         if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('penjualans.tanggal', 'like', "%{$search}%")
-                    ->orWhere('penjualans.product_id', 'like', "%{$search}%")
-                    ->orWhere('products.nama_bunga', 'like', "%{$search}%")
-                    ->orWhere('penjualans.jumlah', 'like', "%{$search}%")
-                    ->orWhere('penjualans.harga', 'like', "%{$search}%")
-                    ->orWhere('penjualans.promo', 'like', "%{$search}%");
-            });
+            $searchLower = strtolower($search);
+
+            $dataset = $dataset->filter(function ($item) use ($searchLower) {
+                return str_contains(strtolower((string) ($item->tanggal ?? '')), $searchLower)
+                    || str_contains(strtolower((string) ($item->product_id ?? '')), $searchLower)
+                    || str_contains(strtolower((string) ($item->nama_bunga ?? '')), $searchLower)
+                    || str_contains(strtolower((string) ($item->jumlah ?? '')), $searchLower)
+                    || str_contains(strtolower((string) ($item->harga ?? '')), $searchLower)
+                    || str_contains(strtolower((string) ($item->promo ?? '')), $searchLower);
+            })->values();
         }
 
-        $rows = $query->paginate(25)->withQueryString();
+        $perPage = 25;
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
 
-        $totalData = DB::table('penjualans')->count();
+        $rows = new LengthAwarePaginator(
+            $dataset->forPage($currentPage, $perPage)->values(),
+            $dataset->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]
+        );
 
-        $totalProduk = DB::table('penjualans')
-            ->distinct('product_id')
-            ->count('product_id');
+        $allSales = $this->mongo()
+            ->table('penjualans')
+            ->get();
 
-        $firstDate = DB::table('penjualans')->min('tanggal');
-        $lastDate  = DB::table('penjualans')->max('tanggal');
+        $totalData = $allSales->count();
+
+        $totalProduk = $allSales
+            ->pluck('product_id')
+            ->unique()
+            ->count();
+
+        $firstDate = $allSales->min('tanggal');
+        $lastDate = $allSales->max('tanggal');
 
         $periodeDataset = '-';
 
@@ -114,8 +144,6 @@ class SalesController extends Controller
                 ->with('error', 'Header CSV tidak sesuai. Wajib: product_id,tanggal,jumlah,harga,promo');
         }
 
-        DB::beginTransaction();
-
         try {
             $imported = 0;
             $skippedDuplicate = 0;
@@ -156,7 +184,8 @@ class SalesController extends Controller
 
                 $formattedTanggal = date('Y-m-d', strtotime($tanggal));
 
-                $isDuplicate = DB::table('penjualans')
+                $isDuplicate = $this->mongo()
+                    ->table('penjualans')
                     ->where('product_id', $productId)
                     ->where('tanggal', $formattedTanggal)
                     ->where('jumlah', $jumlah)
@@ -169,32 +198,37 @@ class SalesController extends Controller
                     continue;
                 }
 
-                DB::table('penjualans')->insert([
-                    'product_id' => $productId,
-                    'tanggal'    => $formattedTanggal,
-                    'jumlah'     => $jumlah,
-                    'harga'      => $harga,
-                    'promo'      => $promo,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                $latestId = $this->mongo()
+                    ->table('penjualans')
+                    ->max('id');
+
+                $newId = ((int) $latestId) + 1;
+
+                $this->mongo()
+                    ->table('penjualans')
+                    ->insert([
+                        'id'         => $newId,
+                        'product_id' => $productId,
+                        'tanggal'    => $formattedTanggal,
+                        'jumlah'     => $jumlah,
+                        'harga'      => $harga,
+                        'promo'      => $promo,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
 
                 $imported++;
             }
 
             fclose($handle);
 
-            DB::commit();
-
             file_put_contents($this->timeFile, date('d-m-Y H:i:s'));
 
             return redirect()->route('sales')
-                ->with('success', "Import CSV berhasil ke database. Data masuk: {$imported}. Duplikat dilewati: {$skippedDuplicate}.");
+                ->with('success', "Import CSV berhasil ke MongoDB. Data masuk: {$imported}. Duplikat dilewati: {$skippedDuplicate}.");
 
         } catch (\Exception $e) {
             fclose($handle);
-
-            DB::rollBack();
 
             return redirect()->route('sales')
                 ->with('error', 'Import gagal: ' . $e->getMessage());
@@ -211,20 +245,24 @@ class SalesController extends Controller
             'promo'      => 'required|numeric|min:0|max:1',
         ]);
 
-        $exists = DB::table('penjualans')->where('id', $id)->exists();
+        $exists = $this->mongo()
+            ->table('penjualans')
+            ->where('id', $id)
+            ->exists();
 
         if (!$exists) {
             return redirect()->route('sales')->with('error', 'Data tidak ditemukan.');
         }
 
-        DB::table('penjualans')
+        $this->mongo()
+            ->table('penjualans')
             ->where('id', $id)
             ->update([
-                'product_id' => $request->product_id,
-                'tanggal'    => $request->tanggal,
-                'jumlah'     => $request->jumlah,
-                'harga'      => $request->harga,
-                'promo'      => $request->promo,
+                'product_id' => (int) $request->product_id,
+                'tanggal'    => date('Y-m-d', strtotime($request->tanggal)),
+                'jumlah'     => (int) $request->jumlah,
+                'harga'      => (float) $request->harga,
+                'promo'      => (int) $request->promo,
                 'updated_at' => now(),
             ]);
 
@@ -234,13 +272,19 @@ class SalesController extends Controller
 
     public function destroy(int $id)
     {
-        $exists = DB::table('penjualans')->where('id', $id)->exists();
+        $exists = $this->mongo()
+            ->table('penjualans')
+            ->where('id', $id)
+            ->exists();
 
         if (!$exists) {
             return redirect()->route('sales')->with('error', 'Data tidak ditemukan.');
         }
 
-        DB::table('penjualans')->where('id', $id)->delete();
+        $this->mongo()
+            ->table('penjualans')
+            ->where('id', $id)
+            ->delete();
 
         return redirect()->route('sales')
             ->with('success', 'Data penjualan berhasil dihapus.');
