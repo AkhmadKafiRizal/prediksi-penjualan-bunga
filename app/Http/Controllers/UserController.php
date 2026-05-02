@@ -89,7 +89,7 @@ class UserController extends Controller
     {
         if ($user->id === auth()->id()) {
             return redirect()->route('users.index')
-                ->with('error   ', 'Tidak bisa menonaktifkan akun sendiri');
+                ->with('error', 'Tidak bisa menonaktifkan akun sendiri');
         }
 
         $newStatus = $user->status === 'aktif' ? 'nonaktif' : 'aktif';
