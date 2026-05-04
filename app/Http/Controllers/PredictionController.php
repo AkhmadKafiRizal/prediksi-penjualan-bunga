@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 class PredictionController extends Controller
 {
@@ -13,13 +12,14 @@ class PredictionController extends Controller
         $productNames = $this->getProductNames();
 
         $latestDate = DB::table('prediction_results')
-            ->orderByDesc('updated_at')
-            ->value('tanggal');
+    ->orderByDesc('updated_at')
+    ->value('tanggal');
 
         $savedPredictions = collect();
 
         if ($latestDate) {
-            $savedPredictions = DB::table('prediction_results')
+            $savedPredictions = DB::connection('mongodb')
+                ->table('prediction_results')
                 ->where('tanggal', $latestDate)
                 ->orderBy('product_id')
                 ->get();
@@ -49,7 +49,7 @@ class PredictionController extends Controller
         $topProducts = $productPredictions->sortByDesc('prediction')->take(5)->values();
         $topBars     = $productPredictions->sortByDesc('prediction')->take(10)->values();
 
-        $dataset   = DB::table('penjualans')->orderBy('tanggal')->get();
+        $dataset = DB::table('penjualans')->orderBy('tanggal')->get();
         $totalData = $dataset->count();
 
         $first = $dataset->first();
@@ -75,17 +75,37 @@ class PredictionController extends Controller
         }
         // ────────────────────────────────────────────────────────────────────
 
-        $predictionComparison = DB::table('prediction_results')
-            ->select(
-                'tanggal',
-                DB::raw('SUM(predicted_sales) as predicted_sales'),
-                DB::raw('SUM(COALESCE(actual_sales, 0)) as actual_sales'),
-                DB::raw('ABS(SUM(predicted_sales) - SUM(COALESCE(actual_sales, 0))) as error')
-            )
-            ->groupBy('tanggal')
-            ->orderBy('tanggal', 'desc')
-            ->limit(10)
+        /*
+        |--------------------------------------------------------------------------
+        | Perbandingan Prediksi vs Aktual
+        |--------------------------------------------------------------------------
+        */
+
+        $predictionRows = DB::connection('mongodb')
+            ->table('prediction_results')
             ->get();
+
+        $predictionComparison = $predictionRows
+            ->groupBy('tanggal')
+            ->map(function ($rows, $tanggal) {
+                $predictedSales = $rows->sum(function ($row) {
+                    return $row->predicted_sales ?? 0;
+                });
+
+                $actualSales = $rows->sum(function ($row) {
+                    return $row->actual_sales ?? 0;
+                });
+
+                return (object) [
+                    'tanggal' => $tanggal,
+                    'predicted_sales' => $predictedSales,
+                    'actual_sales' => $actualSales,
+                    'error' => abs($predictedSales - $actualSales),
+                ];
+            })
+            ->sortByDesc('tanggal')
+            ->take(10)
+            ->values();
 
         return view('dashboard', [
             'prediction'           => $predictedValue,
@@ -103,11 +123,7 @@ class PredictionController extends Controller
             'topProducts'          => $topProducts,
             'topBars'              => $topBars,
 
-            'predictionComparison' => $predictionComparison,
-
-            // ── variabel baru ──
-            'nextMonthLabel'       => $nextMonthLabel,
-            'nextDate'             => $nextDate,
+            'predictionComparison' => $predictionComparison
         ]);
     }
 
@@ -123,7 +139,10 @@ class PredictionController extends Controller
                 ->with('error', 'Generate prediksi gagal. Output Python tidak valid.');
         }
 
-        $last = DB::table('penjualans')->orderByDesc('tanggal')->first();
+        $last = DB::connection('mongodb')
+            ->table('penjualans')
+            ->orderByDesc('tanggal')
+            ->first();
 
         if (!$last) {
             return redirect()->route('dashboard')
@@ -141,47 +160,34 @@ class PredictionController extends Controller
 
             DB::table('prediction_results')->updateOrInsert(
                 [
-                    'tanggal'    => $nextDate,
+                    'tanggal' => $nextDate,
                     'product_id' => $productId,
                 ],
                 [
                     'predicted_sales' => $item['prediction'] ?? 0,
-                    'actual_sales'    => DB::table('penjualans')
+                    'actual_sales' => DB::table('penjualans')
                         ->where('tanggal', $nextDate)
                         ->where('product_id', $productId)
                         ->sum('jumlah'),
-                    'mae'             => $item['mae'] ?? null,
-                    'rmse'            => $item['rmse'] ?? null,
-                    'validation_mae'  => $item['validation_mae'] ?? null,
+                    'mae' => $item['mae'] ?? null,
+                    'rmse' => $item['rmse'] ?? null,
+                    'validation_mae' => $item['validation_mae'] ?? null,
                     'validation_rmse' => $item['validation_rmse'] ?? null,
-                    'updated_at'      => now(),
-                    'created_at'      => now(),
+                    'updated_at' => now(),
+                    'created_at' => now(),
                 ]
             );
         }
 
         return redirect()->route('dashboard')
-            ->with('success', 'Prediksi berhasil digenerate dan disimpan ke database.');
+            ->with('success', 'Prediksi berhasil digenerate dan disimpan ke MongoDB.');
     }
 
     private function getProductNames()
     {
-        if (!Schema::hasTable('products')) {
-            return collect();
-        }
-
-        if (Schema::hasColumn('products', 'nama_bunga')) {
-            return DB::table('products')->pluck('nama_bunga', 'id');
-        }
-
-        if (Schema::hasColumn('products', 'name')) {
-            return DB::table('products')->pluck('name', 'id');
-        }
-
-        if (Schema::hasColumn('products', 'nama')) {
-            return DB::table('products')->pluck('nama', 'id');
-        }
-
-        return collect();
+        return DB::connection('mongodb')
+            ->table('products')
+            ->pluck('nama_bunga', 'id')
+            ->toArray();
     }
 }

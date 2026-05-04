@@ -49,6 +49,19 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (Auth::user()->status !== 'aktif') {
+            Auth::guard('web')->logout();
+
+            $this->session()->invalidate();
+            $this->session()->regenerateToken();
+
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda sedang nonaktif. Silakan hubungi admin.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
