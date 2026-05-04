@@ -35,6 +35,10 @@
 .fp-tbl td{padding:9px 10px;border-bottom:1px solid #f5e4e8;color:#1a1a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fp-tbl tr:last-child td{border-bottom:none}
 
+/* Badge kebutuhan stok */
+.fp-badge{display:inline-flex;align-items:center;gap:5px;background:#fff1f2;border:1px solid #fecdd3;border-radius:8px;padding:3px 9px;font-weight:700;color:#e8474f;font-family:'DM Mono',monospace;font-size:12px}
+.fp-badge-icon{font-size:11px}
+
 .fp-top5-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f5e4e8}
 .fp-top5-row:last-child{border-bottom:none}
 .fp-rank{width:20px;height:20px;border-radius:50%;background:#e8474f;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -53,6 +57,9 @@
 .fp-empty{text-align:center;padding:30px 16px;color:#b0a0b0;font-size:13px}
 .fp-scroll-table{max-height:360px;overflow:auto}
 
+/* Label bulan badge di header section */
+.fp-month-badge{display:inline-block;background:#e8474f;color:#fff;font-size:10px;font-weight:700;border-radius:6px;padding:2px 8px;margin-left:6px;vertical-align:middle;letter-spacing:.3px}
+
 @media(max-width:1000px){
     .fp-cards{grid-template-columns:repeat(2,1fr)}
     .fp-cols2{grid-template-columns:1fr}
@@ -67,14 +74,16 @@
     @if(isset($predictionReady) && $predictionReady)
         <div class="fp-status-ok">
             <div class="fp-status-dot"></div>
-            Model prediksi aktif — hasil tersedia untuk periode berikutnya
+            Model prediksi aktif — estimasi kebutuhan bunga untuk
+            <strong>{{ $nextMonthLabel ?? 'bulan depan' }}</strong> tersedia
         </div>
     @else
         <div class="fp-status-warn">
-            Prediksi belum dijalankan — jalankan model untuk melihat hasil prediksi
+            Prediksi belum dijalankan — jalankan model untuk melihat estimasi kebutuhan bulan depan
         </div>
     @endif
 
+    {{-- CARDS --}}
     <div class="fp-cards">
         <div class="fp-card">
             <div class="fp-card-lbl">Total Data</div>
@@ -86,7 +95,7 @@
             <div class="fp-card-lbl">Total Prediksi Penjualan</div>
             @if(isset($predictionReady) && $predictionReady)
                 <div class="fp-card-val pink">{{ number_format($prediction) }}</div>
-                <div class="fp-card-sub">total prediksi semua produk</div>
+                <div class="fp-card-sub">total semua produk — {{ $nextMonthLabel ?? '' }}</div>
             @else
                 <div class="fp-card-val" style="font-size:18px;color:#bbb">Belum ada</div>
             @endif
@@ -95,20 +104,29 @@
         <div class="fp-card">
             <div class="fp-card-lbl">Jumlah Produk Diprediksi</div>
             <div class="fp-card-val pink">{{ number_format($totalProducts ?? 0) }}</div>
-            <div class="fp-card-sub">produk aktif dalam model</div>
+            <div class="fp-card-sub">jenis bunga dalam model</div>
         </div>
 
         <div class="fp-card">
             <div class="fp-card-lbl">Periode Prediksi</div>
-            <div class="fp-card-val" style="font-size:20px;padding-top:6px">Berikutnya</div>
-            <div class="fp-card-sub">periode berikutnya</div>
+            {{-- Tampilkan nama bulan yang nyata --}}
+            <div class="fp-card-val" style="font-size:18px;padding-top:6px;color:#e8474f">
+                {{ $nextMonthLabel ?? 'Bulan Depan' }}
+            </div>
+            <div class="fp-card-sub">estimasi kebutuhan stok bulan depan</div>
         </div>
     </div>
 
+    {{-- BARIS 1: Bar chart + Statistik --}}
     <div class="fp-cols2">
         <div class="fp-section">
-            <div class="fp-sec-title">Top 10 Produk Berdasarkan Prediksi</div>
-            <div class="fp-sec-sub">Visualisasi hasil prediksi penjualan per produk</div>
+            <div class="fp-sec-title">
+                Top 10 Produk Berdasarkan Prediksi
+                @if(isset($nextMonthLabel))
+                    <span class="fp-month-badge">{{ $nextMonthLabel }}</span>
+                @endif
+            </div>
+            <div class="fp-sec-sub">Estimasi kebutuhan tangkai per produk bulan depan</div>
 
             @if(isset($topBars) && count($topBars) > 0)
                 <div id="fp-bars"></div>
@@ -150,7 +168,9 @@
 
                     <div class="fp-stat-box">
                         <div class="fp-stat-lbl">Periode</div>
-                        <div class="fp-stat-val" style="font-size:14px">Berikutnya</div>
+                        <div class="fp-stat-val" style="font-size:13px">
+                            {{ $nextMonthLabel ?? 'Berikutnya' }}
+                        </div>
                     </div>
                 </div>
             @else
@@ -159,24 +179,32 @@
         </div>
     </div>
 
+    {{-- BARIS 2: Tabel prediksi + Top5 + Perbandingan --}}
     <div class="fp-cols2">
         <div class="fp-section">
-            <div class="fp-sec-title">Tabel Prediksi Per Produk</div>
-            <div class="fp-sec-sub">Hasil model ML per produk — periode berikutnya</div>
+            <div class="fp-sec-title">
+                Tabel Kebutuhan Bunga Bulan Depan
+                @if(isset($nextMonthLabel))
+                    <span class="fp-month-badge">{{ $nextMonthLabel }}</span>
+                @endif
+            </div>
+            <div class="fp-sec-sub">
+                Estimasi jumlah tangkai yang dibutuhkan per produk — {{ $nextMonthLabel ?? 'bulan depan' }}
+            </div>
 
             <div class="fp-scroll-table">
                 <table class="fp-tbl">
                     <colgroup>
-                        <col style="width:40px">
+                        <col style="width:36px">
                         <col>
-                        <col style="width:100px">
-                        <col style="width:80px">
-                        <col style="width:80px">
+                        <col style="width:130px">
+                        <col style="width:70px">
+                        <col style="width:70px">
                     </colgroup>
                     <tr>
                         <th>#</th>
                         <th>Nama Bunga</th>
-                        <th>Prediksi</th>
+                        <th>Butuh (tangkai)</th>
                         <th>MAE</th>
                         <th>RMSE</th>
                     </tr>
@@ -185,15 +213,21 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $item['product_name'] }}</td>
-                            <td style="font-weight:700;color:#e8474f">
-                                {{ number_format($item['prediction']) }}
+                            <td>
+                                {{-- Badge kebutuhan stok --}}
+                                <span class="fp-badge">
+                                    <span class="fp-badge-icon">🌸</span>
+                                    {{ number_format($item['prediction']) }}
+                                </span>
                             </td>
                             <td>{{ number_format($item['mae'], 2) }}</td>
                             <td>{{ number_format($item['rmse'], 2) }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5">Belum ada data prediksi produk</td>
+                            <td colspan="5" style="text-align:center;color:#b0a0b0;padding:20px">
+                                Belum ada data prediksi — jalankan model terlebih dahulu
+                            </td>
                         </tr>
                     @endforelse
                 </table>
@@ -203,7 +237,7 @@
         <div style="display:flex;flex-direction:column;gap:14px">
             <div class="fp-section">
                 <div class="fp-sec-title">Top 5 Produk</div>
-                <div class="fp-sec-sub">Prediksi penjualan tertinggi</div>
+                <div class="fp-sec-sub">Kebutuhan stok tertinggi — {{ $nextMonthLabel ?? 'bulan depan' }}</div>
 
                 @forelse($topProducts as $item)
                     <div class="fp-top5-row">
@@ -211,7 +245,7 @@
                             {{ $loop->iteration }}
                         </div>
                         <span class="fp-rankname">{{ $item['product_name'] }}</span>
-                        <span class="fp-rankval">{{ number_format($item['prediction']) }}</span>
+                        <span class="fp-rankval">{{ number_format($item['prediction']) }} tgk</span>
                     </div>
                 @empty
                     <div class="fp-empty">Belum ada data top produk</div>
@@ -239,7 +273,9 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4">Belum ada data perbandingan</td>
+                            <td colspan="4" style="text-align:center;color:#b0a0b0;padding:16px">
+                                Belum ada data perbandingan
+                            </td>
                         </tr>
                     @endforelse
                 </table>
@@ -251,16 +287,15 @@
 
 <script>
 const topBars = @json($topBars ?? []);
-
 const barContainer = document.getElementById('fp-bars');
 
 if (barContainer && topBars.length > 0) {
     const maxBar = Math.max(...topBars.map(item => item.prediction || 0));
 
     topBars.forEach(item => {
-        const name = item.product_name ?? ('Produk #' + item.product_id);
+        const name  = item.product_name ?? ('Produk #' + item.product_id);
         const value = item.prediction ?? 0;
-        const pct = maxBar > 0 ? Math.round((value / maxBar) * 100) : 0;
+        const pct   = maxBar > 0 ? Math.round((value / maxBar) * 100) : 0;
 
         barContainer.innerHTML += `
             <div class="bar-row">
