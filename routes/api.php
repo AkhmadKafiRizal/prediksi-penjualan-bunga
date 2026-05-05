@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PredictionApiController;
+use App\Http\Controllers\Api\DashboardSummaryApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -10,3 +11,4 @@ use App\Http\Controllers\Api\PredictionApiController;
 */
 
 Route::get('/predictions', [PredictionApiController::class, 'index']);
+Route::get('/dashboard/summary', [DashboardSummaryApiController::class, 'index']);
