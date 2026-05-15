@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class PredictionController extends Controller
 {
@@ -248,35 +249,6 @@ class PredictionController extends Controller
     {
         /*
         |--------------------------------------------------------------------------
-        | Jalankan Script Python Machine Learning
-        |--------------------------------------------------------------------------
-        | Laravel menjalankan machine_learning/prediction.py.
-        | Script Python membaca data dari MongoDB, menjalankan model ML,
-        | lalu mengembalikan hasil prediksi dalam format JSON.
-        |--------------------------------------------------------------------------
-        */
-
-        $script = base_path('machine_learning/prediction.py');
-        $command = 'python ' . escapeshellarg($script);
-        $output = shell_exec($command);
-        $data = json_decode($output, true);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validasi Output Python
-        |--------------------------------------------------------------------------
-        | Jika output Python kosong atau bukan array, proses generate dihentikan.
-        |--------------------------------------------------------------------------
-        */
-
-        if (!is_array($data) || count($data) === 0) {
-            return redirect()
-                ->route('dashboard')
-                ->with('error', 'Generate prediksi gagal. Output Python tidak valid.');
-        }
-
-        /*
-        |--------------------------------------------------------------------------
         | Ambil Tanggal Terakhir Dataset
         |--------------------------------------------------------------------------
         | Tanggal terakhir dari collection penjualans dipakai untuk menentukan
@@ -310,18 +282,118 @@ class PredictionController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Simpan Hasil Prediksi ke MongoDB
+        | Siapkan Fitur Tanggal untuk Flask
         |--------------------------------------------------------------------------
-        | Setiap produk disimpan ke collection prediction_results.
-        | updateOrInsert digunakan agar data pada tanggal dan product_id yang sama
-        | tidak terduplikasi, tetapi diperbarui.
+        | Model Flask membutuhkan fitur weekday dan month.
+        | dayOfWeekIso menghasilkan Senin = 1 sampai Minggu = 7.
+        | Karena model Python/pandas memakai Senin = 0 sampai Minggu = 6,
+        | maka nilainya dikurangi 1.
         |--------------------------------------------------------------------------
         */
 
-        foreach ($data as $item) {
-            $productId = $item['product_id'] ?? null;
+        $nextDateCarbon = Carbon::parse($nextDate);
+        $weekday = $nextDateCarbon->dayOfWeekIso - 1;
+        $month = $nextDateCarbon->month;
 
-            if (!$productId) {
+        /*
+        |--------------------------------------------------------------------------
+        | Ambil Data Penjualan Terbaru Per Produk
+        |--------------------------------------------------------------------------
+        | Data terbaru per product_id dipakai untuk mengambil nilai harga dan promo
+        | terakhir. Nilai ini dikirim ke Flask sebagai fitur prediksi.
+        |--------------------------------------------------------------------------
+        */
+
+        $salesRows = DB::connection('mongodb')
+            ->table('penjualans')
+            ->orderBy('product_id')
+            ->orderByDesc('tanggal')
+            ->get();
+
+        $latestSalesPerProduct = $salesRows
+            ->groupBy('product_id')
+            ->map(function ($rows) {
+                return $rows->first();
+            })
+            ->values();
+
+        if ($latestSalesPerProduct->count() === 0) {
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Data penjualan per produk tidak ditemukan.');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Endpoint Flask PythonAnywhere
+        |--------------------------------------------------------------------------
+        | Laravel tidak lagi menjalankan machine_learning/prediction.py lokal.
+        | Mulai bagian ini, Laravel memanggil Flask API online yang sudah deploy
+        | di PythonAnywhere.
+        |--------------------------------------------------------------------------
+        */
+
+        $flaskPredictUrl = 'https://kafi.pythonanywhere.com/api/predict';
+
+        $successCount = 0;
+        $failedProducts = [];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Panggil Flask dan Simpan Hasil ke MongoDB
+        |--------------------------------------------------------------------------
+        | Setiap produk dikirim ke Flask menggunakan product_id, harga, promo,
+        | weekday, dan month. Hasil predicted_sales dari Flask tetap disimpan
+        | ke collection prediction_results.
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($latestSalesPerProduct as $row) {
+            $productId = $row->product_id ?? null;
+            $harga = $row->harga ?? null;
+            $promo = $row->promo ?? 0;
+
+            if (!$productId || $harga === null) {
+                $failedProducts[] = $productId ?? 'product_id_tidak_valid';
+                continue;
+            }
+
+            try {
+                $response = Http::timeout(30)->post($flaskPredictUrl, [
+                    'product_id' => (int) $productId,
+                    'harga'      => (float) $harga,
+                    'promo'      => (int) $promo,
+                    'weekday'    => (int) $weekday,
+                    'month'      => (int) $month,
+                ]);
+            } catch (\Throwable $e) {
+                $failedProducts[] = $productId;
+                continue;
+            }
+
+            if (!$response->successful()) {
+                $failedProducts[] = $productId;
+                continue;
+            }
+
+            $result = $response->json();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Ambil Nilai Prediksi dari Response Flask
+            |--------------------------------------------------------------------------
+            | Flask utama mengembalikan field predicted_sales.
+            | Field prediction disiapkan sebagai fallback agar aman jika format
+            | response berubah kecil.
+            |--------------------------------------------------------------------------
+            */
+
+            $predictedSales = $result['predicted_sales']
+                ?? $result['prediction']
+                ?? null;
+
+            if ($predictedSales === null) {
+                $failedProducts[] = $productId;
                 continue;
             }
 
@@ -340,6 +412,22 @@ class PredictionController extends Controller
                 ->where('product_id', $productId)
                 ->sum('jumlah');
 
+            /*
+            |--------------------------------------------------------------------------
+            | Ambil Data Prediksi Lama Jika Ada
+            |--------------------------------------------------------------------------
+            | Flask predict hanya mengembalikan hasil prediksi.
+            | Jika data MAE/RMSE sudah pernah tersimpan, nilainya dipertahankan
+            | agar dashboard tidak kehilangan data evaluasi lama.
+            |--------------------------------------------------------------------------
+            */
+
+            $existingPrediction = DB::connection('mongodb')
+                ->table('prediction_results')
+                ->where('tanggal', $nextDate)
+                ->where('product_id', $productId)
+                ->first();
+
             DB::connection('mongodb')
                 ->table('prediction_results')
                 ->updateOrInsert(
@@ -348,20 +436,43 @@ class PredictionController extends Controller
                         'product_id' => $productId,
                     ],
                     [
-                        'predicted_sales' => $item['prediction'] ?? 0,
+                        'predicted_sales' => max(0, round((float) $predictedSales)),
                         'actual_sales'    => $actualSales,
-                        'mae'             => $item['mae'] ?? null,
-                        'rmse'            => $item['rmse'] ?? null,
-                        'validation_mae'  => $item['validation_mae'] ?? null,
-                        'validation_rmse' => $item['validation_rmse'] ?? null,
+                        'mae'             => $result['mae'] ?? ($existingPrediction->mae ?? null),
+                        'rmse'            => $result['rmse'] ?? ($existingPrediction->rmse ?? null),
+                        'validation_mae'  => $result['validation_mae'] ?? ($existingPrediction->validation_mae ?? null),
+                        'validation_rmse' => $result['validation_rmse'] ?? ($existingPrediction->validation_rmse ?? null),
                         'updated_at'      => now(),
                     ]
                 );
+
+            $successCount++;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validasi Hasil Generate
+        |--------------------------------------------------------------------------
+        | Jika tidak ada satu pun produk yang berhasil diprediksi, tampilkan error.
+        | Jika sebagian berhasil, tampilkan warning ringan.
+        |--------------------------------------------------------------------------
+        */
+
+        if ($successCount === 0) {
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Generate prediksi gagal. Laravel tidak berhasil mengambil hasil prediksi dari Flask.');
+        }
+
+        if (count($failedProducts) > 0) {
+            return redirect()
+                ->route('dashboard')
+                ->with('success', 'Prediksi berhasil digenerate sebagian. Berhasil: ' . $successCount . ' produk. Gagal: ' . count($failedProducts) . ' produk.');
         }
 
         return redirect()
             ->route('dashboard')
-            ->with('success', 'Prediksi berhasil digenerate dan disimpan ke MongoDB.');
+            ->with('success', 'Prediksi berhasil digenerate dari Flask PythonAnywhere dan disimpan ke MongoDB.');
     }
 
     private function getProductNames()
