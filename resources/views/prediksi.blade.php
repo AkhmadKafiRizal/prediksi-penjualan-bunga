@@ -125,25 +125,51 @@
     @endif
 
     {{-- Filter bar + model status ── sesuai mockup --}}
-    <div class="pr-filterbar">
-        <div class="pr-filter-group">
-            <div class="pr-filter-label">Pilih Periode Prediksi</div>
-            <select class="pr-filter-select" name="periode"
-    onchange="window.location.href='{{ route('prediksi') }}?periode=' + this.value">
-                @php
-                    $months = [];
-                    for ($i = 0; $i < 12; $i++) {
-                        $m = now()->addMonths($i);
-                        $months[] = ['value' => $m->format('Y-m'), 'label' => $m->translatedFormat('F Y')];
-                    }
-                @endphp
-                @foreach($months as $m)
-                    <option value="{{ $m['value'] }}" {{ ($m['value'] === ($selectedPeriod ?? now()->addMonth()->format('Y-m'))) ? 'selected' : '' }}>
-                        {{ $m['label'] }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+    
+<div class="pr-filterbar">
+    <div class="pr-filter-group">
+        <div class="pr-filter-label">Pilih Periode Prediksi</div>
+        <select class="pr-filter-select" name="periode"
+            onchange="window.location.href='{{ route('prediksi') }}?periode=' + this.value">
+            @php
+                /*
+                |--------------------------------------------------------------------------
+                | Daftar periode prediksi
+                |--------------------------------------------------------------------------
+                | Dropdown harus mengikuti periode prediksi aktif, bukan tanggal hari ini.
+                | Kalau prediksi aktif adalah 2024-01, maka dropdown default harus
+                | menampilkan Januari 2024, bukan bulan sekarang seperti Mei 2026.
+                */
+
+                $activePeriod = $selectedPeriod ?? null;
+
+                try {
+                    $basePeriod = $activePeriod
+                        ? \Carbon\Carbon::createFromFormat('Y-m-d', $activePeriod . '-01')->startOfMonth()
+                        : now()->startOfMonth();
+                } catch (\Exception $e) {
+                    $basePeriod = now()->startOfMonth();
+                }
+
+                $months = [];
+
+                for ($i = 0; $i < 12; $i++) {
+                    $m = $basePeriod->copy()->addMonths($i);
+
+                    $months[] = [
+                        'value' => $m->format('Y-m'),
+                        'label' => $m->translatedFormat('F Y'),
+                    ];
+                }
+            @endphp
+
+            @foreach($months as $m)
+                <option value="{{ $m['value'] }}" {{ $m['value'] === $basePeriod->format('Y-m') ? 'selected' : '' }}>
+                    {{ $m['label'] }}
+                </option>
+            @endforeach
+        </select>
+    </div>
 
         <div class="pr-filter-group">
             <div class="pr-filter-label">Model Aktif</div>
