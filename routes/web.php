@@ -14,30 +14,39 @@ Route::get('/', function () {
         : redirect()->route('login');
 })->name('home');
 
-// Halaman web admin
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
 
-    // Dashboard / Generate Prediksi
-    Route::get('/dashboard', [PredictionController::class, 'index'])
+    // ==================== DASHBOARD ====================
+    Route::get('/dashboard', [PredictionController::class, 'dashboard'])
         ->name('dashboard');
 
-    Route::get('/generate-prediction', [PredictionController::class, 'generate'])
+    // ==================== PREDIKSI ====================
+    Route::get('/prediksi', [PredictionController::class, 'index'])
+        ->name('prediksi');
+
+    // Generate menerima ?periode=YYYY-MM via query string
+    Route::get('/prediksi/generate', [PredictionController::class, 'generate'])
         ->name('predictions.generate');
 
-    // Data Penjualan
+    Route::get('/predictions/export', [PredictionController::class, 'export'])
+        ->name('predictions.export');
+
+    // ==================== DATA PENJUALAN ====================
     Route::get('/data-penjualan', [SalesController::class, 'index'])
         ->name('sales');
 
-    Route::post('/upload-dataset', [SalesController::class, 'upload'])
-        ->name('upload.dataset');
+    Route::get('/data-penjualan/export', [SalesController::class, 'export'])
+        ->name('sales.export');
 
-    Route::put('/data-penjualan/{index}', [SalesController::class, 'update'])
-        ->name('sales.update');
+    // ==================== MASTER DATA PRODUK ====================
+    Route::resource('products', ProductController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
 
-    Route::delete('/data-penjualan/{index}', [SalesController::class, 'destroy'])
-        ->name('sales.destroy');
+    // ==================== MANAJEMEN USER ====================
+    Route::resource('users', UserController::class);
 
-    // Profile
+    // ==================== PROFILE ====================
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
 
@@ -46,13 +55,6 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
 
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
-
-    // Master Data
-    Route::resource('products', ProductController::class);
-
-    // Manajemen Kasir
-    Route::resource('users', UserController::class);
 });
 
-// Auth
 require __DIR__.'/auth.php';

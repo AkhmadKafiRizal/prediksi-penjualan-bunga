@@ -41,15 +41,20 @@
 .fp-empty p{font-size:.875rem;margin-top:.6rem}
 
 .fp-prod-cell{display:flex;align-items:center;gap:10px}
-.fp-prod-icon{width:32px;height:32px;border-radius:9px;background:var(--pk5);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;border:1px solid #FBCEDE}
+.fp-prod-icon{width:34px;height:34px;border-radius:9px;background:var(--pk5);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid #FBCEDE}
 .fp-prod-name{font-size:.875rem;font-weight:600;color:var(--dark)}
+
 .badge-active{display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:.2rem .65rem;font-size:.74rem;font-weight:600}
 .badge-inactive{display:inline-block;background:#f3f4f6;color:#6b7280;border-radius:6px;padding:.2rem .65rem;font-size:.74rem;font-weight:600}
+.stok-current{display:inline-flex;align-items:center;gap:4px;background:var(--pk5);border:1px solid #FBCEDE;border-radius:7px;padding:2px 9px;font-weight:700;color:var(--pk1);font-family:'DM Mono',monospace;font-size:.82rem}
+.stok-minimum{display:inline-flex;align-items:center;font-family:'DM Mono',monospace;font-size:.82rem;font-weight:600;color:#7A4060}
+.stok-low{background:#FEF2F2;border:1px solid #FECACA;color:#991B1B}
+.stok-ok{background:#ECFDF5;border:1px solid #6EE7B7;color:#065F46}
+
 .num-cell{font-family:'DM Mono',monospace;font-size:.84rem;color:var(--dark)}
 
 .fp-pagination{padding:.9rem 1.25rem;border-top:1px solid #FCE4EF;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 
-/* Modal */
 .fp-modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,10,18,.5);backdrop-filter:blur(6px);z-index:999;align-items:center;justify-content:center}
 .fp-modal-overlay.open{display:flex}
 .fp-modal{background:#fff;border-radius:20px;padding:1.75rem;width:100%;max-width:460px;margin:1rem;box-shadow:0 24px 60px rgba(232,24,90,.12);animation:modalIn .2s ease;border:1px solid #FCE4EF}
@@ -67,6 +72,9 @@
 .fp-modal-icon{width:50px;height:50px;background:var(--pk5);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:.9rem}
 .fp-modal-body-text{font-size:.875rem;color:#4A2A3A;line-height:1.6}
 .fp-modal-body-name{font-weight:700;color:var(--dark)}
+
+.fp-stok-info{display:flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(135deg,var(--pk6),#FFF5FA);border-bottom:1px solid #FCE4EF;font-size:11.5px;color:#7A4060}
+.fp-stok-info strong{color:var(--pk1)}
 </style>
 
 <div>
@@ -92,6 +100,11 @@
             </button>
         </div>
 
+        <div class="fp-stok-info">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--pk1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Kolom <strong>Stok Saat Ini</strong> menampilkan jumlah stok yang tersedia sekarang. Jika stok di bawah minimum, akan ditandai <span style="background:#FEF2F2;color:#991B1B;padding:1px 6px;border-radius:4px;font-size:10.5px;font-weight:600">⚠ Low</span>
+        </div>
+
         <div class="fp-table-wrap">
             <table class="fp-table">
                 <thead>
@@ -100,6 +113,7 @@
                         <th>Nama Bunga</th>
                         <th>Satuan</th>
                         <th>Harga Jual</th>
+                        <th>Stok Saat Ini</th>
                         <th>Stok Minimum</th>
                         <th>Status</th>
                         <th style="text-align:center;width:120px">Aksi</th>
@@ -107,11 +121,30 @@
                 </thead>
                 <tbody>
                     @forelse($products as $i => $product)
+                        @php
+                            $stokSaatIni = $product->stok_saat_ini ?? 0;
+                            $stokMin     = $product->stok_minimum ?? 0;
+                            $isLow       = $stokSaatIni < $stokMin;
+                        @endphp
                         <tr>
                             <td class="row-num">{{ ($products->currentPage() - 1) * $products->perPage() + $i + 1 }}</td>
                             <td>
                                 <div class="fp-prod-cell">
-                                    <div class="fp-prod-icon">🌸</div>
+                                    <div class="fp-prod-icon">
+                                        <svg width="22" height="22" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <line x1="20" y1="38" x2="20" y2="22" stroke="#4CAF50" stroke-width="2" stroke-linecap="round"/>
+                                            <path d="M20 32 Q14 28 13 24 Q17 25 20 32Z" fill="#66BB6A"/>
+                                            <ellipse cx="20" cy="12" rx="4" ry="7" fill="#E8185A" opacity="0.9"/>
+                                            <ellipse cx="28" cy="16" rx="4" ry="7" transform="rotate(60 28 16)" fill="#F04E8A" opacity="0.85"/>
+                                            <ellipse cx="27" cy="24" rx="4" ry="7" transform="rotate(120 27 24)" fill="#F87FB5" opacity="0.8"/>
+                                            <ellipse cx="20" cy="26" rx="4" ry="7" transform="rotate(180 20 26)" fill="#E8185A" opacity="0.85"/>
+                                            <ellipse cx="13" cy="24" rx="4" ry="7" transform="rotate(240 13 24)" fill="#F04E8A" opacity="0.8"/>
+                                            <ellipse cx="12" cy="16" rx="4" ry="7" transform="rotate(300 12 16)" fill="#F87FB5" opacity="0.85"/>
+                                            <circle cx="20" cy="19" r="5" fill="#FDB8D4"/>
+                                            <circle cx="20" cy="19" r="3" fill="#FFF2F8"/>
+                                            <circle cx="20" cy="19" r="1.5" fill="#E8185A"/>
+                                        </svg>
+                                    </div>
                                     <span class="fp-prod-name">{{ $product->nama_bunga }}</span>
                                 </div>
                             </td>
@@ -119,7 +152,14 @@
                             <td class="num-cell">
                                 {{ $product->harga_jual ? 'Rp ' . number_format($product->harga_jual, 0, ',', '.') : '-' }}
                             </td>
-                            <td class="num-cell">{{ $product->stok_minimum }} {{ $product->satuan }}</td>
+                            <td>
+                                <span class="stok-current {{ $isLow ? 'stok-low' : 'stok-ok' }}">
+                                    {{ $isLow ? '⚠ ' : '✓ ' }}{{ number_format($stokSaatIni) }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="stok-minimum">{{ number_format($stokMin) }} {{ $product->satuan }}</span>
+                            </td>
                             <td>
                                 @if($product->is_active)
                                     <span class="badge-active">Aktif</span>
@@ -130,7 +170,15 @@
                             <td>
                                 <div class="fp-actions">
                                     <button class="fp-btn fp-btn-outline fp-btn-sm" title="Edit"
-                                        onclick="openEdit({{ $product->id }},'{{ addslashes($product->nama_bunga) }}','{{ $product->satuan }}','{{ $product->harga_jual }}',{{ $product->stok_minimum }},{{ $product->is_active ? 1 : 0 }})">
+                                        onclick="openEdit(
+                                            {{ $product->id }},
+                                            '{{ addslashes($product->nama_bunga) }}',
+                                            '{{ addslashes($product->satuan) }}',
+                                            '{{ $product->harga_jual }}',
+                                            {{ $product->stok_minimum }},
+                                            {{ $product->stok_saat_ini ?? 0 }},
+                                            {{ $product->is_active ? 1 : 0 }}
+                                        )">
                                         ✏️
                                     </button>
                                     <button class="fp-btn fp-btn-danger fp-btn-sm" title="Nonaktifkan"
@@ -141,7 +189,11 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7"><div class="fp-empty"><p>Belum ada produk bunga. Tambahkan produk terlebih dahulu.</p></div></td></tr>
+                        <tr>
+                            <td colspan="8">
+                                <div class="fp-empty"><p>Belum ada produk bunga. Tambahkan produk terlebih dahulu.</p></div>
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
@@ -188,13 +240,16 @@
         </div>
         <form action="{{ route('products.store') }}" method="POST">
             @csrf
-            <div class="fp-form-group"><label>Nama Bunga</label><input type="text" name="nama_bunga" placeholder="contoh: Mawar Merah" required></div>
+            <div class="fp-form-group">
+                <label>Nama Bunga</label>
+                <input type="text" name="nama_bunga" placeholder="contoh: Mawar Merah" required>
+            </div>
             <div class="fp-form-group">
                 <label>Satuan</label>
                 <select name="satuan" required>
-                    <option value="tangkai">Tangkai</option>
-                    <option value="pot">Pot</option>
-                    <option value="ikat">Ikat</option>
+                    <option value="Tangkai">Tangkai</option>
+                    <option value="Pot">Pot</option>
+                    <option value="Ikat">Ikat</option>
                 </select>
             </div>
             <div class="fp-form-group">
@@ -202,10 +257,17 @@
                 <input type="number" name="harga_jual" placeholder="contoh: 10000" min="0">
                 <div class="fp-form-hint">Opsional — bisa diisi nanti</div>
             </div>
-            <div class="fp-form-group">
-                <label>Stok Minimum</label>
-                <input type="number" name="stok_minimum" placeholder="contoh: 10" min="1" required>
-                <div class="fp-form-hint">Notifikasi akan dikirim jika stok di bawah angka ini</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="fp-form-group">
+                    <label>Stok Saat Ini</label>
+                    <input type="number" name="stok_saat_ini" placeholder="contoh: 100" min="0" required>
+                    <div class="fp-form-hint">Jumlah stok yang tersedia</div>
+                </div>
+                <div class="fp-form-group">
+                    <label>Stok Minimum</label>
+                    <input type="number" name="stok_minimum" placeholder="contoh: 10" min="1" required>
+                    <div class="fp-form-hint">Batas stok minimum</div>
+                </div>
             </div>
             <div class="fp-modal-footer">
                 <button type="button" class="fp-btn fp-btn-outline" onclick="closeModal('modal-tambah')">Batal</button>
@@ -222,19 +284,42 @@
             <span class="fp-modal-title">✏️ Edit Produk Bunga</span>
             <button class="fp-modal-close" onclick="closeModal('modal-edit')">✕</button>
         </div>
-        <form id="form-edit" action="" method="POST">
-            @csrf @method('PUT')
-            <div class="fp-form-group"><label>Nama Bunga</label><input type="text" id="edit-nama" name="nama_bunga" required></div>
+
+        <form id="form-edit" method="POST">
+            @csrf
+            @method('PUT')
+
+            <div class="fp-form-group">
+                <label>Nama Bunga</label>
+                <input type="text" id="edit-nama" name="nama_bunga" required>
+            </div>
+
             <div class="fp-form-group">
                 <label>Satuan</label>
                 <select id="edit-satuan" name="satuan" required>
-                    <option value="tangkai">Tangkai</option>
-                    <option value="pot">Pot</option>
-                    <option value="ikat">Ikat</option>
+                    <option value="Tangkai">Tangkai</option>
+                    <option value="Pot">Pot</option>
+                    <option value="Ikat">Ikat</option>
                 </select>
             </div>
-            <div class="fp-form-group"><label>Harga Jual (Rp)</label><input type="number" id="edit-harga" name="harga_jual" min="0"></div>
-            <div class="fp-form-group"><label>Stok Minimum</label><input type="number" id="edit-stok" name="stok_minimum" min="1" required></div>
+
+            <div class="fp-form-group">
+                <label>Harga Jual (Rp)</label>
+                <input type="number" id="edit-harga" name="harga_jual" min="0">
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="fp-form-group">
+                    <label>Stok Saat Ini</label>
+                    <input type="number" id="edit-stok-saat-ini" name="stok_saat_ini" min="0" required>
+                </div>
+
+                <div class="fp-form-group">
+                    <label>Stok Minimum</label>
+                    <input type="number" id="edit-stok" name="stok_minimum" min="1" required>
+                </div>
+            </div>
+
             <div class="fp-form-group">
                 <label>Status</label>
                 <select id="edit-status" name="is_active">
@@ -242,6 +327,7 @@
                     <option value="0">Nonaktif</option>
                 </select>
             </div>
+
             <div class="fp-modal-footer">
                 <button type="button" class="fp-btn fp-btn-outline" onclick="closeModal('modal-edit')">Batal</button>
                 <button type="submit" class="fp-btn fp-btn-primary">Simpan Perubahan</button>
@@ -253,14 +339,23 @@
 {{-- MODAL DELETE --}}
 <div class="fp-modal-overlay" id="modal-delete">
     <div class="fp-modal" style="max-width:400px">
+
         <div class="fp-modal-icon">🗑️</div>
-        <div class="fp-modal-title" style="margin-bottom:.5rem">Nonaktifkan Produk?</div>
+
+        <div class="fp-modal-title" style="margin-bottom:.5rem">
+            Nonaktifkan Produk?
+        </div>
+
         <div class="fp-modal-body-text">
-            Kamu yakin ingin menonaktifkan produk <span class="fp-modal-body-name" id="delete-name-label"></span>?
+            Kamu yakin ingin menonaktifkan produk
+            <span class="fp-modal-body-name" id="delete-name-label"></span>?
             Produk tidak akan muncul di aplikasi mobile kasir.
         </div>
-        <form id="form-delete" action="" method="POST">
-            @csrf @method('DELETE')
+
+        <form id="form-delete" method="POST">
+            @csrf
+            @method('DELETE')
+
             <div class="fp-modal-footer">
                 <button type="button" class="fp-btn fp-btn-outline" onclick="closeModal('modal-delete')">Batal</button>
                 <button type="submit" class="fp-btn" style="background:#dc2626;color:#fff">Ya, Nonaktifkan</button>
@@ -269,24 +364,51 @@
     </div>
 </div>
 
+{{-- SCRIPT --}}
 <script>
-function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
-document.querySelectorAll('.fp-modal-overlay').forEach(el => { el.addEventListener('click', function(e) { if (e.target===this) closeModal(this.id); }); });
-document.addEventListener('keydown', e => { if (e.key==='Escape') ['modal-tambah','modal-edit','modal-delete'].forEach(closeModal); });
-function openEdit(id, nama, satuan, harga, stok, isActive) {
-    document.getElementById('edit-nama').value = nama;
-    document.getElementById('edit-satuan').value = satuan;
-    document.getElementById('edit-harga').value = harga;
-    document.getElementById('edit-stok').value = stok;
-    document.getElementById('edit-status').value = isActive;
-    document.getElementById('form-edit').action = '/products/' + id;
+const baseUrl = "{{ url('products') }}";
+
+function openModal(id) {
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+document.querySelectorAll('.fp-modal-overlay').forEach(el => {
+    el.addEventListener('click', function(e) {
+        if (e.target === this) closeModal(this.id);
+    });
+});
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        closeModal('modal-tambah');
+        closeModal('modal-edit');
+        closeModal('modal-delete');
+    }
+});
+
+function openEdit(id, nama, satuan, harga, stokMin, stokSaatIni, isActive) {
+    document.getElementById('edit-nama').value           = nama;
+    document.getElementById('edit-satuan').value         = satuan;
+    document.getElementById('edit-harga').value          = harga;
+    document.getElementById('edit-stok').value           = stokMin;
+    document.getElementById('edit-stok-saat-ini').value  = stokSaatIni;
+    document.getElementById('edit-status').value         = isActive;
+
+    document.getElementById('form-edit').action = baseUrl + '/' + id;
     openModal('modal-edit');
 }
+
 function openDelete(id, nama) {
     document.getElementById('delete-name-label').textContent = nama;
-    document.getElementById('form-delete').action = '/products/' + id;
+    document.getElementById('form-delete').action = baseUrl + '/' + id;
     openModal('modal-delete');
 }
 </script>
+
 </x-app-layout>

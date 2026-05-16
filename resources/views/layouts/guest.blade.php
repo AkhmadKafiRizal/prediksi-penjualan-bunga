@@ -117,36 +117,38 @@
             backdrop-filter: blur(20px) saturate(1.4);
             -webkit-backdrop-filter: blur(20px) saturate(1.4);
             border-radius: 24px;
-            padding: 32px 30px 28px;
+            padding: 32px 32px 28px;
             border: 1px solid rgba(255,255,255,0.7);
             box-shadow: 0 20px 60px rgba(180, 60, 100, 0.18), 0 4px 20px rgba(0,0,0,0.08);
-            width: 100%;
-            max-width: 360px;
+            width: 420px;
+            max-width: 90vw;
         }
 
         /* ── Card header ── */
         .fp-card-logo {
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             background: linear-gradient(135deg, #E8185A, #F04E8A);
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 16px;
+            margin: 0 auto 14px;
             box-shadow: 0 4px 14px rgba(232,24,90,0.35);
         }
         .fp-card-title {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 800;
             color: #1A0A12;
             margin-bottom: 4px;
             letter-spacing: -0.3px;
+            text-align: center;
         }
         .fp-card-sub {
             font-size: 12.5px;
             color: #B08090;
-            margin-bottom: 22px;
+            margin-bottom: 24px;
+            text-align: center;
         }
 
         /* ── Fields ── */
