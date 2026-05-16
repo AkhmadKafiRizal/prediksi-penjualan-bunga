@@ -12,13 +12,12 @@ class StockApiController extends Controller
     |--------------------------------------------------------------------------
     | GET /api/stocks
     |--------------------------------------------------------------------------
-    | Dipakai mobile untuk mengambil daftar produk dan stok dari MongoDB Atlas.
+    | Dipakai Flutter untuk mengambil daftar produk dan stok dari MongoDB Atlas.
     | Data dibaca dari collection products.
     */
     public function index(Request $request)
     {
-        $query = DB::connection('mongodb')
-            ->table('products');
+        $query = DB::connection('mongodb')->table('products');
 
         if ($request->filled('search')) {
             $search = strtolower($request->search);
@@ -34,44 +33,247 @@ class StockApiController extends Controller
             ->orderBy('id')
             ->get()
             ->map(function ($product) {
-                $stokSaatIni = (int) ($product->stok_saat_ini ?? 0);
-                $stokMinimum = (int) ($product->stok_minimum ?? 0);
+                $productId = (int) ($product->id ?? $product->_id ?? 0);
+
+                $namaBunga = $product->nama_bunga
+                    ?? $product->name
+                    ?? $product->nama
+                    ?? 'Produk';
+
+                $satuan = $product->satuan ?? 'tangkai';
+
+                $hargaJual = (float) (
+                    $product->harga_jual
+                    ?? $product->price
+                    ?? 0
+                );
+
+                $stokSaatIni = (int) (
+                    $product->stok_saat_ini
+                    ?? $product->stock
+                    ?? 0
+                );
+
+                $stokMinimum = (int) (
+                    $product->stok_minimum
+                    ?? $product->minimum_stock
+                    ?? $product->min_stock
+                    ?? 0
+                );
+
+                $category = $product->category
+                    ?? $product->kategori
+                    ?? 'Bunga Potong';
+
+                $costPrice = (float) (
+                    $product->cost_price
+                    ?? $product->harga_modal
+                    ?? 0
+                );
+
+                $imageUrl = $product->image_url
+                    ?? $product->gambar
+                    ?? null;
+
+                $updatedAt = $product->updated_at
+                    ?? now();
+
+                $isLowStock = $stokSaatIni <= $stokMinimum;
 
                 return [
-                    'id'              => (int) ($product->id ?? $product->_id ?? 0),
-                    'product_id'      => (int) ($product->id ?? $product->_id ?? 0),
-                    'nama_bunga'      => $product->nama_bunga ?? $product->name ?? $product->nama ?? 'Produk',
-                    'name'            => $product->nama_bunga ?? $product->name ?? $product->nama ?? 'Produk',
-                    'satuan'          => $product->satuan ?? 'tangkai',
-                    'harga_jual'      => (float) ($product->harga_jual ?? 0),
-                    'price'           => (float) ($product->harga_jual ?? 0),
+                    // ID utama
+                    'id'              => $productId,
+                    'product_id'      => $productId,
+
+                    // Nama
+                    'nama_bunga'      => $namaBunga,
+                    'name'            => $namaBunga,
+
+                    // Kategori
+                    'category'        => $category,
+                    'kategori'        => $category,
+
+                    // Satuan
+                    'satuan'          => $satuan,
+                    'unit'            => $satuan,
+
+                    // Harga
+                    'harga_jual'      => $hargaJual,
+                    'price'           => $hargaJual,
+                    'cost_price'      => $costPrice,
+
+                    // Stok
                     'stok_saat_ini'   => $stokSaatIni,
                     'stock'           => $stokSaatIni,
                     'stok_minimum'    => $stokMinimum,
                     'minimum_stock'   => $stokMinimum,
-                    'low_stock'       => $stokSaatIni <= $stokMinimum,
+                    'min_stock'       => $stokMinimum,
+
+                    // Status stok
+                    'low_stock'       => $isLowStock,
+                    'is_low_stock'    => $isLowStock,
+
+                    // Tambahan untuk Flutter model
+                    'image_url'       => $imageUrl,
+                    'updated_at'      => (string) $updatedAt,
+
+                    // Status produk
                     'is_active'       => (int) ($product->is_active ?? 1),
                 ];
-            });
+            })
+            ->values();
 
         if ($request->boolean('low_stock')) {
-            $products = $products->filter(function ($product) {
-                return $product['low_stock'] === true;
-            })->values();
+            $products = $products
+                ->filter(function ($product) {
+                    return $product['low_stock'] === true;
+                })
+                ->values();
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Data stok berhasil diambil.',
-            'data'    => $products->values(),
+            'data'    => $products,
         ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | POST /api/stocks
+    |--------------------------------------------------------------------------
+    | Dipakai Flutter untuk menambah produk baru.
+    */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'nama_bunga'     => 'nullable|string|max:255',
+            'name'           => 'nullable|string|max:255',
+            'satuan'         => 'nullable|string|max:50',
+            'unit'           => 'nullable|string|max:50',
+            'category'       => 'nullable|string|max:100',
+            'kategori'       => 'nullable|string|max:100',
+            'harga_jual'     => 'nullable|numeric|min:0',
+            'price'          => 'nullable|numeric|min:0',
+            'cost_price'     => 'nullable|numeric|min:0',
+            'harga_modal'    => 'nullable|numeric|min:0',
+            'stok_saat_ini'  => 'nullable|integer|min:0',
+            'stock'          => 'nullable|integer|min:0',
+            'stok_minimum'   => 'nullable|integer|min:0',
+            'minimum_stock'  => 'nullable|integer|min:0',
+            'min_stock'      => 'nullable|integer|min:0',
+            'image_url'      => 'nullable|string|max:500',
+        ]);
+
+        $namaBunga = $validated['nama_bunga']
+            ?? $validated['name']
+            ?? null;
+
+        if (!$namaBunga) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nama bunga wajib diisi.',
+            ], 422);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Ambil ID produk terakhir dengan aman untuk MongoDB
+        |--------------------------------------------------------------------------
+        | Jangan pakai max('id') karena pada mongodb/laravel-mongodb field id
+        | kadang bisa terbaca sebagai alias _id.
+        */
+        $lastId = DB::connection('mongodb')
+            ->table('products')
+            ->get()
+            ->map(function ($product) {
+                return (int) ($product->id ?? $product->_id ?? 0);
+            })
+            ->max();
+
+        $newId = ((int) $lastId) + 1;
+
+        $satuan = $validated['satuan']
+            ?? $validated['unit']
+            ?? 'tangkai';
+
+        $category = $validated['category']
+            ?? $validated['kategori']
+            ?? 'Bunga Potong';
+
+        $hargaJual = $validated['harga_jual']
+            ?? $validated['price']
+            ?? 0;
+
+        $costPrice = $validated['cost_price']
+            ?? $validated['harga_modal']
+            ?? 0;
+
+        $stokSaatIni = $validated['stok_saat_ini']
+            ?? $validated['stock']
+            ?? 0;
+
+        $stokMinimum = $validated['stok_minimum']
+            ?? $validated['minimum_stock']
+            ?? $validated['min_stock']
+            ?? 1;
+
+        $imageUrl = $validated['image_url'] ?? null;
+
+        $product = [
+            '_id'             => $newId,
+            'id'              => $newId,
+            'nama_bunga'      => $namaBunga,
+            'category'        => $category,
+            'satuan'          => $satuan,
+            'harga_jual'      => (float) $hargaJual,
+            'cost_price'      => (float) $costPrice,
+            'stok_saat_ini'   => (int) $stokSaatIni,
+            'stok_minimum'    => (int) $stokMinimum,
+            'image_url'       => $imageUrl,
+            'is_active'       => 1,
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ];
+
+        DB::connection('mongodb')
+            ->table('products')
+            ->insert($product);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Produk baru berhasil ditambahkan.',
+            'data'    => [
+                'id'              => $newId,
+                'product_id'      => $newId,
+                'nama_bunga'      => $namaBunga,
+                'name'            => $namaBunga,
+                'category'        => $category,
+                'kategori'        => $category,
+                'satuan'          => $satuan,
+                'unit'            => $satuan,
+                'harga_jual'      => (float) $hargaJual,
+                'price'           => (float) $hargaJual,
+                'cost_price'      => (float) $costPrice,
+                'stok_saat_ini'   => (int) $stokSaatIni,
+                'stock'           => (int) $stokSaatIni,
+                'stok_minimum'    => (int) $stokMinimum,
+                'minimum_stock'   => (int) $stokMinimum,
+                'min_stock'       => (int) $stokMinimum,
+                'low_stock'       => (int) $stokSaatIni <= (int) $stokMinimum,
+                'is_low_stock'    => (int) $stokSaatIni <= (int) $stokMinimum,
+                'image_url'       => $imageUrl,
+                'updated_at'      => (string) now(),
+                'is_active'       => 1,
+            ],
+        ], 201);
     }
 
     /*
     |--------------------------------------------------------------------------
     | PATCH /api/stocks/{id}/adjust
     |--------------------------------------------------------------------------
-    | Dipakai mobile untuk menambah/mengurangi stok produk.
+    | Dipakai Flutter untuk menambah/mengurangi stok produk.
     |
     | type yang didukung:
     | - add, in, masuk, increase, tambah
@@ -90,13 +292,6 @@ class StockApiController extends Controller
             ->first();
 
         if (!$product) {
-            $product = DB::connection('mongodb')
-                ->table('products')
-                ->where('_id', (int) $id)
-                ->first();
-        }
-
-        if (!$product) {
             return response()->json([
                 'success' => false,
                 'message' => 'Produk tidak ditemukan.',
@@ -104,23 +299,26 @@ class StockApiController extends Controller
         }
 
         $currentStock = (int) ($product->stok_saat_ini ?? 0);
-        $quantity     = (int) $validated['quantity'];
-        $type         = strtolower($validated['type']);
+        $quantity = (int) $validated['quantity'];
+        $type = strtolower($validated['type']);
 
-        if (in_array($type, ['add', 'in', 'masuk', 'increase', 'tambah'], true)) {
+        $increaseTypes = ['add', 'in', 'masuk', 'increase', 'tambah'];
+        $decreaseTypes = ['subtract', 'out', 'keluar', 'decrease', 'kurang'];
+
+        if (in_array($type, $increaseTypes, true)) {
             $newStock = $currentStock + $quantity;
-        } elseif (in_array($type, ['subtract', 'out', 'keluar', 'decrease', 'kurang'], true)) {
+        } elseif (in_array($type, $decreaseTypes, true)) {
             $newStock = max(0, $currentStock - $quantity);
         } else {
             return response()->json([
                 'success' => false,
-                'message' => 'Tipe penyesuaian stok tidak valid.',
+                'message' => 'Tipe perubahan stok tidak valid.',
             ], 422);
         }
 
         DB::connection('mongodb')
             ->table('products')
-            ->where('_id', $product->_id ?? (int) $id)
+            ->where('id', (int) $id)
             ->update([
                 'stok_saat_ini' => $newStock,
                 'updated_at'    => now(),
@@ -130,112 +328,10 @@ class StockApiController extends Controller
             'success' => true,
             'message' => 'Stok produk berhasil diperbarui.',
             'data'    => [
-                'id'              => (int) ($product->id ?? $product->_id ?? $id),
-                'product_id'      => (int) ($product->id ?? $product->_id ?? $id),
-                'stok_saat_ini'   => $newStock,
-                'stock'           => $newStock,
+                'id'             => (int) $id,
+                'stok_saat_ini'  => $newStock,
+                'stock'          => $newStock,
             ],
         ]);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | POST /api/stocks
-    |--------------------------------------------------------------------------
-    | Dipakai mobile jika ada fitur tambah produk dari mobile.
-    | Data disimpan ke collection products.
-    |
-    | Catatan:
-    | Collection products memakai _id numerik untuk produk lama.
-    | Karena itu produk baru juga dibuat dengan _id numerik berikutnya.
-    */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'nama_bunga'     => 'nullable|string|max:255',
-            'name'           => 'nullable|string|max:255',
-            'satuan'         => 'nullable|string|max:50',
-            'harga_jual'     => 'nullable|numeric|min:0',
-            'price'          => 'nullable|numeric|min:0',
-            'stok_saat_ini'  => 'nullable|integer|min:0',
-            'stock'          => 'nullable|integer|min:0',
-            'stok_minimum'   => 'nullable|integer|min:0',
-            'minimum_stock'  => 'nullable|integer|min:0',
-        ]);
-
-        $namaBunga = $validated['nama_bunga']
-            ?? $validated['name']
-            ?? null;
-
-        if (!$namaBunga) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Nama bunga wajib diisi.',
-            ], 422);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Ambil ID produk terakhir dengan cara aman untuk MongoDB
-        |--------------------------------------------------------------------------
-        | Jangan pakai max('id') karena pada mongodb/laravel-mongodb field id
-        | bisa menjadi alias dari _id dan hasilnya bisa tidak sesuai.
-        */
-        $lastId = DB::connection('mongodb')
-            ->table('products')
-            ->get()
-            ->map(function ($product) {
-                return (int) ($product->id ?? $product->_id ?? 0);
-            })
-            ->max();
-
-        $newId = ((int) $lastId) + 1;
-
-        $hargaJual = $validated['harga_jual']
-            ?? $validated['price']
-            ?? 0;
-
-        $stokSaatIni = $validated['stok_saat_ini']
-            ?? $validated['stock']
-            ?? 0;
-
-        $stokMinimum = $validated['stok_minimum']
-            ?? $validated['minimum_stock']
-            ?? 1;
-
-        $product = [
-            '_id'             => $newId,
-            'nama_bunga'      => $namaBunga,
-            'satuan'          => $validated['satuan'] ?? 'tangkai',
-            'harga_jual'      => (float) $hargaJual,
-            'stok_saat_ini'   => (int) $stokSaatIni,
-            'stok_minimum'    => (int) $stokMinimum,
-            'is_active'       => 1,
-            'created_at'      => now(),
-            'updated_at'      => now(),
-        ];
-
-        DB::connection('mongodb')
-            ->table('products')
-            ->insert($product);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Produk baru berhasil ditambahkan.',
-            'data'    => [
-                'id'              => $newId,
-                'product_id'      => $newId,
-                'nama_bunga'      => $namaBunga,
-                'name'            => $namaBunga,
-                'satuan'          => $product['satuan'],
-                'harga_jual'      => $product['harga_jual'],
-                'price'           => $product['harga_jual'],
-                'stok_saat_ini'   => $product['stok_saat_ini'],
-                'stock'           => $product['stok_saat_ini'],
-                'stok_minimum'    => $product['stok_minimum'],
-                'minimum_stock'   => $product['stok_minimum'],
-                'is_active'       => $product['is_active'],
-            ],
-        ], 201);
     }
 }
