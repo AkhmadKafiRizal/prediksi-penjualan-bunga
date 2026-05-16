@@ -83,7 +83,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
             flex-shrink: 0;
             backdrop-filter: blur(4px);
             border: 1.5px solid rgba(255,255,255,0.4);
@@ -252,45 +251,10 @@
             gap: 16px;
             flex-shrink: 0;
         }
-        .fp-topbar-title {
-            flex: 1;
-        }
-        .fp-topbar-greeting {
-            font-size: 15px;
-            font-weight: 700;
-            color: #1A0A12;
-        }
-        .fp-topbar-greeting span {
-            color: var(--pk1);
-        }
-
-        .fp-search {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #FFF5FA;
-            border: 1px solid #FCE4EF;
-            border-radius: 10px;
-            padding: 7px 14px;
-            min-width: 210px;
-        }
-        .fp-search input {
-            border: none;
-            background: transparent;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 13px;
-            color: #1A0A12;
-            outline: none;
-            width: 150px;
-        }
-        .fp-search input::placeholder { color: #CCA8BA; }
-        .fp-search-icon { color: #CCA8BA; font-size: 15px; }
-
-        .fp-topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .fp-topbar-title { flex: 1; }
+        .fp-topbar-greeting { font-size: 15px; font-weight: 700; color: #1A0A12; }
+        .fp-topbar-greeting span { color: var(--pk1); }
+        .fp-topbar-actions { display: flex; align-items: center; gap: 10px; }
         .fp-profile-chip {
             display: flex;
             align-items: center;
@@ -316,39 +280,14 @@
             align-items: center;
             justify-content: center;
         }
-        .fp-profile-name {
-            font-size: 12.5px;
-            font-weight: 600;
-            color: #1A0A12;
-        }
-        .fp-profile-role {
-            font-size: 10px;
-            color: #CCA8BA;
-        }
+        .fp-profile-name { font-size: 12.5px; font-weight: 600; color: #1A0A12; }
+        .fp-profile-role { font-size: 10px; color: #CCA8BA; }
 
         /* ══ CONTENT ══ */
-        .fp-main {
-            flex: 1;
-            overflow-y: auto;
-            background: #FFF5FA;
-        }
-        .fp-page {
-            padding: 24px 28px 52px;
-        }
-
-        .fp-eyebrow {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--pk1);
-            margin-bottom: 3px;
-        }
-        .fp-page-title {
-            font-size: 22px;
-            font-weight: 800;
-            color: #1A0A12;
-        }
+        .fp-main { flex: 1; overflow-y: auto; background: #FFF5FA; }
+        .fp-page { padding: 24px 28px 52px; }
+        .fp-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pk1); margin-bottom: 3px; }
+        .fp-page-title { font-size: 22px; font-weight: 800; color: #1A0A12; }
     </style>
 </head>
 <body>
@@ -383,13 +322,37 @@
 
         <div class="fp-sidebar-brand">
             <div class="fp-brand-row">
+                {{-- ✅ Logo bunga realistis (menggantikan SVG abstrak sebelumnya) --}}
                 <div class="fp-brand-logo">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="3" fill="white"/>
-                        <ellipse cx="12" cy="6" rx="3" ry="5" fill="white" opacity="0.85"/>
-                        <ellipse cx="12" cy="18" rx="3" ry="5" fill="white" opacity="0.85"/>
-                        <ellipse cx="6" cy="12" rx="5" ry="3" fill="white" opacity="0.85"/>
-                        <ellipse cx="18" cy="12" rx="5" ry="3" fill="white" opacity="0.85"/>
+                    <svg width="26" height="26" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Stem -->
+                        <line x1="24" y1="46" x2="24" y2="28" stroke="rgba(255,255,255,0.7)" stroke-width="2.5" stroke-linecap="round"/>
+                        <!-- Leaf -->
+                        <path d="M24 38 Q17 33 16 28 Q21 30 24 38Z" fill="rgba(255,255,255,0.6)"/>
+                        <!-- 6 Petals - bunga mawar/dahlia style -->
+                        <ellipse cx="24" cy="15" rx="5" ry="9" fill="rgba(255,255,255,0.95)"/>
+                        <ellipse cx="32.8" cy="19.5" rx="5" ry="9" transform="rotate(60 32.8 19.5)" fill="rgba(255,255,255,0.85)"/>
+                        <ellipse cx="32.8" cy="28.5" rx="5" ry="9" transform="rotate(120 32.8 28.5)" fill="rgba(255,255,255,0.75)"/>
+                        <ellipse cx="24" cy="33" rx="5" ry="9" transform="rotate(180 24 33)" fill="rgba(255,255,255,0.85)"/>
+                        <ellipse cx="15.2" cy="28.5" rx="5" ry="9" transform="rotate(240 15.2 28.5)" fill="rgba(255,255,255,0.75)"/>
+                        <ellipse cx="15.2" cy="19.5" rx="5" ry="9" transform="rotate(300 15.2 19.5)" fill="rgba(255,255,255,0.85)"/>
+                        <!-- Inner petals layer (kelopak dalam) -->
+                        <ellipse cx="24" cy="17" rx="3.5" ry="6.5" fill="rgba(255,220,235,0.6)"/>
+                        <ellipse cx="30.5" cy="20.5" rx="3.5" ry="6.5" transform="rotate(60 30.5 20.5)" fill="rgba(255,220,235,0.5)"/>
+                        <ellipse cx="30.5" cy="27.5" rx="3.5" ry="6.5" transform="rotate(120 30.5 27.5)" fill="rgba(255,220,235,0.5)"/>
+                        <ellipse cx="24" cy="31" rx="3.5" ry="6.5" transform="rotate(180 24 31)" fill="rgba(255,220,235,0.6)"/>
+                        <ellipse cx="17.5" cy="27.5" rx="3.5" ry="6.5" transform="rotate(240 17.5 27.5)" fill="rgba(255,220,235,0.5)"/>
+                        <ellipse cx="17.5" cy="20.5" rx="3.5" ry="6.5" transform="rotate(300 17.5 20.5)" fill="rgba(255,220,235,0.6)"/>
+                        <!-- Center disc -->
+                        <circle cx="24" cy="24" r="6" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+                        <circle cx="24" cy="24" r="3.5" fill="rgba(255,255,255,0.9)"/>
+                        <!-- Stamen dots -->
+                        <circle cx="24" cy="19.5" r="1.1" fill="rgba(255,180,210,0.95)"/>
+                        <circle cx="27.7" cy="21.7" r="1.1" fill="rgba(255,180,210,0.95)"/>
+                        <circle cx="27.7" cy="26.3" r="1.1" fill="rgba(255,180,210,0.95)"/>
+                        <circle cx="24" cy="28.5" r="1.1" fill="rgba(255,180,210,0.95)"/>
+                        <circle cx="20.3" cy="26.3" r="1.1" fill="rgba(255,180,210,0.95)"/>
+                        <circle cx="20.3" cy="21.7" r="1.1" fill="rgba(255,180,210,0.95)"/>
                     </svg>
                 </div>
                 <div>
@@ -401,7 +364,6 @@
 
         <nav class="fp-nav">
             <div class="fp-nav-label">Menu</div>
-
             <a href="{{ route('dashboard') }}"
                class="fp-nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                 <span class="fp-nav-icon">
@@ -410,6 +372,15 @@
                     </svg>
                 </span>
                 Dashboard
+            </a>
+            <a href="{{ route('prediksi') }}"
+               class="fp-nav-item {{ request()->routeIs('prediksi*') ? 'active' : '' }}">
+                <span class="fp-nav-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                    </svg>
+                </span>
+                Prediksi
             </a>
             <a href="{{ route('sales') }}"
                class="fp-nav-item {{ request()->routeIs('sales') ? 'active' : '' }}">
@@ -423,12 +394,18 @@
             <a href="{{ route('products.index') }}"
                class="fp-nav-item {{ request()->routeIs('products*') ? 'active' : '' }}">
                 <span class="fp-nav-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white" opacity="0.9">
-                        <circle cx="12" cy="12" r="2.5"/>
-                        <ellipse cx="12" cy="5.5" rx="2" ry="3.5"/>
-                        <ellipse cx="12" cy="18.5" rx="2" ry="3.5"/>
-                        <ellipse cx="5.5" cy="12" rx="3.5" ry="2"/>
-                        <ellipse cx="18.5" cy="12" rx="3.5" ry="2"/>
+                    {{-- ✅ Icon produk bunga realistis --}}
+                    <svg width="17" height="17" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="16" y1="30" x2="16" y2="19" stroke="rgba(255,255,255,0.8)" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M16 25 Q11 22 10 18 Q14 20 16 25Z" fill="rgba(255,255,255,0.65)"/>
+                        <ellipse cx="16" cy="10" rx="3.5" ry="6" fill="rgba(255,255,255,0.95)"/>
+                        <ellipse cx="22" cy="13" rx="3.5" ry="6" transform="rotate(60 22 13)" fill="rgba(255,255,255,0.85)"/>
+                        <ellipse cx="22" cy="19" rx="3.5" ry="6" transform="rotate(120 22 19)" fill="rgba(255,255,255,0.75)"/>
+                        <ellipse cx="16" cy="22" rx="3.5" ry="6" transform="rotate(180 16 22)" fill="rgba(255,255,255,0.85)"/>
+                        <ellipse cx="10" cy="19" rx="3.5" ry="6" transform="rotate(240 10 19)" fill="rgba(255,255,255,0.75)"/>
+                        <ellipse cx="10" cy="13" rx="3.5" ry="6" transform="rotate(300 10 13)" fill="rgba(255,255,255,0.85)"/>
+                        <circle cx="16" cy="16" r="4" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.75)" stroke-width="1.2"/>
+                        <circle cx="16" cy="16" r="2.2" fill="rgba(255,255,255,0.9)"/>
                     </svg>
                 </span>
                 Produk Bunga
@@ -455,9 +432,9 @@
                     </div>
                 </div>
             </a>
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="{{ route('logout') }}" id="logout-form">
                 @csrf
-                <button class="fp-logout-btn" type="submit">
+                <button class="fp-logout-btn" type="button" onclick="confirmLogout()">
                     <svg class="fp-logout-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
                     </svg>
@@ -467,20 +444,39 @@
         </div>
     </aside>
 
+    <!-- Modal Konfirmasi Logout -->
+    <div id="logout-modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(26,10,18,0.5);backdrop-filter:blur(6px)">
+        <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:360px;margin:1rem;box-shadow:0 24px 60px rgba(0,0,0,0.18);animation:modalIn .2s ease">
+            <div style="width:50px;height:50px;background:#FDE8F2;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px">🚪</div>
+            <div style="font-size:17px;font-weight:800;color:#1A0A12;margin-bottom:6px">Keluar dari FloraPredict?</div>
+            <div style="font-size:13px;color:#9A6070;line-height:1.6;margin-bottom:22px">Kamu akan keluar dari sesi ini. Pastikan semua pekerjaan sudah tersimpan.</div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+                <button onclick="closeLogout()" style="padding:9px 18px;background:#fff;color:#7A4060;border:1.5px solid #FCE4EF;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s">Batal</button>
+                <button onclick="document.getElementById('logout-form').submit()" style="padding:9px 18px;background:linear-gradient(135deg,#E8185A,#F04E8A);color:#fff;border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(232,24,90,0.3)">Ya, Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    @keyframes modalIn {
+        from { opacity:0; transform:translateY(14px) scale(0.97); }
+        to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+    </style>
+
+    <script>
+    function confirmLogout() { document.getElementById('logout-modal').style.display = 'flex'; }
+    function closeLogout() { document.getElementById('logout-modal').style.display = 'none'; }
+    document.getElementById('logout-modal').addEventListener('click', function(e) { if (e.target === this) closeLogout(); });
+    </script>
+
     <div class="fp-main-wrapper">
-        <!-- TOPBAR (notifikasi dihapus) -->
         <header class="fp-topbar">
             <div class="fp-topbar-title">
                 <div class="fp-topbar-greeting">
                     Selamat datang kembali, <span>{{ Auth::user()->name }}!</span>
                 </div>
             </div>
-
-            <div class="fp-search">
-                <span class="fp-search-icon">🔍</span>
-                <input type="text" placeholder="Cari sesuatu...">
-            </div>
-
             <div class="fp-topbar-actions">
                 <a href="{{ route('profile.edit') }}" class="fp-profile-chip">
                     <div class="fp-profile-av">{{ substr(Auth::user()->name, 0, 1) }}</div>
@@ -492,7 +488,6 @@
             </div>
         </header>
 
-        <!-- CONTENT -->
         <div class="fp-main">
             <div class="fp-page">
                 {{ $slot }}

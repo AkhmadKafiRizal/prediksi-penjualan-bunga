@@ -18,9 +18,10 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_bunga'   => 'required|unique:products,nama_bunga',
-            'satuan'       => 'required',
-            'stok_minimum' => 'required|integer|min:1',
+            'nama_bunga'    => 'required',
+            'satuan'        => 'required',
+            'stok_saat_ini' => 'required|integer|min:0',
+            'stok_minimum'  => 'required|integer|min:1',
         ]);
 
         Product::create($request->all());
@@ -29,27 +30,38 @@ class ProductController extends Controller
             ->with('success', 'Produk bunga berhasil ditambahkan');
     }
 
-    public function update(Request $request, Product $product)
-    {
-        $request->validate([
-            'nama_bunga'   => 'required|unique:products,nama_bunga,' . $product->id,
-            'satuan'       => 'required',
-            'harga_jual'   => 'nullable|numeric|min:0',
-            'stok_minimum' => 'required|integer|min:1',
-            'is_active'    => 'nullable|boolean',
-        ]);
+    public function update(Request $request, $id)
+{
+    $product = Product::where('_id', (int)$id)->firstOrFail();
 
-        $product->update($request->all());
+    $request->validate([
+        'nama_bunga'    => 'required',
+        'satuan'        => 'required',
+        'harga_jual'    => 'nullable|numeric|min:0',
+        'stok_saat_ini' => 'required|integer|min:0',
+        'stok_minimum'  => 'required|integer|min:1',
+        'is_active'     => 'nullable',
+    ]);
 
-        return redirect()->route('products.index')
-            ->with('success', 'Produk bunga berhasil diperbarui');
-    }
+    $product->update($request->only([
+        'nama_bunga',
+        'satuan',
+        'harga_jual',
+        'stok_saat_ini',
+        'stok_minimum',
+        'is_active',
+    ]));
 
-    public function destroy(Product $product)
-    {
-        $product->update(['is_active' => false]);
+    return redirect()->route('products.index')
+        ->with('success', 'Produk bunga berhasil diperbarui');
+}
 
-        return redirect()->route('products.index')
-            ->with('success', 'Produk bunga dinonaktifkan');
-    }
+public function destroy($id)
+{
+    $product = Product::where('_id', (int)$id)->firstOrFail();
+    $product->update(['is_active' => false]);
+
+    return redirect()->route('products.index')
+        ->with('success', 'Produk bunga dinonaktifkan');
+}
 }
