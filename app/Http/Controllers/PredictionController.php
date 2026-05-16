@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class PredictionController extends Controller
 {
@@ -23,8 +24,16 @@ class PredictionController extends Controller
     // =========================================================
     public function index(Request $request)
     {
-        // Ambil periode dari query string, default = bulan depan
-        $selectedPeriod = $request->get('periode', now()->addMonth()->format('Y-m'));
+        /*
+        |--------------------------------------------------------------------------
+        | Ambil Periode Prediksi
+        |--------------------------------------------------------------------------
+        | Jika user memilih periode dari query string, gunakan periode tersebut.
+        | Jika tidak, periode default dihitung dari tanggal terakhir dataset
+        | penjualans + 1 bulan.
+        |--------------------------------------------------------------------------
+        */
+        $selectedPeriod = $request->get('periode', $this->getDefaultPredictionPeriod());
 
         $data = $this->getPredictionData($selectedPeriod);
 
@@ -40,22 +49,31 @@ class PredictionController extends Controller
         |--------------------------------------------------------------------------
         | Ambil Periode dari Query String
         |--------------------------------------------------------------------------
-        | Periode dikirim dari blade via ?periode=YYYY-MM
-        | Default: bulan depan
+        | Periode dikirim dari blade via ?periode=YYYY-MM.
+        | Jika tidak ada, gunakan periode setelah tanggal terakhir dataset.
         |--------------------------------------------------------------------------
         */
-        $selectedPeriod = $request->get('periode', now()->addMonth()->format('Y-m'));
+        $selectedPeriod = $request->get('periode', $this->getDefaultPredictionPeriod());
 
-        // Bentuk tanggal lengkap dari periode (hari pertama bulan)
+        /*
+        |--------------------------------------------------------------------------
+        | Bentuk Tanggal Prediksi
+        |--------------------------------------------------------------------------
+        | Hasil prediksi bulanan disimpan sebagai tanggal akhir bulan.
+        | Contoh:
+        | - periode 2024-01 disimpan sebagai 2024-01-31
+        | - periode 2024-02 disimpan sebagai 2024-02-29
+        |--------------------------------------------------------------------------
+        */
         $nextDate = Carbon::createFromFormat('Y-m', $selectedPeriod)
-            ->startOfMonth()
+            ->endOfMonth()
             ->format('Y-m-d');
 
         /*
         |--------------------------------------------------------------------------
         | Cek apakah prediksi periode ini sudah ada
         |--------------------------------------------------------------------------
-        | Dipakai untuk membedakan pesan sukses: "digenerate" vs "diperbarui"
+        | Dipakai untuk membedakan pesan sukses: "digenerate" vs "diperbarui".
         |--------------------------------------------------------------------------
         */
         $alreadyExists = DB::connection('mongodb')
@@ -65,41 +83,112 @@ class PredictionController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Jalankan Script Python Machine Learning
+        | Siapkan Fitur Tanggal untuk Flask
         |--------------------------------------------------------------------------
-        | Script Python membaca data dari MongoDB, menjalankan model ML,
-        | lalu mengembalikan hasil prediksi dalam format JSON.
+        | Model Flask membutuhkan fitur weekday dan month.
+        | weekday dibuat sesuai pola Python/pandas:
+        | Senin = 0, Selasa = 1, ..., Minggu = 6.
         |--------------------------------------------------------------------------
         */
-        $script  = base_path('machine_learning/prediction.py');
-        $command = 'python ' . escapeshellarg($script);
-        $output  = shell_exec($command);
-        $data    = json_decode($output, true);
+        $nextDateCarbon = Carbon::parse($nextDate);
+        $weekday = $nextDateCarbon->dayOfWeekIso - 1;
+        $month = $nextDateCarbon->month;
 
         /*
         |--------------------------------------------------------------------------
-        | Validasi Output Python
+        | Ambil Data Penjualan Terbaru Per Produk
+        |--------------------------------------------------------------------------
+        | Laravel mengambil data terakhir setiap product_id dari MongoDB.
+        | Nilai harga dan promo terakhir dipakai sebagai fitur input ke Flask.
         |--------------------------------------------------------------------------
         */
-        if (!is_array($data) || count($data) === 0) {
+        $salesRows = DB::connection('mongodb')
+            ->table('penjualans')
+            ->orderBy('product_id')
+            ->orderByDesc('tanggal')
+            ->get();
+
+        $latestSalesPerProduct = $salesRows
+            ->groupBy('product_id')
+            ->map(function ($rows) {
+                return $rows->first();
+            })
+            ->values();
+
+        if ($latestSalesPerProduct->count() === 0) {
             return redirect()
                 ->route('prediksi', ['periode' => $selectedPeriod])
-                ->with('error', 'Generate prediksi gagal. Output Python tidak valid.');
+                ->with('error', 'Data penjualan per produk tidak ditemukan.');
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Simpan Hasil Prediksi ke MongoDB
+        | Endpoint Flask PythonAnywhere
+        |--------------------------------------------------------------------------
+        | Laravel tidak lagi menjalankan machine_learning/prediction.py lokal.
+        | Generate prediksi sekarang memanggil Flask API online yang sudah deploy
+        | di PythonAnywhere.
+        |--------------------------------------------------------------------------
+        */
+        $flaskPredictUrl = 'https://kafi.pythonanywhere.com/api/predict';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Panggil Flask dan Simpan Hasil Prediksi ke MongoDB
+        |--------------------------------------------------------------------------
+        | Setiap produk dikirim ke Flask menggunakan:
+        | product_id, harga, promo, weekday, dan month.
+        | Hasil predicted_sales disimpan ke collection prediction_results.
         |--------------------------------------------------------------------------
         */
         $successCount   = 0;
         $failedProducts = [];
 
-        foreach ($data as $item) {
-            $productId      = $item['product_id'] ?? null;
-            $predictedSales = $item['predicted_sales'] ?? $item['prediction'] ?? 0;
+        foreach ($latestSalesPerProduct as $row) {
+            $productId = $row->product_id ?? null;
+            $harga     = $row->harga ?? null;
+            $promo     = $row->promo ?? 0;
 
-            if (!$productId) {
+            if (!$productId || $harga === null) {
+                $failedProducts[] = $productId ?? 'product_id_tidak_valid';
+                continue;
+            }
+
+            try {
+                $response = Http::timeout(30)->post($flaskPredictUrl, [
+                    'product_id' => (int) $productId,
+                    'harga'      => (float) $harga,
+                    'promo'      => (int) $promo,
+                    'weekday'    => (int) $weekday,
+                    'month'      => (int) $month,
+                ]);
+            } catch (\Throwable $e) {
+                $failedProducts[] = $productId;
+                continue;
+            }
+
+            if (!$response->successful()) {
+                $failedProducts[] = $productId;
+                continue;
+            }
+
+            $result = $response->json();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Ambil Nilai Prediksi dari Response Flask
+            |--------------------------------------------------------------------------
+            | Flask utama mengembalikan field predicted_sales.
+            | Field prediction disediakan sebagai fallback jika format response
+            | berubah kecil.
+            |--------------------------------------------------------------------------
+            */
+            $predictedSales = $result['predicted_sales']
+                ?? $result['prediction']
+                ?? null;
+
+            if ($predictedSales === null) {
+                $failedProducts[] = $productId;
                 continue;
             }
 
@@ -122,7 +211,9 @@ class PredictionController extends Controller
                 |--------------------------------------------------------------
                 | Ambil Data Prediksi Lama Jika Ada
                 |--------------------------------------------------------------
-                | Agar MAE/RMSE lama tidak hilang jika Python tidak mengirimnya.
+                | Flask predict hanya mengembalikan hasil prediksi.
+                | Jika data MAE/RMSE sudah pernah tersimpan, nilainya
+                | dipertahankan agar dashboard tidak kehilangan data evaluasi.
                 |--------------------------------------------------------------
                 */
                 $existingPrediction = DB::connection('mongodb')
@@ -141,17 +232,17 @@ class PredictionController extends Controller
                         [
                             'predicted_sales' => max(0, round((float) $predictedSales)),
                             'actual_sales'    => $actualSales,
-                            'mae'             => $item['mae']             ?? ($existingPrediction->mae             ?? null),
-                            'rmse'            => $item['rmse']            ?? ($existingPrediction->rmse            ?? null),
-                            'validation_mae'  => $item['validation_mae']  ?? ($existingPrediction->validation_mae  ?? null),
-                            'validation_rmse' => $item['validation_rmse'] ?? ($existingPrediction->validation_rmse ?? null),
+                            'mae'             => $result['mae']             ?? ($existingPrediction->mae             ?? null),
+                            'rmse'            => $result['rmse']            ?? ($existingPrediction->rmse            ?? null),
+                            'validation_mae'  => $result['validation_mae']  ?? ($existingPrediction->validation_mae  ?? null),
+                            'validation_rmse' => $result['validation_rmse'] ?? ($existingPrediction->validation_rmse ?? null),
                             'updated_at'      => now(),
                         ]
                     );
 
                 $successCount++;
 
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $failedProducts[] = $productId;
             }
         }
@@ -166,7 +257,7 @@ class PredictionController extends Controller
         if ($successCount === 0) {
             return redirect()
                 ->route('prediksi', $redirectParams)
-                ->with('error', 'Generate prediksi gagal. Tidak ada produk yang berhasil diprediksi.');
+                ->with('error', 'Generate prediksi gagal. Laravel tidak berhasil mengambil hasil prediksi dari Flask.');
         }
 
         if (count($failedProducts) > 0) {
@@ -175,12 +266,12 @@ class PredictionController extends Controller
                 ->with('success', "Prediksi {$selectedPeriod} berhasil sebagian. Berhasil: {$successCount} produk, Gagal: " . count($failedProducts) . " produk.");
         }
 
-        // Pesan berbeda: generate baru vs generate ulang
+        // Pesan berbeda: generate baru vs generate ulang.
         $label = $alreadyExists ? 'diperbarui' : 'digenerate';
 
         return redirect()
             ->route('prediksi', $redirectParams)
-            ->with('success', "Prediksi {$selectedPeriod} berhasil {$label} dan disimpan ke MongoDB.");
+            ->with('success', "Prediksi {$selectedPeriod} berhasil {$label} dari Flask PythonAnywhere dan disimpan ke MongoDB.");
     }
 
     // =========================================================
@@ -196,9 +287,16 @@ class PredictionController extends Controller
     // =========================================================
     private function getPredictionData(string $selectedPeriod = null)
     {
-        // Default: bulan depan
+        /*
+        |--------------------------------------------------------------------------
+        | Default Periode Prediksi
+        |--------------------------------------------------------------------------
+        | Default tidak memakai tanggal hari ini, tetapi memakai tanggal terakhir
+        | dataset penjualans + 1 bulan agar selaras dengan alur prediksi ML.
+        |--------------------------------------------------------------------------
+        */
         if (!$selectedPeriod) {
-            $selectedPeriod = now()->addMonth()->format('Y-m');
+            $selectedPeriod = $this->getDefaultPredictionPeriod();
         }
 
         $productNames = $this->getProductNames();
@@ -207,12 +305,12 @@ class PredictionController extends Controller
         |--------------------------------------------------------------------------
         | Ambil prediksi berdasarkan periode yang dipilih
         |--------------------------------------------------------------------------
-        | Tanggal disimpan sebagai 'Y-m-d', kita filter by tanggal exact
-        | (hari pertama bulan = startOfMonth)
+        | Data prediction_results disimpan sebagai tanggal akhir bulan.
+        | Contoh periode 2024-01 dicari sebagai tanggal 2024-01-31.
         |--------------------------------------------------------------------------
         */
         $targetDate = Carbon::createFromFormat('Y-m', $selectedPeriod)
-            ->startOfMonth()
+            ->endOfMonth()
             ->format('Y-m-d');
 
         $savedPredictions = DB::connection('mongodb')
@@ -227,8 +325,10 @@ class PredictionController extends Controller
         |--------------------------------------------------------------------------
         */
         $lastRunAt = null;
+
         if ($savedPredictions->count() > 0) {
-            $latest    = $savedPredictions->sortByDesc('updated_at')->first();
+            $latest = $savedPredictions->sortByDesc('updated_at')->first();
+
             $lastRunAt = $latest->updated_at
                 ? Carbon::parse($latest->updated_at)->format('d M Y, H:i')
                 : null;
@@ -241,6 +341,7 @@ class PredictionController extends Controller
         */
         $productPredictions = $savedPredictions->map(function ($item) use ($productNames) {
             $productId = $item->product_id ?? null;
+
             return [
                 'product_id'      => $productId,
                 'product_name'    => $productNames[$productId] ?? ('Produk #' . $productId),
@@ -272,12 +373,15 @@ class PredictionController extends Controller
         |--------------------------------------------------------------------------
         */
         Carbon::setLocale('id');
+
         $nextMonthLabel = Carbon::createFromFormat('Y-m', $selectedPeriod)
             ->translatedFormat('F Y');
 
         /*
         |--------------------------------------------------------------------------
-        | Prediksi vs Real — Semua Periode (untuk tabel perbandingan)
+        | Prediksi vs Real — Semua Periode
+        |--------------------------------------------------------------------------
+        | Mengelompokkan data prediction_results berdasarkan tanggal.
         |--------------------------------------------------------------------------
         */
         $predictionComparison = DB::connection('mongodb')
@@ -285,14 +389,14 @@ class PredictionController extends Controller
             ->get()
             ->groupBy('tanggal')
             ->map(function ($rows, $tanggal) {
+                $predictedSales = $rows->sum(fn($r) => $r->predicted_sales ?? 0);
+                $actualSales    = $rows->sum(fn($r) => $r->actual_sales ?? 0);
+
                 return (object) [
                     'tanggal'         => $tanggal,
-                    'predicted_sales' => $rows->sum(fn($r) => $r->predicted_sales ?? 0),
-                    'actual_sales'    => $rows->sum(fn($r) => $r->actual_sales ?? 0),
-                    'error'           => abs(
-                        $rows->sum(fn($r) => $r->predicted_sales ?? 0) -
-                        $rows->sum(fn($r) => $r->actual_sales ?? 0)
-                    ),
+                    'predicted_sales' => $predictedSales,
+                    'actual_sales'    => $actualSales,
+                    'error'           => abs($predictedSales - $actualSales),
                 ];
             })
             ->sortByDesc('tanggal')
@@ -308,14 +412,41 @@ class PredictionController extends Controller
             'predictionReady'      => $predictionReady,
             'totalData'            => $totalData,
             'nextMonthLabel'       => $nextMonthLabel,
-            'selectedPeriod'       => $selectedPeriod,    // ← untuk tombol generate
-            'lastRunAt'            => $lastRunAt,          // ← untuk status terakhir update
+            'selectedPeriod'       => $selectedPeriod,    // untuk tombol generate
+            'lastRunAt'            => $lastRunAt,          // untuk status terakhir update
             'productPredictions'   => $productPredictions,
             'totalProducts'        => $totalProducts,
             'topProducts'          => $topProducts,
             'topBars'              => $topBars,
             'predictionComparison' => $predictionComparison,
         ];
+    }
+
+    // =========================================================
+    // HELPER — Ambil Periode Default dari Tanggal Terakhir Dataset
+    // =========================================================
+    private function getDefaultPredictionPeriod()
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | Periode Default Berdasarkan Dataset
+        |--------------------------------------------------------------------------
+        | Sistem prediksi mengikuti tanggal terakhir di collection penjualans.
+        | Jika data terakhir 2023-12-31, maka periode default adalah 2024-01.
+        |--------------------------------------------------------------------------
+        */
+        $last = DB::connection('mongodb')
+            ->table('penjualans')
+            ->orderByDesc('tanggal')
+            ->first();
+
+        if (!$last || empty($last->tanggal)) {
+            return now()->addMonth()->format('Y-m');
+        }
+
+        return Carbon::parse($last->tanggal)
+            ->addMonth()
+            ->format('Y-m');
     }
 
     // =========================================================
@@ -328,9 +459,18 @@ class PredictionController extends Controller
 
         foreach ($products as $product) {
             $name = $product->nama_bunga ?? $product->name ?? $product->nama ?? null;
-            if (!$name) continue;
-            if (isset($product->id))         $names[$product->id]         = $name;
-            if (isset($product->product_id)) $names[$product->product_id] = $name;
+
+            if (!$name) {
+                continue;
+            }
+
+            if (isset($product->id)) {
+                $names[$product->id] = $name;
+            }
+
+            if (isset($product->product_id)) {
+                $names[$product->product_id] = $name;
+            }
         }
 
         return $names;
