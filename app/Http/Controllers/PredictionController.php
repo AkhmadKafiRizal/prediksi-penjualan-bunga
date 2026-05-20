@@ -426,28 +426,49 @@ class PredictionController extends Controller
     // HELPER — Ambil Periode Default dari Tanggal Terakhir Dataset
     // =========================================================
     private function getDefaultPredictionPeriod()
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | Periode Default Berdasarkan Dataset
-        |--------------------------------------------------------------------------
-        | Sistem prediksi mengikuti tanggal terakhir di collection penjualans.
-        | Jika data terakhir 2023-12-31, maka periode default adalah 2024-01.
-        |--------------------------------------------------------------------------
-        */
-        $last = DB::connection('mongodb')
-            ->table('penjualans')
-            ->orderByDesc('tanggal')
-            ->first();
+{
+    /*
+    |--------------------------------------------------------------------------
+    | Periode Default Berdasarkan Hasil Prediksi Aktif
+    |--------------------------------------------------------------------------
+    | Jika prediction_results sudah ada, halaman dashboard dan prediksi harus
+    | mengikuti periode prediksi terbaru yang benar-benar sudah tersedia.
+    |
+    | Ini mencegah periode otomatis lompat ke bulan transaksi mobile terbaru,
+    | misalnya Juni 2026, padahal hasil prediksi yang tersimpan masih Januari 2024.
+    |--------------------------------------------------------------------------
+    */
+    $latestPrediction = DB::connection('mongodb') // pakai koneksi MongoDB Atlas
+        ->table('prediction_results')             // ambil dari hasil prediksi, bukan transaksi
+        ->orderByDesc('tanggal')                  // cari tanggal prediksi terbaru
+        ->first();                                // ambil satu data paling baru
 
-        if (!$last || empty($last->tanggal)) {
-            return now()->addMonth()->format('Y-m');
-        }
-
-        return Carbon::parse($last->tanggal)
-            ->addMonth()
-            ->format('Y-m');
+    if ($latestPrediction && !empty($latestPrediction->tanggal)) { // kalau prediksi sudah pernah digenerate
+        return Carbon::parse($latestPrediction->tanggal)           // contoh: 2024-01-31
+            ->format('Y-m');                                       // ubah jadi periode: 2024-01
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fallback Jika Belum Ada Hasil Prediksi
+    |--------------------------------------------------------------------------
+    | Jika prediction_results masih kosong, baru gunakan tanggal terakhir
+    | dari collection penjualans + 1 bulan.
+    |--------------------------------------------------------------------------
+    */
+    $lastSale = DB::connection('mongodb') // tetap pakai MongoDB
+        ->table('penjualans')             // fallback ke data penjualan historis
+        ->orderByDesc('tanggal')          // cari tanggal penjualan terbaru
+        ->first();                        // ambil satu data terakhir
+
+    if (!$lastSale || empty($lastSale->tanggal)) { // kalau penjualan juga kosong
+        return now()->addMonth()->format('Y-m');   // fallback aman ke bulan depan dari hari ini
+    }
+
+    return Carbon::parse($lastSale->tanggal) // contoh: 2023-12-31
+        ->addMonth()                         // jadi bulan berikutnya
+        ->format('Y-m');                     // contoh: 2024-01
+}
 
     // =========================================================
     // HELPER — Ambil Nama Produk dari Collection products
