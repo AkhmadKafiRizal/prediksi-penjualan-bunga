@@ -1,5 +1,8 @@
 <x-guest-layout>
 
+{{-- ✅ SweetAlert2 CDN --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
 .fp-card {
     background: rgba(255, 248, 252, 0.85);
@@ -170,6 +173,22 @@
     25% { transform: translateX(-4px); }
     75% { transform: translateX(4px); }
 }
+
+/* ✅ Custom style SweetAlert2 tema FloraPredict */
+.swal-flora-popup {
+    border-radius: 20px !important;
+    border: 1px solid #FCE4EF !important;
+    box-shadow: 0 20px 60px rgba(180,60,100,0.18) !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+.swal-flora-title {
+    font-weight: 800 !important;
+    font-size: 18px !important;
+    color: #1A0A12 !important;
+}
+.swal-flora-bar {
+    background: #E8185A !important;
+}
 </style>
 
 <div class="fp-card">
@@ -258,5 +277,29 @@
 
     <div class="fp-footer">FloraPredict · Sistem Prediksi Penjualan Bunga</div>
 </div>
+
+{{-- ✅ Notifikasi SweetAlert2 setelah logout berhasil --}}
+@if(session('logout_success'))
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        Swal.fire({
+            icon: 'success',
+            title: 'Logout Berhasil! 👋',
+            text: 'Sampai jumpa lagi di FloraPredict.',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            background: '#FFF8FC',
+            color: '#1A0A12',
+            iconColor: '#E8185A',
+            customClass: {
+                popup: 'swal-flora-popup',
+                title: 'swal-flora-title',
+                timerProgressBar: 'swal-flora-bar'
+            }
+        });
+    });
+</script>
+@endif
 
 </x-guest-layout>
