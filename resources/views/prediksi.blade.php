@@ -9,20 +9,35 @@
     --dark:#1A0A12;--muted:#9A7A8A;--border:#FCE4EF;--surface:#fff;
 }
 
+/* ══════════════════════════════════════════
+   WRAPPER UTAMA — kunci layout tidak berubah
+   ══════════════════════════════════════════ */
+.pr-wrapper {
+    min-width: 1080px;
+    width: 100%;
+}
+
 .pr-header{margin-bottom:20px}
 .pr-eyebrow{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--pk1);margin-bottom:4px}
 .pr-title{font-size:24px;font-weight:800;color:var(--dark);line-height:1;margin-bottom:4px}
 .pr-subtitle{font-size:12px;color:var(--muted)}
 
-/* ── Filter bar ── */
-.pr-filterbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.pr-filter-group{display:flex;flex-direction:column;gap:3px}
+/* ── Filter bar — nowrap agar tidak pindah baris ── */
+.pr-filterbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:16px;
+    flex-wrap:nowrap;   /* ← KUNCI: tidak boleh wrap */
+    min-width:0;
+}
+.pr-filter-group{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
 .pr-filter-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
 .pr-filter-select{padding:7px 12px;border:1px solid var(--border);border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--dark);background:var(--pk6);cursor:pointer;outline:none;transition:border .15s}
 .pr-filter-select:focus{border-color:var(--pk2)}
 .pr-model-tag{display:inline-flex;align-items:center;gap:6px;background:var(--pk5);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--pk1)}
 .pr-model-dot{width:7px;height:7px;border-radius:50%;background:var(--pk1);box-shadow:0 0 0 2px rgba(232,24,90,.2)}
-.pr-last-run{font-size:10px;color:var(--muted);margin-left:auto}
+.pr-last-run{font-size:10px;color:var(--muted);margin-left:auto;flex-shrink:0}
 
 /* ── Alert ── */
 .pr-alert{border-radius:12px;padding:10px 14px;font-size:12.5px;display:flex;align-items:center;gap:9px;margin-bottom:16px}
@@ -31,9 +46,16 @@
 .pr-alert.success{background:#ECFDF5;border:1px solid #6EE7B7;color:#065F46}
 .pr-alert.error{background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B}
 
-/* ── 5 eval cards (sesuai mockup) ── */
-.pr-evalrow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
-.pr-eval{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:14px 16px}
+/* ══════════════════════════════════════════
+   5 EVAL CARDS — selalu 5 kolom, tidak collapse
+   ══════════════════════════════════════════ */
+.pr-evalrow{
+    display:grid;
+    grid-template-columns:repeat(5, minmax(0, 1fr));  /* ← fixed 5 kolom */
+    gap:10px;
+    margin-bottom:18px;
+}
+.pr-eval{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:14px 16px;min-width:0}
 .pr-eval-lbl{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-weight:600;margin-bottom:6px}
 .pr-eval-val{font-size:22px;font-weight:800;color:var(--dark);font-family:'DM Mono',monospace;line-height:1}
 .pr-eval-val.rose{color:var(--pk1)}
@@ -49,15 +71,30 @@
 .pr-hero-title{font-size:16px;font-weight:800;color:var(--dark);margin-bottom:5px}
 .pr-hero-desc{font-size:12.5px;color:var(--muted);line-height:1.6}
 .pr-period-tag{display:inline-flex;align-items:center;gap:5px;background:var(--pk5);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;color:var(--pk1);margin-top:8px}
-.pr-btn{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;background:var(--pk1);color:#fff;border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s;position:relative;z-index:1;box-shadow:0 4px 16px rgba(232,24,90,.3);white-space:nowrap}
+.pr-btn{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;background:var(--pk1);color:#fff;border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s;position:relative;z-index:1;box-shadow:0 4px 16px rgba(232,24,90,.3);white-space:nowrap;flex-shrink:0}
 .pr-btn:hover{background:var(--pk2);transform:translateY(-2px)}
 
-/* ── Main grid ── */
-.pr-main{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:12px;margin-bottom:12px}
-.pr-bottom{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,0.65fr);gap:12px}
+/* ══════════════════════════════════════════
+   MAIN GRID — kolom kiri lebih lebar, fixed
+   ══════════════════════════════════════════ */
+.pr-main{
+    display:grid;
+    grid-template-columns: minmax(580px, 1.7fr) minmax(280px, 1fr);
+    gap:12px;
+    margin-bottom:12px;
+}
+
+/* ══════════════════════════════════════════
+   BOTTOM GRID — fixed 2 kolom
+   ══════════════════════════════════════════ */
+.pr-bottom{
+    display:grid;
+    grid-template-columns: minmax(380px, 1fr) minmax(240px, 0.65fr);
+    gap:12px;
+}
 
 /* ── Section ── */
-.pr-sec{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.pr-sec{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;min-width:0}
 .pr-sec-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .pr-sec-title{font-size:12.5px;font-weight:700;color:var(--dark)}
 .pr-sec-sub{font-size:10.5px;color:var(--muted);margin-top:2px}
@@ -102,13 +139,20 @@
 .pr-vs-tbl tr:last-child td{border-bottom:none}
 .pr-vs-tbl tbody tr:hover td{background:var(--pk6)}
 
+/* ══════════════════════════════════════════
+   HAPUS SEMUA MEDIA QUERY YANG BIKIN COLLAPSE
+   Layout selalu tetap — scroll horizontal jika layar kecil
+   ══════════════════════════════════════════ */
 @media(max-width:1100px){
-    .pr-evalrow{grid-template-columns:repeat(2,1fr)}
-    .pr-main,.pr-bottom{grid-template-columns:1fr}
+    .pr-evalrow{ grid-template-columns:repeat(5, minmax(0,1fr)) }
+    .pr-main{ grid-template-columns: minmax(580px,1.7fr) minmax(280px,1fr) }
+    .pr-bottom{ grid-template-columns: minmax(380px,1fr) minmax(240px,0.65fr) }
 }
 </style>
 
-<div>
+{{-- ══ WRAPPER UTAMA — min-width 1080px, layout tidak berubah ══ --}}
+<div class="pr-wrapper">
+
     {{-- Header --}}
     <div class="pr-header">
         <div class="pr-eyebrow">FloraPredict · Machine Learning</div>
@@ -124,56 +168,41 @@
         <div class="pr-alert error">⚠ {{ session('error') }}</div>
     @endif
 
-    {{-- Filter bar + model status ── sesuai mockup --}}
-    
-<div class="pr-filterbar">
-    <div class="pr-filter-group">
-        <div class="pr-filter-label">Pilih Periode Prediksi</div>
-        <select class="pr-filter-select" name="periode"
-            onchange="window.location.href='{{ route('prediksi') }}?periode=' + this.value">
-            @php
-                /*
-                |--------------------------------------------------------------------------
-                | Daftar periode prediksi
-                |--------------------------------------------------------------------------
-                | Dropdown harus mengikuti periode prediksi aktif, bukan tanggal hari ini.
-                | Kalau prediksi aktif adalah 2024-01, maka dropdown default harus
-                | menampilkan Januari 2024, bukan bulan sekarang seperti Mei 2026.
-                */
-
-                $activePeriod = $selectedPeriod ?? null;
-
-                try {
-                    $basePeriod = $activePeriod
-                        ? \Carbon\Carbon::createFromFormat('Y-m-d', $activePeriod . '-01')->startOfMonth()
-                        : now()->startOfMonth();
-                } catch (\Exception $e) {
-                    $basePeriod = now()->startOfMonth();
-                }
-
-                $months = [];
-
-                for ($i = 0; $i < 12; $i++) {
-                    $m = $basePeriod->copy()->addMonths($i);
-
-                    $months[] = [
-                        'value' => $m->format('Y-m'),
-                        'label' => $m->translatedFormat('F Y'),
-                    ];
-                }
-            @endphp
-
-            @foreach($months as $m)
-                <option value="{{ $m['value'] }}" {{ $m['value'] === $basePeriod->format('Y-m') ? 'selected' : '' }}>
-                    {{ $m['label'] }}
-                </option>
-            @endforeach
-        </select>
-    </div>
+    {{-- Filter bar --}}
+    <div class="pr-filterbar">
+        <div class="pr-filter-group">
+            <div class="pr-filter-label">Pilih Periode Prediksi</div>
+            <select class="pr-filter-select" name="periode"
+                onchange="window.location.href='{{ route('prediksi') }}?periode=' + this.value">
+                @php
+                    $activePeriod = $selectedPeriod ?? null;
+                    try {
+                        $basePeriod = $activePeriod
+                            ? \Carbon\Carbon::createFromFormat('Y-m-d', $activePeriod . '-01')->startOfMonth()
+                            : now()->startOfMonth();
+                    } catch (\Exception $e) {
+                        $basePeriod = now()->startOfMonth();
+                    }
+                    $months = [];
+                    for ($i = 0; $i < 12; $i++) {
+                        $m = $basePeriod->copy()->addMonths($i);
+                        $months[] = [
+                            'value' => $m->format('Y-m'),
+                            'label' => $m->translatedFormat('F Y'),
+                        ];
+                    }
+                @endphp
+                @foreach($months as $m)
+                    <option value="{{ $m['value'] }}" {{ $m['value'] === $basePeriod->format('Y-m') ? 'selected' : '' }}>
+                        {{ $m['label'] }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
 
         <div class="pr-filter-group">
             <div class="pr-filter-label">Model Aktif</div>
-            <div style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:var(--pk5);border:1px solid var(--border);border-radius:10px">
+            <div style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:var(--pk5);border:1px solid var(--border);border-radius:10px;flex-shrink:0">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--pk1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
                 </svg>
@@ -182,45 +211,45 @@
         </div>
 
         @if(isset($predictionReady) && $predictionReady)
-            <div style="align-self:flex-end">
+            <div style="align-self:flex-end;flex-shrink:0">
                 <div class="pr-filter-label">Status</div>
                 <div class="pr-model-tag">
                     <div class="pr-model-dot"></div>
                     Model Aktif
                 </div>
             </div>
-            <div style="align-self:flex-end;font-size:10px;color:var(--muted)">
+            <div style="align-self:flex-end;font-size:10px;color:var(--muted);flex-shrink:0">
                 Terakhir Diperbarui<br>
                 <strong style="color:var(--dark)">{{ $lastRunAt ?? now()->format('d M Y, H:i') }} WIB</strong>
             </div>
         @endif
 
-       <div style="align-self:flex-end;margin-left:auto">
-    @if(isset($predictionReady) && $predictionReady)
-        {{-- Prediksi periode ini sudah ada → Generate Ulang --}}
-        <a href="{{ route('predictions.generate', ['periode' => $selectedPeriod]) }}"
-           class="pr-btn"
-           style="background:#B45309;box-shadow:0 4px 16px rgba(180,83,9,.25)"
-           onclick="return confirm('⚠️ Prediksi {{ $nextMonthLabel }} sudah tersedia.\n\nGenerate ulang akan mengganti data prediksi yang ada dengan hasil terbaru.\n\nYakin ingin melanjutkan?')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="23 4 23 10 17 10"/>
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-            </svg>
-            Generate Ulang
-        </a>
-    @else
-        {{-- Belum ada prediksi → Generate Baru --}}
-        <a href="{{ route('predictions.generate', ['periode' => $selectedPeriod]) }}"
-           class="pr-btn"
-           onclick="return confirm('Generate prediksi akan menjalankan model Machine Learning berdasarkan data terbaru.\n\nLanjutkan?')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-            Generate Prediksi Baru
-        </a>
-    @endif
-</div>
-    {{-- 5 Kartu Evaluasi Model ── sesuai mockup --}}
+        <div style="align-self:flex-end;flex-shrink:0">
+            @if(isset($predictionReady) && $predictionReady)
+                <a href="{{ route('predictions.generate', ['periode' => $selectedPeriod]) }}"
+                   class="pr-btn"
+                   style="background:#B45309;box-shadow:0 4px 16px rgba(180,83,9,.25)"
+                   onclick="return confirm('⚠️ Prediksi {{ $nextMonthLabel }} sudah tersedia.\n\nGenerate ulang akan mengganti data prediksi yang ada dengan hasil terbaru.\n\nYakin ingin melanjutkan?')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"/>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                    </svg>
+                    Generate Ulang
+                </a>
+            @else
+                <a href="{{ route('predictions.generate', ['periode' => $selectedPeriod]) }}"
+                   class="pr-btn"
+                   onclick="return confirm('Generate prediksi akan menjalankan model Machine Learning berdasarkan data terbaru.\n\nLanjutkan?')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                    Generate Prediksi Baru
+                </a>
+            @endif
+        </div>
+    </div>
+
+    {{-- 5 Kartu Evaluasi Model --}}
     @if(isset($predictionReady) && $predictionReady)
     <div class="pr-evalrow">
         <div class="pr-eval">
@@ -254,7 +283,6 @@
         </div>
     </div>
 
-    {{-- Status banner --}}
     <div class="pr-alert ok">
         ✦ Model prediksi aktif — estimasi kebutuhan bunga untuk <strong style="color:var(--pk1)">{{ $nextMonthLabel }}</strong> tersedia
     </div>
@@ -450,7 +478,8 @@
             </div>
         </div>
     </div>
-</div>
+
+</div>{{-- end .pr-wrapper --}}
 
 <script>
 const topBars = @json($topBars ?? []);
