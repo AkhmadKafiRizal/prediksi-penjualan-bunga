@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\DashboardSummaryApiController;
 use App\Http\Controllers\Api\MobileAuthController;
 use App\Http\Controllers\Api\StockApiController;
 use App\Http\Controllers\Api\TransactionApiController;
+use App\Http\Controllers\Api\ChatbotController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,3 +51,12 @@ Route::patch('/stocks/{id}/adjust', [StockApiController::class, 'adjust']);
 */
 Route::get('/transactions', [TransactionApiController::class, 'index']);
 Route::post('/transactions', [TransactionApiController::class, 'store']);
+
+/*
+|--------------------------------------------------------------------------
+| Cetbot
+|--------------------------------------------------------------------------
+| Dipakai buat cetbot :v
+*/
+
+Route::post('/chatbot/send', [ChatbotController::class, 'send']);
