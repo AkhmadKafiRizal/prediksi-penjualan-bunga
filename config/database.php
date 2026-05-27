@@ -116,6 +116,11 @@ return [
         'driver' => 'mongodb',
         'dsn' => env('MONGODB_URI', 'mongodb://127.0.0.1:27017'),
         'database' => env('MONGODB_DATABASE', 'prediksi_bunga'),
+        'options' => [
+            'serverSelectionTimeoutMS' => (int) env('MONGODB_SERVER_SELECTION_TIMEOUT_MS', 5000),
+            'connectTimeoutMS' => (int) env('MONGODB_CONNECT_TIMEOUT_MS', 5000),
+            'socketTimeoutMS' => (int) env('MONGODB_SOCKET_TIMEOUT_MS', 10000),
+        ],
     ],
 
 ],

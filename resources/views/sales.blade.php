@@ -85,6 +85,9 @@
     @if(session('error'))
     <div class="fp-alert fp-alert-error">⚠ {{ session('error') }}</div>
     @endif
+    @if($databaseError ?? false)
+    <div class="fp-alert fp-alert-error">⚠ {{ $databaseError }}</div>
+    @endif
 
     <div class="fp-stats-row">
         <div class="fp-stat-card c-rose">
@@ -205,7 +208,7 @@
         <div class="fp-pagination" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
             @php $filterQuery = http_build_query(request()->only(['search','tahun','bulan','tanggal'])); @endphp
             <div style="font-size:.82rem;color:#7A4060">
-                Menampilkan <strong>{{ $rows->firstItem() }}</strong> sampai <strong>{{ $rows->lastItem() }}</strong>
+                Menampilkan <strong>{{ $rows->firstItem() ?? 0 }}</strong> sampai <strong>{{ $rows->lastItem() ?? 0 }}</strong>
                 dari <strong>{{ number_format($rows->total()) }}</strong> data
                 <br><span style="font-size:.75rem;color:#CCA8BA">Halaman {{ $rows->currentPage() }} dari {{ $rows->lastPage() }}</span>
             </div>
