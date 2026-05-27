@@ -419,6 +419,16 @@
                 </span>
                 Manajemen Kasir
             </a>
+            <a href="{{ route('chatbot') }}"
+               class="fp-nav-item {{ request()->routeIs('chatbot') ? 'active' : '' }}">
+                <span class="fp-nav-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L13.09 9.26L20 12L13.09 14.74L12 22L10.91 14.74L4 12L10.91 9.26Z"/>
+                        <circle cx="12" cy="12" r="3" fill="rgba(255,255,255,0.4)" stroke="none"/>
+                    </svg>
+                </span>
+                Asisten AI
+            </a>
         </nav>
 
         <div class="fp-sidebar-footer">

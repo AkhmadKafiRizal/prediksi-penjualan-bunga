@@ -5,6 +5,7 @@ use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ChatbotPageController;
 use Illuminate\Support\Facades\Route;
 
 // Root redirect
@@ -55,6 +56,10 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
 
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
+
+    // ==================== ASISTEN AI ====================
+    Route::get('/asisten-ai', [ChatbotPageController::class, 'index'])
+        ->name('chatbot');
 });
 
 require __DIR__.'/auth.php';
