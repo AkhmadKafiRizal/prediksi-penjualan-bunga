@@ -381,6 +381,7 @@ class PredictionController extends Controller
 
         $topProducts = $productPredictions->sortByDesc('prediction')->take(5)->values();
         $topBars     = $productPredictions->sortByDesc('prediction')->take(10)->values();
+        $monthlySalesTrend = $this->getMonthlySalesTrend();
 
         $totalData = DB::connection('mongodb')->table('penjualans')->count();
 
@@ -436,8 +437,53 @@ class PredictionController extends Controller
             'totalProducts'        => $totalProducts,
             'topProducts'          => $topProducts,
             'topBars'              => $topBars,
+            'monthlySalesTrend'    => $monthlySalesTrend,
             'predictionComparison' => $predictionComparison,
         ];
+    }
+
+    private function getMonthlySalesTrend()
+    {
+        try {
+            $cursor = DB::connection('mongodb')->getCollection('penjualans')->aggregate([
+                ['$match' => ['tanggal' => ['$type' => 'string']]],
+                [
+                    '$project' => [
+                        'month' => ['$substr' => ['$tanggal', 0, 7]],
+                        'jumlah' => [
+                            '$convert' => [
+                                'input' => '$jumlah',
+                                'to' => 'double',
+                                'onError' => 0,
+                                'onNull' => 0,
+                            ],
+                        ],
+                    ],
+                ],
+                ['$match' => ['month' => ['$regex' => '^[0-9]{4}-[0-9]{2}$']]],
+                [
+                    '$group' => [
+                        '_id' => '$month',
+                        'total' => ['$sum' => '$jumlah'],
+                    ],
+                ],
+                ['$sort' => ['_id' => 1]],
+            ]);
+
+            Carbon::setLocale('id');
+
+            return collect(iterator_to_array($cursor, false))
+                ->map(function ($row) {
+                    return [
+                        'period' => $row->_id,
+                        'label' => Carbon::createFromFormat('Y-m', $row->_id)->translatedFormat('M Y'),
+                        'total' => (int) round($row->total ?? 0),
+                    ];
+                })
+                ->values();
+        } catch (\Throwable $e) {
+            return collect();
+        }
     }
 
     // =========================================================

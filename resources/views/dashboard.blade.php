@@ -227,11 +227,11 @@
             <div class="db-sec-head">
                 <div>
                     <div class="db-sec-title">Tren Penjualan Historis</div>
-                    <div class="db-sec-sub">6 bulan terakhir (total semua produk)</div>
+                    <div class="db-sec-sub" id="db-trend-subtitle">6 bulan data historis terakhir (total semua produk)</div>
                 </div>
                 <select id="db-period-select" onchange="renderTrend(this.value)" style="border:1px solid var(--border);border-radius:7px;padding:4px 8px;font-size:10px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--dark);background:var(--pk6);cursor:pointer;outline:none">
-                    <option value="6">6 Bulan Terakhir</option>
-                    <option value="12">12 Bulan Terakhir</option>
+                    <option value="6">6 Bulan Data Terakhir</option>
+                    <option value="12">12 Bulan Data Terakhir</option>
                 </select>
             </div>
             <div class="db-line-wrap">
@@ -395,6 +395,8 @@ function renderTrend(months) {
 
     const svg = document.getElementById('db-line-svg');
     const labelsEl = document.getElementById('db-trend-xlabels');
+    const subtitleEl = document.getElementById('db-trend-subtitle');
+    const latestLabel = data[data.length - 1]?.label;
     const W = 400, H = 110, pad = { t: 12, r: 8, b: 8, l: 8 };
     const maxVal = Math.max(...data.map(d => d.total || 0)) || 1;
     const minVal = Math.min(...data.map(d => d.total || 0));
@@ -431,6 +433,9 @@ function renderTrend(months) {
     `;
 
     labelsEl.innerHTML = data.map(d => `<span style="font-size:8.5px;color:#9A7A8A;font-weight:600">${d.label ?? ''}</span>`).join('');
+    if (subtitleEl) {
+        subtitleEl.textContent = `${months} bulan data historis terakhir${latestLabel ? ' sampai ' + latestLabel : ''} (total semua produk)`;
+    }
 }
 
 renderTrend(6);
