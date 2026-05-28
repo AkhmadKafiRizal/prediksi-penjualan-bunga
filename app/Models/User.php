@@ -22,12 +22,14 @@ class User extends Authenticatable
         'password',
         'role',
         'status',
+        'api_token',
         'remember_token',
         'email_verified_at',
     ];
 
     protected $hidden = [
         'password',
+        'api_token',
         'remember_token',
     ];
 
