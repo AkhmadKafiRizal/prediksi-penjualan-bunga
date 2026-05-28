@@ -9,6 +9,13 @@
     --dark:#1A0A12;--muted:#9A7A8A;--border:#FCE4EF;--surface:#fff;
 }
 
+.fp-page-dashboard{padding-top:20px;padding-bottom:16px}
+.fp-page-dashboard .db-header{margin-bottom:18px}
+.fp-page-dashboard .db-model-banner{margin-bottom:14px}
+.fp-page-dashboard .db-statrow{margin-bottom:14px}
+.fp-page-dashboard .db-row{margin-bottom:10px}
+.fp-page-dashboard .db-row:last-child{margin-bottom:0}
+
 /* ── Page header ── */
 .db-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
 .db-eyebrow{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--pk1);margin-bottom:4px}
@@ -113,7 +120,7 @@
 }
 </style>
 
-<div>
+<div class="db-dashboard">
     {{-- Header --}}
     <div class="db-header">
         <div>
@@ -238,7 +245,7 @@
             <div class="db-sec-head">
                 <div>
                     <div class="db-sec-title">🏆 Top 3 Produk</div>
-                    <div class="db-sec-sub">Penjualan tertinggi bulan ini</div>
+                    <div class="db-sec-sub">Prediksi tertinggi periode aktif</div>
                 </div>
             </div>
             <div style="padding:10px 14px">
@@ -359,11 +366,11 @@
                         <div class="db-metric-bar-fill" style="width:{{ min(100, (($rmse ?? 0) / 700) * 100) }}%"></div>
                     </div>
                     <div class="db-acc-big">
-                        @php $accuracy = isset($mae) && $mae > 0 ? max(0, 100 - (($mae / max($prediction ?? 1, 1)) * 100)) : ($modelAccuracy ?? 87); @endphp
-                        <div class="db-acc-pct">{{ number_format($accuracy, 0) }}%</div>
-                        <div class="db-acc-sub">Akurasi Model</div>
+                        @php $accuracy = $modelAccuracy ?? null; @endphp
+                        <div class="db-acc-pct">{{ $accuracy !== null ? number_format($accuracy, 1) . '%' : '-' }}</div>
+                        <div class="db-acc-sub">Rata-rata akurasi per produk</div>
                         <div class="db-acc-bar-wrap">
-                            <div class="db-acc-bar-fill" style="width:{{ $accuracy }}%"></div>
+                            <div class="db-acc-bar-fill" style="width:{{ $accuracy !== null ? min(100, max(0, $accuracy)) : 0 }}%"></div>
                         </div>
                     </div>
                     <a href="{{ route('prediksi') }}" class="db-view-all" style="margin:-4px -16px -16px;border-radius:0 0 14px 14px">📊 Detail Statistik Model →</a>

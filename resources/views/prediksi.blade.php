@@ -114,6 +114,8 @@
 .pr-tbl tbody tr:hover td{background:var(--pk6)}
 .pr-pill{display:inline-flex;align-items:center;gap:3px;background:var(--pk5);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-weight:700;color:var(--pk1);font-family:'DM Mono',monospace;font-size:11px}
 .pr-scroll{max-height:380px;overflow:auto}
+.pr-detail-scroll{max-height:none;overflow-x:auto;overflow-y:hidden}
+.pr-row-num{font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* Top 10 */
 .pr-rank{width:24px;height:24px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
@@ -276,10 +278,10 @@
         </div>
         <div class="pr-eval">
             <div class="pr-eval-lbl">Akurasi Model</div>
-            @php $accuracy = isset($modelAccuracy) ? $modelAccuracy : 87; @endphp
-            <div class="pr-eval-val rose">{{ number_format($accuracy, 0) }}%</div>
-            <div class="pr-eval-sub">performa prediksi</div>
-            <div class="pr-eval-bar"><div class="pr-eval-bar-fill" style="width:{{ $accuracy }}%"></div></div>
+            @php $accuracy = $modelAccuracy ?? null; @endphp
+            <div class="pr-eval-val rose">{{ $accuracy !== null ? number_format($accuracy, 1) . '%' : '-' }}</div>
+            <div class="pr-eval-sub">rata-rata akurasi per produk</div>
+            <div class="pr-eval-bar"><div class="pr-eval-bar-fill" style="width:{{ $accuracy !== null ? min(100, max(0, $accuracy)) : 0 }}%"></div></div>
         </div>
     </div>
 
@@ -310,17 +312,17 @@
                     <span class="pr-badge">{{ number_format($totalProducts ?? 0) }} produk</span>
                 </div>
             </div>
-            <div class="pr-scroll">
+            <div class="pr-scroll pr-detail-scroll">
                 <table class="pr-tbl" id="pr-detail-tbl">
                     <colgroup>
-                        <col style="width:32px">
+                        <col style="width:48px">
                         <col>
-                        <col style="width:80px">
+                        <col style="width:130px">
                         <col style="width:130px">
                         <col style="width:70px">
                         <col style="width:70px">
                         <col style="width:75px">
-                        <col style="width:55px">
+                        <col style="width:78px">
                     </colgroup>
                     <thead>
                         <tr>
@@ -342,8 +344,8 @@
                                     : null;
                                 $accColor = $accuracy >= 80 ? '#065F46' : ($accuracy >= 60 ? '#B45309' : 'var(--pk1)');
                             @endphp
-                            <tr>
-                                <td style="padding-left:12px;color:var(--muted);font-size:10.5px">{{ $loop->iteration }}</td>
+                            <tr data-detail-row data-row-index="{{ $loop->iteration }}">
+                                <td class="pr-row-num" style="padding-left:12px;color:var(--muted);font-size:10.5px">{{ $loop->iteration }}</td>
                                 <td style="font-weight:600;color:var(--dark)">{{ $item['product_name'] }}</td>
                                 <td style="color:var(--muted);font-size:11px">{{ $item['category'] ?? 'Bunga Potong' }}</td>
                                 <td><span class="pr-pill">✦ {{ number_format($item['prediction']) }}</span></td>
@@ -357,7 +359,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <button style="background:var(--pk5);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;color:var(--pk1);cursor:pointer">Detail</button>
+                                    <button style="min-width:54px;background:var(--pk5);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;color:var(--pk1);cursor:pointer">Detail</button>
                                 </td>
                             </tr>
                         @empty
@@ -367,12 +369,12 @@
                 </table>
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--border)">
-                <span style="font-size:10.5px;color:var(--muted)">
+                <span id="pr-page-info" style="font-size:10.5px;color:var(--muted)">
                     Menampilkan <strong>1 – {{ min(10, count($productPredictions ?? [])) }}</strong> dari <strong>{{ count($productPredictions ?? []) }}</strong>
                 </span>
                 <div style="display:flex;gap:4px">
                     @for($p = 1; $p <= max(1, ceil(count($productPredictions ?? []) / 10)); $p++)
-                        <button onclick="gotoPage({{ $p }})" id="page-btn-{{ $p }}"
+                        <button type="button" onclick="gotoPage({{ $p }})" id="page-btn-{{ $p }}" class="pr-page-btn" data-page="{{ $p }}"
                             style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:{{ $p === 1 ? 'var(--pk1)' : 'var(--pk6)' }};color:{{ $p === 1 ? '#fff' : 'var(--pk1)' }};font-size:10.5px;font-weight:700;cursor:pointer">
                             {{ $p }}
                         </button>
@@ -517,21 +519,69 @@ if (tblEl && topBars.length > 0) {
     tblEl.innerHTML = html;
 }
 
-function filterTable(q) {
-    const rows = document.querySelectorAll('#pr-detail-tbl tbody tr');
-    rows.forEach(row => {
-        row.style.display = row.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+const detailPageSize = 10;
+let detailSearchQuery = '';
+let detailCurrentPage = 1;
+
+function getDetailRows() {
+    return Array.from(document.querySelectorAll('#pr-detail-tbl tbody tr[data-detail-row]'));
+}
+
+function getFilteredDetailRows() {
+    const query = detailSearchQuery.trim().toLowerCase();
+    return getDetailRows().filter(row => !query || row.textContent.toLowerCase().includes(query));
+}
+
+function updateDetailPagination(filteredCount, totalPages, startIndex, endIndex) {
+    const info = document.getElementById('pr-page-info');
+    if (info) {
+        const shownStart = filteredCount === 0 ? 0 : startIndex + 1;
+        const shownEnd = Math.min(endIndex, filteredCount);
+        info.innerHTML = `Menampilkan <strong>${shownStart} – ${shownEnd}</strong> dari <strong>${filteredCount}</strong>`;
+    }
+
+    document.querySelectorAll('.pr-page-btn').forEach(btn => {
+        const page = Number(btn.dataset.page);
+        const isActive = page === detailCurrentPage;
+        btn.style.display = page <= totalPages ? '' : 'none';
+        btn.style.background = isActive ? 'var(--pk1)' : 'var(--pk6)';
+        btn.style.color = isActive ? '#fff' : 'var(--pk1)';
     });
 }
 
-function gotoPage(p) {
-    document.querySelectorAll('[id^="page-btn-"]').forEach(btn => {
-        btn.style.background = 'var(--pk6)';
-        btn.style.color = 'var(--pk1)';
+function renderDetailPage(page = 1) {
+    const rows = getDetailRows();
+    const filteredRows = getFilteredDetailRows();
+    const totalPages = Math.max(1, Math.ceil(filteredRows.length / detailPageSize));
+    detailCurrentPage = Math.min(Math.max(1, page), totalPages);
+
+    const startIndex = (detailCurrentPage - 1) * detailPageSize;
+    const endIndex = startIndex + detailPageSize;
+
+    rows.forEach(row => {
+        row.style.display = 'none';
     });
-    const btn = document.getElementById('page-btn-' + p);
-    if (btn) { btn.style.background = 'var(--pk1)'; btn.style.color = '#fff'; }
+
+    filteredRows.forEach((row, filteredIndex) => {
+        if (filteredIndex >= startIndex && filteredIndex < endIndex) {
+            row.style.display = '';
+        }
+    });
+
+    updateDetailPagination(filteredRows.length, totalPages, startIndex, endIndex);
+    document.querySelector('#pr-detail-tbl')?.closest('.pr-scroll')?.scrollTo({ top: 0, left: 0 });
 }
+
+function filterTable(q) {
+    detailSearchQuery = q;
+    renderDetailPage(1);
+}
+
+function gotoPage(p) {
+    renderDetailPage(Number(p));
+}
+
+renderDetailPage(1);
 </script>
 
 </x-app-layout>

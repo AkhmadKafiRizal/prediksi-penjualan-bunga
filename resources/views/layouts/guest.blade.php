@@ -3,7 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Masuk - FloraPredict</title>
+    <title>🌸 Login - FloraPredict</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('florapredict-favicon.svg') }}?v=20260528">
+    <link rel="shortcut icon" type="image/svg+xml" href="{{ asset('florapredict-favicon.svg') }}?v=20260528">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,27 +70,31 @@
         /* ── Left side branding ── */
         .fp-left-brand {
             font-family: 'Cormorant Garamond', Georgia, serif;
+            position: relative;
+            z-index: 1;
         }
         .fp-left-title {
             font-size: clamp(2.8rem, 5vw, 4.2rem);
             font-weight: 600;
             line-height: 1.1;
             color: #fff;
-            text-shadow: 0 2px 24px rgba(0,0,0,0.3);
+            text-shadow: 0 3px 8px rgba(0,0,0,0.42), 0 16px 34px rgba(0,0,0,0.45);
             margin-bottom: 10px;
             letter-spacing: -0.5px;
         }
         .fp-left-title em {
             font-style: italic;
-            color: #FFD6E8;
+            color: #FFE4F0;
+            text-shadow: 0 3px 8px rgba(0,0,0,0.42), 0 14px 30px rgba(0,0,0,0.42);
         }
         .fp-left-sub {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 15px;
-            font-weight: 400;
-            color: rgba(255,255,255,0.82);
+            font-weight: 600;
+            color: rgba(255,255,255,0.95);
             letter-spacing: 0.02em;
             line-height: 1.6;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 10px 28px rgba(0,0,0,0.35);
         }
         .fp-left-pills {
             display: flex;
@@ -100,15 +106,25 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            background: rgba(255,255,255,0.18);
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(20,10,16,0.34);
+            border: 1px solid rgba(255,255,255,0.55);
             border-radius: 20px;
             padding: 5px 13px;
             font-size: 11.5px;
             font-weight: 600;
-            color: rgba(255,255,255,0.9);
-            backdrop-filter: blur(4px);
+            color: #fff;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 22px rgba(0,0,0,0.22);
+            text-shadow: 0 1px 5px rgba(0,0,0,0.45);
             letter-spacing: 0.02em;
+        }
+
+        .fp-bg-readability {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(20,10,16,0.62) 0%, rgba(20,10,16,0.42) 34%, rgba(20,10,16,0.12) 64%, rgba(20,10,16,0.12) 100%),
+                linear-gradient(0deg, rgba(20,10,16,0.28) 0%, rgba(20,10,16,0.04) 52%);
         }
 
         /* ── Form card ── */
@@ -290,7 +306,7 @@
         <img src="{{ asset('images/login_new.png') }}"
              class="object-cover w-full h-full"
              alt="Background Floral">
-        <div class="absolute inset-0 bg-gradient-to-br from-black/25 via-transparent to-black/10"></div>
+        <div class="fp-bg-readability"></div>
 
         <!-- Stars container (unchanged) -->
         <div id="stars-container" class="absolute inset-0 overflow-hidden pointer-events-none"></div>

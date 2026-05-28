@@ -22,18 +22,43 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
-    margin-bottom: 28px;
+    margin-bottom: 26px;
 }
-.fp-logo {
-    width: 52px;
-    height: 52px;
-    background: linear-gradient(135deg, #E8185A, #F04E8A);
-    border-radius: 16px;
+.fp-login-brand {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 14px;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.fp-login-logo {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #E8185A, #F04E8A);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     box-shadow: 0 6px 18px rgba(232,24,90,0.35);
+    border: 1.5px solid rgba(255,255,255,0.85);
+}
+.fp-login-brand-text {
+    text-align: left;
+}
+.fp-login-brand-name {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1A0A12;
+    letter-spacing: -0.35px;
+    line-height: 1.1;
+}
+.fp-login-brand-role {
+    font-size: 10px;
+    color: #E8185A;
+    margin-top: 3px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
 }
 .fp-title {
     font-size: 24px;
@@ -62,6 +87,7 @@
     letter-spacing: 0.02em;
 }
 .fp-input-wrap { position: relative; }
+.fp-input-wrap.has-action .fp-input { padding-right: 46px; }
 .fp-input-icon {
     position: absolute;
     left: 13px;
@@ -90,6 +116,32 @@
     box-shadow: 0 0 0 3px rgba(232,24,90,0.1);
 }
 .fp-input::placeholder { color: #D4A0B8; }
+.fp-password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: #D4A0B8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.fp-password-toggle:hover,
+.fp-password-toggle.is-visible {
+    background: #FDE8F2;
+    color: #E8185A;
+}
+.fp-password-toggle:focus-visible {
+    outline: 2px solid rgba(232,24,90,0.35);
+    outline-offset: 2px;
+}
 
 /* Row */
 .fp-row {
@@ -195,14 +247,37 @@
 
     {{-- Header tengah --}}
     <div class="fp-header">
-        <div class="fp-logo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="3" fill="white"/>
-                <ellipse cx="12" cy="6" rx="3" ry="5" fill="white" opacity="0.85"/>
-                <ellipse cx="12" cy="18" rx="3" ry="5" fill="white" opacity="0.85"/>
-                <ellipse cx="6" cy="12" rx="5" ry="3" fill="white" opacity="0.85"/>
-                <ellipse cx="18" cy="12" rx="5" ry="3" fill="white" opacity="0.85"/>
-            </svg>
+        <div class="fp-login-brand">
+            <div class="fp-login-logo">
+                <svg width="26" height="26" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="24" y1="46" x2="24" y2="28" stroke="rgba(255,255,255,0.7)" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M24 38 Q17 33 16 28 Q21 30 24 38Z" fill="rgba(255,255,255,0.6)"/>
+                    <ellipse cx="24" cy="15" rx="5" ry="9" fill="rgba(255,255,255,0.95)"/>
+                    <ellipse cx="32.8" cy="19.5" rx="5" ry="9" transform="rotate(60 32.8 19.5)" fill="rgba(255,255,255,0.85)"/>
+                    <ellipse cx="32.8" cy="28.5" rx="5" ry="9" transform="rotate(120 32.8 28.5)" fill="rgba(255,255,255,0.75)"/>
+                    <ellipse cx="24" cy="33" rx="5" ry="9" transform="rotate(180 24 33)" fill="rgba(255,255,255,0.85)"/>
+                    <ellipse cx="15.2" cy="28.5" rx="5" ry="9" transform="rotate(240 15.2 28.5)" fill="rgba(255,255,255,0.75)"/>
+                    <ellipse cx="15.2" cy="19.5" rx="5" ry="9" transform="rotate(300 15.2 19.5)" fill="rgba(255,255,255,0.85)"/>
+                    <ellipse cx="24" cy="17" rx="3.5" ry="6.5" fill="rgba(255,220,235,0.6)"/>
+                    <ellipse cx="30.5" cy="20.5" rx="3.5" ry="6.5" transform="rotate(60 30.5 20.5)" fill="rgba(255,220,235,0.5)"/>
+                    <ellipse cx="30.5" cy="27.5" rx="3.5" ry="6.5" transform="rotate(120 30.5 27.5)" fill="rgba(255,220,235,0.5)"/>
+                    <ellipse cx="24" cy="31" rx="3.5" ry="6.5" transform="rotate(180 24 31)" fill="rgba(255,220,235,0.6)"/>
+                    <ellipse cx="17.5" cy="27.5" rx="3.5" ry="6.5" transform="rotate(240 17.5 27.5)" fill="rgba(255,220,235,0.5)"/>
+                    <ellipse cx="17.5" cy="20.5" rx="3.5" ry="6.5" transform="rotate(300 17.5 20.5)" fill="rgba(255,220,235,0.6)"/>
+                    <circle cx="24" cy="24" r="6" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+                    <circle cx="24" cy="24" r="3.5" fill="rgba(255,255,255,0.9)"/>
+                    <circle cx="24" cy="19.5" r="1.1" fill="rgba(255,180,210,0.95)"/>
+                    <circle cx="27.7" cy="21.7" r="1.1" fill="rgba(255,180,210,0.95)"/>
+                    <circle cx="27.7" cy="26.3" r="1.1" fill="rgba(255,180,210,0.95)"/>
+                    <circle cx="24" cy="28.5" r="1.1" fill="rgba(255,180,210,0.95)"/>
+                    <circle cx="20.3" cy="26.3" r="1.1" fill="rgba(255,180,210,0.95)"/>
+                    <circle cx="20.3" cy="21.7" r="1.1" fill="rgba(255,180,210,0.95)"/>
+                </svg>
+            </div>
+            <div class="fp-login-brand-text">
+                <div class="fp-login-brand-name">FloraPredict</div>
+                <div class="fp-login-brand-role">Web Admin</div>
+            </div>
         </div>
         <div class="fp-title">Selamat Datang</div>
         <div class="fp-subtitle">Masuk ke dashboard <span>FloraPredict</span></div>
@@ -247,16 +322,22 @@
         {{-- Password --}}
         <div class="fp-field">
             <label class="fp-label">Kata Sandi</label>
-            <div class="fp-input-wrap">
+            <div class="fp-input-wrap has-action">
                 <span class="fp-input-icon">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                         <path d="M7 11V7a5 5 0 0110 0v4"/>
                     </svg>
                 </span>
-                <input type="password" name="password" class="fp-input"
+                <input type="password" name="password" id="password-input" class="fp-input"
                        placeholder="••••••••"
                        required>
+                <button type="button" class="fp-password-toggle" id="password-toggle" aria-label="Lihat kata sandi sebentar" aria-pressed="false">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -279,6 +360,34 @@
 </div>
 
 {{-- ✅ Notifikasi SweetAlert2 setelah logout berhasil --}}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const passwordInput = document.getElementById('password-input');
+    const passwordToggle = document.getElementById('password-toggle');
+    let hidePasswordTimer;
+
+    if (!passwordInput || !passwordToggle) return;
+
+    function hidePassword() {
+        passwordInput.type = 'password';
+        passwordToggle.classList.remove('is-visible');
+        passwordToggle.setAttribute('aria-pressed', 'false');
+        passwordToggle.setAttribute('aria-label', 'Lihat kata sandi sebentar');
+    }
+
+    passwordToggle.addEventListener('click', function () {
+        clearTimeout(hidePasswordTimer);
+        passwordInput.type = 'text';
+        passwordToggle.classList.add('is-visible');
+        passwordToggle.setAttribute('aria-pressed', 'true');
+        passwordToggle.setAttribute('aria-label', 'Kata sandi sedang terlihat');
+        passwordInput.focus({ preventScroll: true });
+
+        hidePasswordTimer = setTimeout(hidePassword, 1800);
+    });
+});
+</script>
+
 @if(session('logout_success'))
 <script>
     document.addEventListener('DOMContentLoaded', function () {

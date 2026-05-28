@@ -3,6 +3,18 @@
 :root{--pk1:#E8185A;--pk2:#F04E8A;--pk3:#F87FB5;--pk4:#FDB8D4;--pk5:#FDE8F2;--pk6:#FFF2F8;--dark:#1A0A12}
 *{box-sizing:border-box}
 
+.fp-page-products{height:100%;min-height:0;padding-top:20px;padding-bottom:16px;display:flex;flex-direction:column}
+.fp-page-products .products-page{height:100%;min-height:0;display:flex;flex-direction:column}
+.fp-page-products .fp-title{margin-bottom:14px}
+.fp-page-products .fp-alert{margin-bottom:12px}
+.fp-page-products .fp-card{flex:1;min-height:0;display:flex;flex-direction:column}
+.fp-page-products .fp-stok-info{padding:9px 14px}
+.fp-page-products .fp-table-wrap{flex:1;min-height:0;overflow-x:auto;overflow-y:hidden}
+.fp-page-products .fp-table th{position:sticky;top:0;background:var(--pk6);z-index:1}
+.fp-page-products .fp-table th{padding:.68rem 1.1rem}
+.fp-page-products .fp-table td{padding:.66rem 1.1rem}
+.fp-page-products .fp-pagination{padding:.75rem 1.25rem}
+
 .fp-eyebrow{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--pk1);margin-bottom:3px}
 .fp-title{font-size:22px;font-weight:800;color:var(--dark);margin-bottom:20px}
 
@@ -77,7 +89,7 @@
 .fp-stok-info strong{color:var(--pk1)}
 </style>
 
-<div>
+<div class="products-page">
     <div class="fp-eyebrow">FloraPredict</div>
     <h1 class="fp-title">Produk Bunga</h1>
 
