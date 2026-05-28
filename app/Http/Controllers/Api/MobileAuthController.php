@@ -42,6 +42,8 @@ class MobileAuthController extends Controller
         }
 
         $token = Str::random(80);
+        $user->api_token = hash('sha256', $token);
+        $user->save();
 
         return response()->json([
             'success' => true,
@@ -62,6 +64,14 @@ class MobileAuthController extends Controller
 
     public function logout(Request $request)
     {
+        $token = $request->bearerToken() ?: $request->input('token');
+
+        if ($token) {
+            User::where('api_token', hash('sha256', $token))->update([
+                'api_token' => null,
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Logout berhasil.',

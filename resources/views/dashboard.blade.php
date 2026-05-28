@@ -115,6 +115,8 @@
 .db-mini-tbl tr:last-child td{border-bottom:none}
 .db-mini-tbl tbody tr:hover td{background:var(--pk6)}
 .db-pill{display:inline-flex;align-items:center;background:var(--pk5);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-weight:700;color:var(--pk1);font-family:'DM Mono',monospace;font-size:11px}
+.db-promo{display:inline-flex;align-items:center;justify-content:center;background:#FFE6F0;border:1px solid #FFB8D2;color:var(--pk1);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700}
+.db-no-promo{display:inline-flex;align-items:center;justify-content:center;background:#F8FAFC;border:1px solid #E5E7EB;color:#64748B;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700}
 
 /* Accuracy model */
 .db-sec-body{padding:16px}
@@ -154,12 +156,24 @@
 
     {{-- Model Status Banner --}}
     @if(isset($predictionReady) && $predictionReady)
+        @php
+            $accuracy = $modelAccuracy ?? null;
+            $roundedMae = (int) round($mae ?? 0);
+            $roundedRmse = (int) round($rmse ?? 0);
+        @endphp
         <div class="db-model-banner active">
             <div class="db-model-left">
                 <div class="db-model-dot active"></div>
                 <div>
-                    <div class="db-model-text-title">Model prediksi aktif — estimasi stok tersedia untuk {{ $nextMonthLabel ?? 'bulan depan' }}</div>
-                    <div class="db-model-text-sub">MAE {{ number_format($mae ?? 0, 2) }} · RMSE {{ number_format($rmse ?? 0, 2) }} · {{ number_format($totalProducts ?? 0) }} jenis bunga diprediksi</div>
+                    <div class="db-model-text-title">Prediksi kebutuhan stok {{ $nextMonthLabel ?? 'periode aktif' }} sudah tersedia</div>
+                    <div class="db-model-text-sub">
+                        {{ number_format($totalProducts ?? 0) }} jenis bunga diprediksi
+                        @if($accuracy !== null)
+                            · Akurasi model {{ number_format($accuracy, 1) }}%
+                        @endif
+                        · MAE rata-rata selisih {{ number_format($roundedMae) }} tangkai
+                        · RMSE selisih besar terpantau {{ number_format($roundedRmse) }} tangkai
+                    </div>
                 </div>
             </div>
             <a href="{{ route('prediksi') }}" class="db-model-cta">📊 Lihat Hasil Prediksi →</a>
@@ -328,7 +342,7 @@
             <div class="db-sec-head">
                 <div>
                     <div class="db-sec-title">Riwayat Penjualan Terbaru</div>
-                    <div class="db-sec-sub">10 transaksi terakhir dari database</div>
+                    <div class="db-sec-sub">10 data terbaru dari halaman Data Penjualan</div>
                 </div>
                 <a href="{{ route('sales') }}" class="db-badge">Lihat Semua →</a>
             </div>
@@ -337,8 +351,9 @@
                     <tr>
                         <th style="padding-left:14px">Tanggal</th>
                         <th>Produk</th>
-                        <th>Jumlah (tgk)</th>
+                        <th>Jumlah</th>
                         <th>Kasir</th>
+                        <th>Promo</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -358,10 +373,17 @@
                                 </div>
                             </td>
                             <td><span class="db-pill">{{ number_format($row->qty ?? 0) }}</span></td>
-                            <td style="font-size:11px;color:var(--muted)">{{ $row->kasir_name ?? '-' }}</td>
+                            <td style="font-size:11px;color:var(--muted);font-weight:700">{{ $row->kasir_name ?? 'Data historis' }}</td>
+                            <td>
+                                @if((int) ($row->promo ?? 0) === 1)
+                                    <span class="db-promo">Promo</span>
+                                @else
+                                    <span class="db-no-promo">Tidak Promo</span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4"><div class="db-empty">Belum ada data penjualan</div></td></tr>
+                        <tr><td colspan="5"><div class="db-empty">Belum ada data penjualan</div></td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -43,8 +43,17 @@ class SalesController extends Controller
 
         $row->id = $row->id ?? (isset($row->_id) ? (string) $row->_id : '');
         $row->nama_bunga = $this->productNameFor($productNames, $productId);
+        $row->kasir_name = $this->cashierNameFor($row);
 
         return $row;
+    }
+
+    private function cashierNameFor($row): string
+    {
+        return $row->kasir_name
+            ?? $row->cashier_name
+            ?? $row->user_name
+            ?? 'Data historis';
     }
 
     private function applyRequestFilters($query, Request $request)
@@ -126,6 +135,8 @@ class SalesController extends Controller
         $query->where(function ($inner) use ($regex, $productIds, $search) {
             $inner->where('tanggal', 'regex', $regex)
                 ->orWhere('invoice_number', 'regex', $regex)
+                ->orWhere('kasir_name', 'regex', $regex)
+                ->orWhere('cashier_name', 'regex', $regex)
                 ->orWhere('source', 'regex', $regex);
 
             if (! empty($productIds)) {
@@ -337,7 +348,7 @@ class SalesController extends Controller
         $callback = function () use ($query, $productNames) {
             $handle = fopen('php://output', 'w');
 
-            fputcsv($handle, ['id', 'product_id', 'nama_bunga', 'tanggal', 'jumlah', 'harga', 'promo']);
+            fputcsv($handle, ['id', 'product_id', 'nama_bunga', 'tanggal', 'jumlah', 'harga', 'promo', 'kasir']);
 
             foreach ($query->cursor() as $row) {
                 $row = $this->withProductName($row, $productNames);
@@ -350,6 +361,7 @@ class SalesController extends Controller
                     $row->jumlah ?? '',
                     $row->harga ?? '',
                     $row->promo ?? '',
+                    $row->kasir_name ?? 'Data historis',
                 ]);
             }
 

@@ -163,7 +163,7 @@
                 <div class="fp-filter-sep"></div>
 
                 <div class="fp-search-box">
-                    🔍 <input type="text" name="search" placeholder="Cari tanggal / produk…"
+                    🔍 <input type="text" name="search" placeholder="Cari tanggal / produk / kasir…"
                         value="{{ $search ?? '' }}">
                 </div>
 
@@ -180,6 +180,7 @@
                         <th style="width:48px">#</th>
                         <th>ID</th>
                         <th>Nama Bunga</th>
+                        <th>Kasir</th>
                         <th>Tanggal</th>
                         <th class="right">Jumlah</th>
                         <th class="right">Harga</th>
@@ -195,6 +196,9 @@
                             <div style="font-weight:600;color:var(--dark)">{{ $row->nama_bunga ?? 'Produk #' . $row->product_id }}</div>
                             <div style="font-size:.72rem;color:#CCA8BA">Product ID: {{ $row->product_id }}</div>
                         </td>
+                        <td>
+                            <span style="font-weight:600;color:var(--dark)">{{ $row->kasir_name ?? 'Data historis' }}</span>
+                        </td>
                         <td><span class="badge-date">{{ $row->tanggal }}</span></td>
                         <td class="right num-cell">{{ number_format($row->jumlah) }}</td>
                         <td class="right price-cell">Rp {{ number_format($row->harga * 1000, 0, ',', '.') }}</td>
@@ -207,7 +211,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7"><div class="fp-empty"><p>Belum ada data penjualan di database.</p></div></td></tr>
+                    <tr><td colspan="8"><div class="fp-empty"><p>Belum ada data penjualan di database.</p></div></td></tr>
                     @endforelse
                 </tbody>
             </table>

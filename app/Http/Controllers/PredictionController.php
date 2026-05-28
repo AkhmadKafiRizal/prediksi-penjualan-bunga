@@ -300,6 +300,7 @@ class PredictionController extends Controller
         }
 
         $productNames = $this->getProductNames();
+        $recentSales = $this->getRecentSales($productNames);
 
         /*
         |--------------------------------------------------------------------------
@@ -438,8 +439,36 @@ class PredictionController extends Controller
             'topProducts'          => $topProducts,
             'topBars'              => $topBars,
             'monthlySalesTrend'    => $monthlySalesTrend,
+            'recentSales'          => $recentSales,
             'predictionComparison' => $predictionComparison,
         ];
+    }
+
+    private function getRecentSales(array $productNames)
+    {
+        try {
+            return DB::connection('mongodb')
+                ->table('penjualans')
+                ->orderBy('tanggal', 'desc')
+                ->orderBy('product_id', 'asc')
+                ->take(10)
+                ->get()
+                ->map(function ($row) use ($productNames) {
+                    $productId = $row->product_id ?? null;
+
+                    return (object) [
+                        'tanggal'      => $row->tanggal ?? '-',
+                        'product_id'   => $productId,
+                        'product_name' => $productNames[$productId] ?? $productNames[(string) $productId] ?? ('Produk #' . $productId),
+                        'qty'          => (int) ($row->jumlah ?? 0),
+                        'harga'        => (float) ($row->harga ?? 0),
+                        'promo'        => (int) ($row->promo ?? 0),
+                        'kasir_name'   => $row->kasir_name ?? $row->cashier_name ?? $row->user_name ?? 'Data historis',
+                    ];
+                });
+        } catch (\Throwable $e) {
+            return collect();
+        }
     }
 
     private function getMonthlySalesTrend()

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -79,6 +80,10 @@ class TransactionApiController extends Controller
                 'unit_price'         => (float) ($row->harga ?? 0),
 
                 'promo'              => (int) ($row->promo ?? 0),
+                'kasir_id'           => $row->kasir_id ?? $row->cashier_id ?? null,
+                'kasir_name'         => $row->kasir_name ?? $row->cashier_name ?? 'Data historis',
+                'cashier_id'         => $row->kasir_id ?? $row->cashier_id ?? null,
+                'cashier_name'       => $row->kasir_name ?? $row->cashier_name ?? 'Data historis',
                 'payment_method'     => $row->payment_method ?? null,
                 'amount_paid'        => (float) ($row->amount_paid ?? 0),
                 'total_amount'       => (float) ($row->total_amount ?? 0),
@@ -152,6 +157,14 @@ class TransactionApiController extends Controller
             'grand_total'        => 'nullable|numeric|min:0',
             'change'             => 'nullable|numeric|min:0',
             'note'               => 'nullable|string',
+            'kasir_id'           => 'nullable|string|max:100',
+            'kasir_name'         => 'nullable|string|max:150',
+            'kasir_email'        => 'nullable|email|max:150',
+            'cashier_id'         => 'nullable|string|max:100',
+            'cashier_name'       => 'nullable|string|max:150',
+            'cashier_email'      => 'nullable|email|max:150',
+            'user_id'            => 'nullable|string|max:100',
+            'user_name'          => 'nullable|string|max:150',
         ]);
 
         $tanggal = now()->format('Y-m-d');
@@ -194,6 +207,7 @@ class TransactionApiController extends Controller
 
         $amountPaid = (float) $request->input('amount_paid', 0);
         $change     = max(0, $amountPaid - $grandTotal);
+        $cashier     = $this->cashierPayload($request);
 
         foreach ($validated['items'] as $item) {
             $productId = (int) ($item['product_id'] ?? $item['flower_id'] ?? 0);
@@ -250,6 +264,13 @@ class TransactionApiController extends Controller
                 'jumlah'             => $jumlah,
                 'harga'              => $harga,
                 'promo'              => 0,
+
+                'kasir_id'           => $cashier['kasir_id'],
+                'kasir_name'         => $cashier['kasir_name'],
+                'kasir_email'        => $cashier['kasir_email'],
+                'cashier_id'         => $cashier['kasir_id'],
+                'cashier_name'       => $cashier['kasir_name'],
+                'cashier_email'      => $cashier['kasir_email'],
 
                 'payment_method'     => $request->input('payment_method', 'cash'),
                 'amount_paid'        => $amountPaid,
@@ -333,6 +354,14 @@ class TransactionApiController extends Controller
             'harga'                 => 'nullable|numeric|min:0',
             'price'                 => 'nullable|numeric|min:0',
             'promo'                 => 'nullable',
+            'kasir_id'              => 'nullable|string|max:100',
+            'kasir_name'            => 'nullable|string|max:150',
+            'kasir_email'           => 'nullable|email|max:150',
+            'cashier_id'            => 'nullable|string|max:100',
+            'cashier_name'          => 'nullable|string|max:150',
+            'cashier_email'         => 'nullable|email|max:150',
+            'user_id'               => 'nullable|string|max:100',
+            'user_name'             => 'nullable|string|max:150',
         ]);
 
         $productId = (int) $validated['product_id_normalized'];
@@ -396,6 +425,7 @@ class TransactionApiController extends Controller
 
         $transactionNumber = $lastTransactionNumber + 1;
         $invoiceNumber     = 'TRX-' . $now->format('YmdHis') . '-' . $transactionNumber;
+        $cashier           = $this->cashierPayload($request);
 
         $transaction = [
             'transaction_number' => $transactionNumber,
@@ -406,6 +436,13 @@ class TransactionApiController extends Controller
             'jumlah'             => $jumlah,
             'harga'              => $harga,
             'promo'              => $promo,
+
+            'kasir_id'           => $cashier['kasir_id'],
+            'kasir_name'         => $cashier['kasir_name'],
+            'kasir_email'        => $cashier['kasir_email'],
+            'cashier_id'         => $cashier['kasir_id'],
+            'cashier_name'       => $cashier['kasir_name'],
+            'cashier_email'      => $cashier['kasir_email'],
 
             'source'             => 'mobile',
             'created_at'         => $now,
@@ -443,5 +480,55 @@ class TransactionApiController extends Controller
                 ],
             ],
         ], 201);
+    }
+
+    private function cashierPayload(Request $request): array
+    {
+        $authenticatedCashier = $this->authenticatedCashier($request);
+
+        if ($authenticatedCashier) {
+            return [
+                'kasir_id'    => (string) ($authenticatedCashier->_id ?? $authenticatedCashier->id),
+                'kasir_name'  => $authenticatedCashier->name,
+                'kasir_email' => $authenticatedCashier->email,
+            ];
+        }
+
+        $kasirId = $request->input('kasir_id')
+            ?? $request->input('cashier_id')
+            ?? $request->input('user_id')
+            ?? $request->input('user.id')
+            ?? $request->input('cashier.id');
+
+        $kasirName = $request->input('kasir_name')
+            ?? $request->input('cashier_name')
+            ?? $request->input('user_name')
+            ?? $request->input('user.name')
+            ?? $request->input('cashier.name');
+
+        $kasirEmail = $request->input('kasir_email')
+            ?? $request->input('cashier_email')
+            ?? $request->input('user.email')
+            ?? $request->input('cashier.email');
+
+        return [
+            'kasir_id'    => $kasirId ? (string) $kasirId : null,
+            'kasir_name'  => $kasirName ? trim((string) $kasirName) : null,
+            'kasir_email' => $kasirEmail ? trim((string) $kasirEmail) : null,
+        ];
+    }
+
+    private function authenticatedCashier(Request $request): ?User
+    {
+        $token = $request->bearerToken() ?: $request->input('token');
+
+        if (!$token) {
+            return null;
+        }
+
+        return User::where('api_token', hash('sha256', $token))
+            ->where('role', 'kasir')
+            ->where('status', 'aktif')
+            ->first();
     }
 }
