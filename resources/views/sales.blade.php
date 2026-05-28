@@ -78,8 +78,13 @@
 </style>
 
 <div class="sales-page">
-    <div class="fp-eyebrow">FloraPredict</div>
-    <h1 class="fp-title">Data Penjualan Bunga</h1>
+    <div class="fp-content-header">
+        <div>
+            <div class="fp-content-eyebrow">FloraPredict</div>
+            <div class="fp-content-title">Data Penjualan Bunga</div>
+            <div class="fp-content-subtitle">Dataset penjualan historis dan transaksi mobile</div>
+        </div>
+    </div>
 
     @if($lastUpload)
     <div style="font-size:.79rem;color:#CCA8BA;margin-bottom:12px;display:flex;align-items:center;gap:5px">

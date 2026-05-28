@@ -464,13 +464,12 @@
 
 <div class="ai-page">
     {{-- Header --}}
-    <div class="ai-header">
-        <div class="ai-eyebrow">
-            <span class="ai-eyebrow-dot"></span>
-            FloraPredict AI
+    <div class="fp-content-header">
+        <div>
+            <div class="fp-content-eyebrow">FloraPredict AI</div>
+            <div class="fp-content-title">Asisten AI Prediksi Penjualan</div>
+            <div class="fp-content-subtitle">Tanyakan ringkasan prediksi, stok rendah, dan data penjualan berdasarkan data sistem.</div>
         </div>
-        <div class="ai-title">Asisten AI Prediksi Penjualan</div>
-        <div class="ai-desc">Tanyakan ringkasan prediksi, stok rendah, dan data penjualan berdasarkan data sistem.</div>
     </div>
 
     {{-- Quick Questions --}}

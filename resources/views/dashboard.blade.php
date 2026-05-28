@@ -55,7 +55,7 @@
 /* ── 3-col layout ── */
 .db-row{display:grid;gap:12px;margin-bottom:12px}
 .db-row-3{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,0.85fr)}
-.db-row-2{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+.db-row-2{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);align-items:start}
 
 /* ── Section card ── */
 .db-sec{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
@@ -130,6 +130,10 @@
 .db-acc-sub{font-size:11px;color:var(--muted);margin-top:4px}
 .db-acc-bar-wrap{height:8px;background:#FFF0F6;border-radius:4px;overflow:hidden;margin-top:10px}
 .db-acc-bar-fill{height:100%;background:linear-gradient(90deg,var(--pk1),var(--pk3));border-radius:4px;transition:width 1s ease}
+.db-accuracy-sec{display:flex;flex-direction:column}
+.db-accuracy-sec .db-sec-body{flex:1;display:flex;flex-direction:column}
+.db-accuracy-sec .db-acc-big{min-height:112px;display:flex;flex-direction:column;justify-content:center}
+.db-accuracy-link{margin:auto -16px -16px;border-radius:0 0 14px 14px}
 
 .db-view-all{display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;font-size:11px;font-weight:600;color:var(--pk1);text-decoration:none;border-top:1px solid #FFF0F6}
 .db-view-all:hover{background:var(--pk6)}
@@ -146,12 +150,12 @@
 
 <div class="db-dashboard">
     {{-- Header --}}
-    <div class="db-header">
+    <div class="fp-content-header">
         <div>
-            <div class="db-eyebrow">FloraPredict</div>
-            <div class="db-title">Dashboard</div>
+            <div class="fp-content-eyebrow">FloraPredict</div>
+            <div class="fp-content-title">Dashboard</div>
         </div>
-        <div class="db-date">📅 {{ now()->translatedFormat('l, d F Y') }}</div>
+        <div class="fp-content-meta">📅 {{ now()->translatedFormat('l, d F Y') }}</div>
     </div>
 
     {{-- Model Status Banner --}}
@@ -329,13 +333,13 @@
                 </a>
                 <button type="button" class="db-ql db-ql-button" onclick="showImportInfo()">
                     <div class="db-ql-icon">📥</div>
-                    <div><div class="db-ql-title">Import Data</div><div class="db-ql-sub">Upload dataset baru</div></div>
+                    <div><div class="db-ql-title">Validasi Dataset</div><div class="db-ql-sub">Import melalui developer</div></div>
                 </button>
             </div>
         </div>
     </div>
 
-    {{-- Row 2: Riwayat + Akurasi --}}
+    {{-- Row 2: Riwayat + Performa --}}
     <div class="db-row db-row-2">
         {{-- Riwayat Penjualan Terbaru --}}
         <div class="db-sec">
@@ -389,11 +393,11 @@
             </table>
         </div>
 
-        {{-- Akurasi Model --}}
-        <div class="db-sec">
+        {{-- Performa Prediksi --}}
+        <div class="db-sec db-accuracy-sec">
             <div class="db-sec-head">
                 <div>
-                    <div class="db-sec-title">Akurasi Model</div>
+                    <div class="db-sec-title">Performa Prediksi</div>
                     <div class="db-sec-sub">Ringkasan performa model prediksi</div>
                 </div>
             </div>
@@ -416,18 +420,18 @@
                     <div class="db-acc-big">
                         @php $accuracy = $modelAccuracy ?? null; @endphp
                         <div class="db-acc-pct">{{ $accuracy !== null ? number_format($accuracy, 1) . '%' : '-' }}</div>
-                        <div class="db-acc-sub">Rata-rata akurasi per produk</div>
+                        <div class="db-acc-sub">Skor performa prediksi</div>
                         <div class="db-acc-bar-wrap">
                             <div class="db-acc-bar-fill" style="width:{{ $accuracy !== null ? min(100, max(0, $accuracy)) : 0 }}%"></div>
                         </div>
                     </div>
-                    <a href="{{ route('prediksi') }}" class="db-view-all" style="margin:-4px -16px -16px;border-radius:0 0 14px 14px">📊 Detail Statistik Model →</a>
+                    <a href="{{ route('prediksi') }}" class="db-view-all db-accuracy-link">📊 Detail Statistik Model →</a>
                 </div>
             @else
                 <div class="db-empty" style="padding:40px 16px">
                     <div style="font-size:30px;margin-bottom:8px">🤖</div>
                     <div style="font-weight:600;color:var(--dark);margin-bottom:4px">Model belum dijalankan</div>
-                    <div style="font-size:10px">Akurasi akan tampil setelah prediksi di-generate</div>
+                    <div style="font-size:10px">Performa akan tampil setelah prediksi di-generate</div>
                 </div>
             @endif
         </div>

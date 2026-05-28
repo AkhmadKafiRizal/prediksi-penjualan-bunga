@@ -93,8 +93,13 @@
 </style>
 
 <div>
-    <div class="fp-eyebrow">FloraPredict</div>
-    <h1 class="fp-title">Manajemen Kasir</h1>
+    <div class="fp-content-header">
+        <div>
+            <div class="fp-content-eyebrow">FloraPredict</div>
+            <div class="fp-content-title">Manajemen Kasir</div>
+            <div class="fp-content-subtitle">Kelola akun kasir aplikasi mobile</div>
+        </div>
+    </div>
 
     @if(session('success'))
     <div class="fp-alert fp-alert-success">✔ {{ session('success') }}</div>

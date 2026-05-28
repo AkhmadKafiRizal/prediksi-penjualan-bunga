@@ -90,8 +90,13 @@
 </style>
 
 <div class="products-page">
-    <div class="fp-eyebrow">FloraPredict</div>
-    <h1 class="fp-title">Produk Bunga</h1>
+    <div class="fp-content-header">
+        <div>
+            <div class="fp-content-eyebrow">FloraPredict</div>
+            <div class="fp-content-title">Produk Bunga</div>
+            <div class="fp-content-subtitle">Kelola data produk, stok, harga, dan status bunga</div>
+        </div>
+    </div>
 
     @if(session('success'))
         <div class="fp-alert fp-alert-success">✔ {{ session('success') }}</div>
