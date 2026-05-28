@@ -85,6 +85,11 @@
 .db-pod-rank.p1{background:var(--pk1)}
 .db-pod-rank.p2{background:var(--pk2)}
 .db-pod-rank.p3{background:var(--pk3);color:#7A1A3A}
+.db-top-item{display:flex;align-items:center;gap:8px;padding:7px 0}
+.db-top-name{font-size:12px;font-weight:700;color:var(--dark)}
+.db-top-caption{font-size:9.5px;color:var(--muted);margin-top:1px}
+.db-top-value{text-align:right;font-size:12px;font-weight:800;color:var(--pk1);font-family:'DM Mono',monospace}
+.db-top-unit{font-size:9.5px;color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;margin-top:1px}
 
 /* Recent sales table */
 .db-mini-tbl{width:100%;border-collapse:collapse;font-size:12px}
@@ -240,28 +245,32 @@
             </div>
         </div>
 
-        {{-- Top 3 Produk --}}
+        {{-- Top 3 Kebutuhan Stok --}}
         <div class="db-sec">
             <div class="db-sec-head">
                 <div>
-                    <div class="db-sec-title">🏆 Top 3 Produk</div>
-                    <div class="db-sec-sub">Prediksi tertinggi periode aktif</div>
+                    <div class="db-sec-title">🏆 Top 3 Kebutuhan Stok</div>
+                    <div class="db-sec-sub">Estimasi tangkai tertinggi untuk {{ $nextMonthLabel ?? 'periode aktif' }}</div>
                 </div>
             </div>
             <div style="padding:10px 14px">
                 @if(isset($topProducts) && $topProducts->count() >= 1)
                     @foreach($topProducts->take(3) as $i => $item)
-                    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;{{ !$loop->last ? 'border-bottom:1px solid #FFF0F6' : '' }}">
+                    <div class="db-top-item" style="{{ !$loop->last ? 'border-bottom:1px solid #FFF0F6' : '' }}">
                         <div class="db-pod-rank p{{ $i+1 }}">{{ $i+1 }}</div>
-                        <span style="flex:1;font-size:12px;font-weight:600;color:var(--dark)">{{ $item['product_name'] ?? 'N/A' }}</span>
-                        <span style="font-size:12px;font-weight:700;color:var(--pk1);font-family:'DM Mono',monospace">
-                            {{ number_format($item['prediction'] ?? 0) }} tgk
-                        </span>
+                        <div style="flex:1;min-width:0">
+                            <div class="db-top-name">{{ $item['product_name'] ?? 'N/A' }}</div>
+                            <div class="db-top-caption">perkiraan kebutuhan stok</div>
+                        </div>
+                        <div class="db-top-value">
+                            {{ number_format($item['prediction'] ?? 0) }}
+                            <div class="db-top-unit">tangkai</div>
+                        </div>
                     </div>
                     @endforeach
-                    <a href="{{ route('prediksi') }}" class="db-view-all" style="margin:8px -14px -10px;border-radius:0 0 14px 14px">Lihat Semua →</a>
+                    <a href="{{ route('prediksi') }}" class="db-view-all" style="margin:8px -14px -10px;border-radius:0 0 14px 14px">Lihat semua prediksi →</a>
                 @else
-                    <div class="db-empty">Belum ada data Top Products</div>
+                    <div class="db-empty">Belum ada data kebutuhan stok</div>
                 @endif
             </div>
         </div>
