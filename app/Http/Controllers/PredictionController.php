@@ -316,6 +316,7 @@ class PredictionController extends Controller
         $savedPredictions = DB::connection('mongodb')
             ->table('prediction_results')
             ->where('tanggal', $targetDate)
+            ->orderByDesc('predicted_sales')
             ->orderBy('product_id')
             ->get();
 
@@ -361,6 +362,22 @@ class PredictionController extends Controller
         $rmse           = $predictionReady ? round($productPredictions->avg('rmse'), 2) : 0;
         $validationMae  = $predictionReady ? round($productPredictions->avg('validation_mae'), 2) : 0;
         $validationRmse = $predictionReady ? round($productPredictions->avg('validation_rmse'), 2) : 0;
+        $productAccuracies = $productPredictions
+            ->map(function ($item) {
+                $prediction = (float) ($item['prediction'] ?? 0);
+                $mae        = (float) ($item['mae'] ?? 0);
+
+                if ($prediction <= 0) {
+                    return null;
+                }
+
+                return max(0, min(100, 100 - (($mae / $prediction) * 100)));
+            })
+            ->reject(fn ($accuracy) => $accuracy === null);
+
+        $modelAccuracy = $productAccuracies->isNotEmpty()
+            ? round($productAccuracies->avg(), 2)
+            : null;
 
         $topProducts = $productPredictions->sortByDesc('prediction')->take(5)->values();
         $topBars     = $productPredictions->sortByDesc('prediction')->take(10)->values();
@@ -409,6 +426,7 @@ class PredictionController extends Controller
             'rmse'                 => $rmse,
             'validationMae'        => $validationMae,
             'validationRmse'       => $validationRmse,
+            'modelAccuracy'        => $modelAccuracy,
             'predictionReady'      => $predictionReady,
             'totalData'            => $totalData,
             'nextMonthLabel'       => $nextMonthLabel,

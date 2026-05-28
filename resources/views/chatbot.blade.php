@@ -19,9 +19,22 @@
     --ai-surface: #fff;
 }
 
+.fp-page-chatbot {
+    height: 100%;
+    padding-bottom: 16px;
+}
+
+.fp-page-chatbot .ai-page {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 /* ── Page Header ── */
 .ai-header {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+    flex-shrink: 0;
 }
 .ai-eyebrow {
     font-size: 10px;
@@ -65,6 +78,7 @@
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 18px;
+    flex-shrink: 0;
 }
 .ai-quick-btn {
     display: inline-flex;
@@ -103,8 +117,8 @@
     border-radius: 18px;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 310px);
-    min-height: 380px;
+    flex: 1;
+    min-height: 0;
     overflow: hidden;
     box-shadow: 0 4px 24px rgba(232,24,90,0.04);
 }
@@ -431,8 +445,8 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-    .ai-chat-container {
-        height: calc(100vh - 280px);
+    .fp-page-chatbot {
+        padding-bottom: 12px;
     }
     .ai-quick-wrap {
         overflow-x: auto;
@@ -448,7 +462,7 @@
 }
 </style>
 
-<div>
+<div class="ai-page">
     {{-- Header --}}
     <div class="ai-header">
         <div class="ai-eyebrow">

@@ -4,7 +4,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'FloraPredict') }}</title>
+    @php
+        $pageTitle = match (true) {
+            request()->routeIs('dashboard') => '🌸 Dashboard - FloraPredict',
+            request()->routeIs('prediksi') || request()->routeIs('predictions.*') => '🌸 Prediksi - FloraPredict',
+            request()->routeIs('sales') || request()->routeIs('sales.*') => '🌸 Data Penjualan - FloraPredict',
+            request()->routeIs('products.*') => '🌸 Produk Bunga - FloraPredict',
+            request()->routeIs('users.*') => '🌸 Manajemen Kasir - FloraPredict',
+            request()->routeIs('chatbot') => '🌸 Asisten Ai - FloraPredict',
+            request()->routeIs('profile.*') => '🌸 Profile - FloraPredict',
+            default => '🌸 FloraPredict',
+        };
+    @endphp
+    <title>{{ $pageTitle }}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('florapredict-favicon.svg') }}?v=20260528">
+    <link rel="shortcut icon" type="image/svg+xml" href="{{ asset('florapredict-favicon.svg') }}?v=20260528">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     @vite(['resources/css/flora.css', 'resources/js/app.js'])
@@ -161,60 +175,19 @@
             z-index: 1;
             border-top: 1px solid rgba(255,255,255,0.18);
         }
-        .fp-user-link {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            text-decoration: none;
-            padding: 10px 12px;
-            border-radius: 14px;
-            transition: background 0.2s;
-            background: rgba(255,255,255,0.12);
-        }
-        .fp-user-link:hover { background: rgba(255,255,255,0.2); }
-        .fp-avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.35);
-            color: #fff;
-            font-size: 14px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            border: 2px solid rgba(255,255,255,0.55);
-        }
-        .fp-user-name {
-            font-size: 13px;
-            font-weight: 700;
-            color: #fff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .fp-user-role {
-            font-size: 10px;
-            color: rgba(255,255,255,0.65);
-            margin-top: 1px;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
         .fp-logout-btn {
             width: 100%;
             padding: 10px 14px;
             border-radius: 12px;
-            border: 1.5px solid rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.14);
+            border: 1.5px solid #FFFFFF;
+            background: rgba(255,255,255,0.18);
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 13px;
             font-weight: 600;
             color: #fff;
             cursor: pointer;
             transition: all 0.2s;
+            box-shadow: 0 8px 22px rgba(126, 18, 60, 0.12), inset 0 0 0 1px rgba(232, 24, 90, 0.12);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -222,8 +195,9 @@
             text-decoration: none;
         }
         .fp-logout-btn:hover {
-            background: rgba(255,255,255,0.24);
-            border-color: rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.28);
+            border-color: #FFE0EC;
+            box-shadow: 0 10px 26px rgba(126, 18, 60, 0.18), inset 0 0 0 1px rgba(232, 24, 90, 0.18);
         }
         .fp-logout-icon {
             width: 18px;
@@ -288,6 +262,18 @@
         .fp-page { padding: 24px 28px 52px; }
         .fp-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pk1); margin-bottom: 3px; }
         .fp-page-title { font-size: 22px; font-weight: 800; color: #1A0A12; }
+        .swal-flora-popup {
+            border-radius: 20px !important;
+            border: 1px solid #FCE4EF !important;
+            box-shadow: 0 20px 60px rgba(180,60,100,0.18) !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+        .swal-flora-title {
+            font-weight: 800 !important;
+            font-size: 18px !important;
+            color: #1A0A12 !important;
+        }
+        .swal-flora-bar { background: #E8185A !important; }
     </style>
 </head>
 <body>
@@ -432,16 +418,6 @@
         </nav>
 
         <div class="fp-sidebar-footer">
-            <a href="{{ route('profile.edit') }}" class="fp-user-link">
-                <div class="fp-avatar">{{ substr(Auth::user()->name, 0, 1) }}</div>
-                <div style="overflow:hidden;flex:1">
-                    <div class="fp-user-name">{{ Auth::user()->name }}</div>
-                    <div class="fp-user-role">
-                        Web Administrator
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-                    </div>
-                </div>
-            </a>
             <form method="POST" action="{{ route('logout') }}" id="logout-form">
                 @csrf
                 <button class="fp-logout-btn" type="button" onclick="confirmLogout()">
@@ -499,11 +475,35 @@
         </header>
 
         <div class="fp-main">
-            <div class="fp-page">
+            <div class="fp-page {{ request()->routeIs('dashboard') ? 'fp-page-dashboard' : '' }} {{ request()->routeIs('sales') || request()->routeIs('sales.*') ? 'fp-page-sales' : '' }} {{ request()->routeIs('products.*') ? 'fp-page-products' : '' }} {{ request()->routeIs('chatbot') ? 'fp-page-chatbot' : '' }}">
                 {{ $slot }}
             </div>
         </div>
     </div>
+
+    @if(session('login_success'))
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        Swal.fire({
+            icon: 'success',
+            title: 'Login Berhasil!',
+            text: 'Selamat datang kembali di FloraPredict.',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            background: '#FFF8FC',
+            color: '#1A0A12',
+            iconColor: '#E8185A',
+            customClass: {
+                popup: 'swal-flora-popup',
+                title: 'swal-flora-title',
+                timerProgressBar: 'swal-flora-bar'
+            }
+        });
+    });
+    </script>
+    @endif
 
 </body>
 </html>

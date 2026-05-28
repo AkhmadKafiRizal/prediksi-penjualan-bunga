@@ -3,6 +3,14 @@
 :root{--pk1:#E8185A;--pk2:#F04E8A;--pk3:#F87FB5;--pk4:#FDB8D4;--pk5:#FDE8F2;--pk6:#FFF2F8;--dark:#1A0A12}
 *{box-sizing:border-box}
 
+.fp-page-sales{height:100%;min-height:0;padding-top:20px;padding-bottom:16px;display:flex;flex-direction:column}
+.fp-page-sales .sales-page{height:100%;min-height:0;display:flex;flex-direction:column}
+.fp-page-sales .fp-title{margin-bottom:14px}
+.fp-page-sales .fp-stats-row{margin-bottom:12px}
+.fp-page-sales .fp-alert{margin-bottom:12px}
+.fp-page-sales .fp-card{flex:1;min-height:0;display:flex;flex-direction:column}
+.fp-page-sales .fp-table-wrap{flex:1;min-height:0;max-height:none;overflow:auto}
+
 .fp-eyebrow{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--pk1);margin-bottom:3px}
 .fp-title{font-size:22px;font-weight:800;color:var(--dark);margin-bottom:18px}
 
@@ -69,7 +77,7 @@
 .fp-pagination{padding:.9rem 1.25rem;border-top:1px solid #FCE4EF}
 </style>
 
-<div>
+<div class="sales-page">
     <div class="fp-eyebrow">FloraPredict</div>
     <h1 class="fp-title">Data Penjualan Bunga</h1>
 
