@@ -74,6 +74,25 @@
 .pr-btn{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;background:var(--pk1);color:#fff;border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s;position:relative;z-index:1;box-shadow:0 4px 16px rgba(232,24,90,.3);white-space:nowrap;flex-shrink:0}
 .pr-btn:hover{background:var(--pk2);transform:translateY(-2px)}
 
+/* Generate confirmation modal */
+.pr-generate-modal{display:none;position:fixed;inset:0;z-index:9998;align-items:center;justify-content:center;background:rgba(26,10,18,.46);backdrop-filter:blur(6px);padding:18px}
+.pr-generate-modal.is-open{display:flex}
+.pr-generate-box{width:100%;max-width:460px;background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:0 26px 72px rgba(122,26,58,.22);overflow:hidden;animation:prModalIn .18s ease}
+.pr-generate-head{display:flex;align-items:center;gap:12px;padding:18px 20px;background:linear-gradient(135deg,#FFF2F8,#FFF8FC);border-bottom:1px solid var(--border)}
+.pr-generate-icon{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--pk1),var(--pk3));color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 10px 24px rgba(232,24,90,.22);flex-shrink:0}
+.pr-generate-title{font-size:15px;font-weight:800;color:var(--dark)}
+.pr-generate-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.pr-generate-body{padding:18px 20px;color:#6F4056;font-size:12.5px;line-height:1.65}
+.pr-generate-note{margin-top:12px;padding:11px 12px;background:var(--pk6);border:1px solid var(--border);border-radius:10px;color:#7A4060;font-size:12px}
+.pr-generate-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 20px 18px}
+.pr-generate-cancel,.pr-generate-confirm{border:0;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:800;padding:9px 16px;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease,filter .12s ease}
+.pr-generate-cancel{background:#FFF5FA;color:#7A4060;border:1px solid var(--border)}
+.pr-generate-cancel:hover{background:var(--pk6);transform:translateY(-1px)}
+.pr-generate-confirm{background:linear-gradient(135deg,var(--pk1),var(--pk2));color:#fff;box-shadow:0 8px 18px rgba(232,24,90,.2)}
+.pr-generate-confirm:hover{transform:translateY(-1px);filter:brightness(1.03);box-shadow:0 10px 22px rgba(232,24,90,.24)}
+.pr-generate-confirm:disabled{opacity:.72;cursor:wait;transform:none}
+@keyframes prModalIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+
 /* ══════════════════════════════════════════
    MAIN GRID — kolom kiri lebih lebar, fixed
    ══════════════════════════════════════════ */
@@ -156,10 +175,12 @@
 <div class="pr-wrapper">
 
     {{-- Header --}}
-    <div class="pr-header">
-        <div class="pr-eyebrow">FloraPredict · Machine Learning</div>
-        <div class="pr-title">Prediksi</div>
-        <div class="pr-subtitle">Hasil estimasi penjualan dan stok untuk periode selanjutnya</div>
+    <div class="fp-content-header">
+        <div>
+            <div class="fp-content-eyebrow">FloraPredict · Machine Learning</div>
+            <div class="fp-content-title">Prediksi</div>
+            <div class="fp-content-subtitle">Hasil estimasi penjualan dan stok untuk periode selanjutnya</div>
+        </div>
     </div>
 
     {{-- Session alerts --}}
@@ -231,7 +252,11 @@
                 <a href="{{ route('predictions.generate', ['periode' => $selectedPeriod]) }}"
                    class="pr-btn"
                    style="background:#B45309;box-shadow:0 4px 16px rgba(180,83,9,.25)"
-                   onclick="return confirm('⚠️ Prediksi {{ $nextMonthLabel }} sudah tersedia.\n\nGenerate ulang akan mengganti data prediksi yang ada dengan hasil terbaru.\n\nYakin ingin melanjutkan?')">
+                   data-generate-title="Generate ulang dengan model aktif?"
+                   data-generate-subtitle="Prediksi {{ $nextMonthLabel }} sudah tersedia"
+                   data-generate-message="Generate prediksi menggunakan model aktif untuk memperbarui hasil periode {{ $nextMonthLabel }}. Dataset historis digunakan pada tahap pelatihan dan evaluasi model."
+                   data-generate-confirm="Ya, Generate Ulang"
+                   onclick="openGenerateModal(this); return false;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 4 23 10 17 10"/>
                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
@@ -241,13 +266,39 @@
             @else
                 <a href="{{ route('predictions.generate', ['periode' => $selectedPeriod]) }}"
                    class="pr-btn"
-                   onclick="return confirm('Generate prediksi akan menjalankan model Machine Learning berdasarkan data terbaru.\n\nLanjutkan?')">
+                   data-generate-title="Generate prediksi dengan model aktif?"
+                   data-generate-subtitle="Prediksi akan dibuat untuk {{ $nextMonthLabel }}"
+                   data-generate-message="Generate prediksi menggunakan model aktif untuk membuat hasil periode {{ $nextMonthLabel }}. Dataset historis digunakan pada tahap pelatihan dan evaluasi model."
+                   data-generate-confirm="Ya, Generate Prediksi"
+                   onclick="openGenerateModal(this); return false;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="5 3 19 12 5 21 5 3"/>
                     </svg>
                     Generate Prediksi Baru
                 </a>
             @endif
+        </div>
+    </div>
+
+    <div class="pr-generate-modal" id="pr-generate-modal" aria-hidden="true">
+        <div class="pr-generate-box" role="dialog" aria-modal="true" aria-labelledby="pr-generate-title">
+            <div class="pr-generate-head">
+                <div class="pr-generate-icon">↻</div>
+                <div>
+                    <div class="pr-generate-title" id="pr-generate-title">Generate prediksi?</div>
+                    <div class="pr-generate-sub" id="pr-generate-subtitle">Konfirmasi proses prediksi</div>
+                </div>
+            </div>
+            <div class="pr-generate-body">
+                <div id="pr-generate-message">Generate prediksi menggunakan model aktif.</div>
+                <div class="pr-generate-note">
+                    Dataset historis digunakan pada tahap pelatihan dan evaluasi model. Proses ini membaca fitur input dari MongoDB lalu memanggil Flask API.
+                </div>
+            </div>
+            <div class="pr-generate-actions">
+                <button type="button" class="pr-generate-cancel" onclick="closeGenerateModal()">Batal</button>
+                <button type="button" class="pr-generate-confirm" id="pr-generate-confirm" onclick="confirmGenerate()">Ya, Generate</button>
+            </div>
         </div>
     </div>
 
@@ -483,7 +534,81 @@
 
 </div>{{-- end .pr-wrapper --}}
 
+@if(session('success') || session('error'))
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@endif
 <script>
+@if(session('success') || session('error'))
+document.addEventListener('DOMContentLoaded', function () {
+    Swal.fire({
+        icon: '{{ session('success') ? 'success' : 'error' }}',
+        title: '{{ session('success') ? 'Prediksi Berhasil!' : 'Generate Prediksi Gagal' }}',
+        text: @json(session('success') ?? session('error')),
+        showConfirmButton: {{ session('success') ? 'false' : 'true' }},
+        confirmButtonText: 'Oke',
+        timer: {{ session('success') ? '3800' : 'null' }},
+        timerProgressBar: {{ session('success') ? 'true' : 'false' }},
+        background: '#FFF8FC',
+        color: '#1A0A12',
+        iconColor: '{{ session('success') ? '#E8185A' : '#DC2626' }}',
+        customClass: {
+            popup: 'swal-flora-popup',
+            title: 'swal-flora-title',
+            timerProgressBar: 'swal-flora-bar'
+        }
+    });
+});
+@endif
+
+let pendingGenerateUrl = null;
+
+function openGenerateModal(trigger) {
+    pendingGenerateUrl = trigger.getAttribute('href');
+
+    document.getElementById('pr-generate-title').textContent = trigger.dataset.generateTitle || 'Generate prediksi?';
+    document.getElementById('pr-generate-subtitle').textContent = trigger.dataset.generateSubtitle || 'Konfirmasi proses prediksi';
+    document.getElementById('pr-generate-message').textContent = trigger.dataset.generateMessage || 'Sistem akan menjalankan model prediksi.';
+
+    const confirmBtn = document.getElementById('pr-generate-confirm');
+    confirmBtn.textContent = trigger.dataset.generateConfirm || 'Ya, Generate';
+    confirmBtn.disabled = false;
+
+    const modal = document.getElementById('pr-generate-modal');
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeGenerateModal() {
+    const modal = document.getElementById('pr-generate-modal');
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    pendingGenerateUrl = null;
+}
+
+function confirmGenerate() {
+    if (!pendingGenerateUrl) {
+        closeGenerateModal();
+        return;
+    }
+
+    const confirmBtn = document.getElementById('pr-generate-confirm');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Memproses...';
+    window.location.href = pendingGenerateUrl;
+}
+
+document.getElementById('pr-generate-modal')?.addEventListener('click', function (event) {
+    if (event.target === this) {
+        closeGenerateModal();
+    }
+});
+
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+        closeGenerateModal();
+    }
+});
+
 const topBars = @json($topBars ?? []);
 const tblEl = document.getElementById('pr-top10-tbl');
 

@@ -404,10 +404,12 @@
 <div class="fp-pro-page">
 
     {{-- Header --}}
-    <div class="fp-pro-header">
-        <div class="fp-eyebrow">FloraPredict</div>
-        <div class="fp-pro-title">Pengaturan Profil</div>
-        <div class="fp-pro-subtitle">Kelola informasi akun dan keamanan kamu</div>
+    <div class="fp-content-header">
+        <div>
+            <div class="fp-content-eyebrow">FloraPredict</div>
+            <div class="fp-content-title">Pengaturan Profil</div>
+            <div class="fp-content-subtitle">Kelola informasi akun dan keamanan kamu</div>
+        </div>
     </div>
 
     {{-- Banner Avatar --}}

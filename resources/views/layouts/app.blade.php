@@ -260,8 +260,51 @@
         /* ══ CONTENT ══ */
         .fp-main { flex: 1; overflow-y: auto; background: #FFF5FA; }
         .fp-page { padding: 24px 28px 52px; }
+        .fp-page-prediksi,
+        .fp-page-users,
+        .fp-page-chatbot,
+        .fp-page-profile { padding-top: 20px; padding-bottom: 16px; }
         .fp-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pk1); margin-bottom: 3px; }
         .fp-page-title { font-size: 22px; font-weight: 800; color: #1A0A12; }
+        .fp-content-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .fp-content-eyebrow {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--pk1);
+            margin-bottom: 4px;
+        }
+        .fp-content-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1A0A12;
+            line-height: 1;
+        }
+        .fp-content-subtitle {
+            font-size: 12px;
+            color: #9A6070;
+            margin-top: 6px;
+        }
+        .fp-content-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid #FCE4EF;
+            background: #FFF8FC;
+            color: #9A6070;
+            font-size: 12px;
+            font-weight: 600;
+        }
         .swal-flora-popup {
             border-radius: 20px !important;
             border: 1px solid #FCE4EF !important;
@@ -475,7 +518,7 @@
         </header>
 
         <div class="fp-main">
-            <div class="fp-page {{ request()->routeIs('dashboard') ? 'fp-page-dashboard' : '' }} {{ request()->routeIs('sales') || request()->routeIs('sales.*') ? 'fp-page-sales' : '' }} {{ request()->routeIs('products.*') ? 'fp-page-products' : '' }} {{ request()->routeIs('chatbot') ? 'fp-page-chatbot' : '' }}">
+            <div class="fp-page {{ request()->routeIs('dashboard') ? 'fp-page-dashboard' : '' }} {{ request()->routeIs('prediksi') || request()->routeIs('predictions.*') ? 'fp-page-prediksi' : '' }} {{ request()->routeIs('sales') || request()->routeIs('sales.*') ? 'fp-page-sales' : '' }} {{ request()->routeIs('products.*') ? 'fp-page-products' : '' }} {{ request()->routeIs('users.*') ? 'fp-page-users' : '' }} {{ request()->routeIs('chatbot') ? 'fp-page-chatbot' : '' }} {{ request()->routeIs('profile.*') ? 'fp-page-profile' : '' }}">
                 {{ $slot }}
             </div>
         </div>

@@ -68,6 +68,9 @@ class PredictionController extends Controller
         $nextDate = Carbon::createFromFormat('Y-m', $selectedPeriod)
             ->endOfMonth()
             ->format('Y-m-d');
+        $periodStart = Carbon::createFromFormat('Y-m', $selectedPeriod)
+            ->startOfMonth()
+            ->format('Y-m-d');
 
         /*
         |--------------------------------------------------------------------------
@@ -76,10 +79,16 @@ class PredictionController extends Controller
         | Dipakai untuk membedakan pesan sukses: "digenerate" vs "diperbarui".
         |--------------------------------------------------------------------------
         */
-        $alreadyExists = DB::connection('mongodb')
-            ->table('prediction_results')
-            ->where('tanggal', $nextDate)
-            ->exists();
+        try {
+            $alreadyExists = DB::connection('mongodb')
+                ->table('prediction_results')
+                ->where('tanggal', $nextDate)
+                ->exists();
+        } catch (\Throwable $e) {
+            return redirect()
+                ->route('prediksi', ['periode' => $selectedPeriod])
+                ->with('error', 'Generate prediksi belum bisa dimulai karena koneksi MongoDB sedang timeout saat mengecek data prediksi yang sudah ada.');
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -98,27 +107,24 @@ class PredictionController extends Controller
         |--------------------------------------------------------------------------
         | Ambil Data Penjualan Terbaru Per Produk
         |--------------------------------------------------------------------------
-        | Laravel mengambil data terakhir setiap product_id dari MongoDB.
-        | Nilai harga dan promo terakhir dipakai sebagai fitur input ke Flask.
+        | Laravel mengambil 1 data terakhir setiap product_id dari MongoDB.
+        | Data dibatasi sebelum periode prediksi agar generate Januari 2024
+        | tidak memakai transaksi mobile yang lebih baru, misalnya tahun 2026.
+        | Query dilakukan via aggregation agar tidak menarik 91 ribu row ke PHP.
         |--------------------------------------------------------------------------
         */
-        $salesRows = DB::connection('mongodb')
-            ->table('penjualans')
-            ->orderBy('product_id')
-            ->orderByDesc('tanggal')
-            ->get();
-
-        $latestSalesPerProduct = $salesRows
-            ->groupBy('product_id')
-            ->map(function ($rows) {
-                return $rows->first();
-            })
-            ->values();
+        try {
+            $latestSalesPerProduct = $this->getLatestSalesPerProductBefore($periodStart);
+        } catch (\Throwable $e) {
+            return redirect()
+                ->route('prediksi', ['periode' => $selectedPeriod])
+                ->with('error', 'Generate prediksi belum berhasil karena koneksi MongoDB sedang timeout saat membaca data penjualan terbaru per produk. Coba ulangi beberapa saat lagi.');
+        }
 
         if ($latestSalesPerProduct->count() === 0) {
             return redirect()
                 ->route('prediksi', ['periode' => $selectedPeriod])
-                ->with('error', 'Data penjualan per produk tidak ditemukan.');
+                ->with('error', "Data penjualan sebelum periode {$selectedPeriod} tidak ditemukan.");
         }
 
         /*
@@ -272,6 +278,53 @@ class PredictionController extends Controller
         return redirect()
             ->route('prediksi', $redirectParams)
             ->with('success', "Prediksi {$selectedPeriod} berhasil {$label} dari Flask PythonAnywhere dan disimpan ke MongoDB.");
+    }
+
+    private function getLatestSalesPerProductBefore(string $periodStart)
+    {
+        $cursor = DB::connection('mongodb')->getCollection('penjualans')->aggregate([
+            [
+                '$match' => [
+                    'product_id' => ['$exists' => true, '$ne' => null],
+                    'harga' => ['$exists' => true, '$ne' => null],
+                    'tanggal' => [
+                        '$type' => 'string',
+                        '$lt' => $periodStart,
+                    ],
+                ],
+            ],
+            [
+                '$sort' => [
+                    'product_id' => 1,
+                    'tanggal' => -1,
+                    'created_at' => -1,
+                    '_id' => -1,
+                ],
+            ],
+            [
+                '$group' => [
+                    '_id' => '$product_id',
+                    'row' => ['$first' => '$$ROOT'],
+                ],
+            ],
+            ['$replaceRoot' => ['newRoot' => '$row']],
+            [
+                '$project' => [
+                    '_id' => 0,
+                    'product_id' => 1,
+                    'harga' => 1,
+                    'promo' => 1,
+                    'tanggal' => 1,
+                ],
+            ],
+        ], [
+            'allowDiskUse' => true,
+            'maxTimeMS' => 30000,
+        ]);
+
+        return collect(iterator_to_array($cursor, false))
+            ->filter(fn ($row) => isset($row->product_id, $row->harga))
+            ->values();
     }
 
     // =========================================================
@@ -450,6 +503,8 @@ class PredictionController extends Controller
             return DB::connection('mongodb')
                 ->table('penjualans')
                 ->orderBy('tanggal', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->orderBy('transaction_number', 'desc')
                 ->orderBy('product_id', 'asc')
                 ->take(10)
                 ->get()
