@@ -157,6 +157,7 @@ class TransactionApiController extends Controller
             'grand_total'        => 'nullable|numeric|min:0',
             'change'             => 'nullable|numeric|min:0',
             'note'               => 'nullable|string',
+            'promo'              => 'nullable',
             'kasir_id'           => 'nullable|string|max:100',
             'kasir_name'         => 'nullable|string|max:150',
             'kasir_email'        => 'nullable|email|max:150',
@@ -208,6 +209,14 @@ class TransactionApiController extends Controller
         $amountPaid = (float) $request->input('amount_paid', 0);
         $change     = max(0, $amountPaid - $grandTotal);
         $cashier     = $this->cashierPayload($request);
+        $promoInput  = $request->input('promo', 0);
+        $promo       = filter_var($promoInput, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        if ($promo === null) {
+            $promo = (int) $promoInput === 1;
+        }
+
+        $promo = $promo ? 1 : 0;
 
         foreach ($validated['items'] as $item) {
             $productId = (int) ($item['product_id'] ?? $item['flower_id'] ?? 0);
@@ -263,7 +272,7 @@ class TransactionApiController extends Controller
                 'tanggal'            => $tanggal,
                 'jumlah'             => $jumlah,
                 'harga'              => $harga,
-                'promo'              => 0,
+                'promo'              => $promo,
 
                 'kasir_id'           => $cashier['kasir_id'],
                 'kasir_name'         => $cashier['kasir_name'],
