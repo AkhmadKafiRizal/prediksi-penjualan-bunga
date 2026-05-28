@@ -76,9 +76,26 @@
 .db-quicklinks{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px}
 .db-ql{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--pk6);border:1px solid var(--border);border-radius:10px;text-decoration:none;transition:all .18s;cursor:pointer}
 .db-ql:hover{background:var(--pk5);transform:translateX(2px)}
+.db-ql-button{width:100%;font-family:'Plus Jakarta Sans',sans-serif;text-align:left}
 .db-ql-icon{width:30px;height:30px;border-radius:8px;background:var(--pk5);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;border:1px solid var(--border)}
 .db-ql-title{font-size:11px;font-weight:700;color:var(--dark)}
 .db-ql-sub{font-size:9.5px;color:var(--muted);margin-top:1px}
+
+/* Informative modal */
+.db-info-modal{display:none;position:fixed;inset:0;z-index:9998;align-items:center;justify-content:center;background:rgba(26,10,18,.46);backdrop-filter:blur(6px);padding:18px}
+.db-info-modal.is-open{display:flex}
+.db-info-box{width:100%;max-width:460px;background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 70px rgba(122,26,58,.22);overflow:hidden;animation:dbModalIn .18s ease}
+.db-info-head{display:flex;align-items:center;gap:12px;padding:18px 20px;background:var(--pk6);border-bottom:1px solid var(--border)}
+.db-info-icon{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--pk1),var(--pk3));color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 10px 24px rgba(232,24,90,.22)}
+.db-info-title{font-size:15px;font-weight:800;color:var(--dark)}
+.db-info-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.db-info-body{padding:18px 20px;color:#6F4056;font-size:12.5px;line-height:1.65}
+.db-info-note{margin-top:12px;padding:11px 12px;background:var(--pk6);border:1px solid var(--border);border-radius:10px;color:#7A4060;font-size:12px}
+.db-info-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 20px 18px}
+.db-info-btn{border:0;border-radius:10px;background:linear-gradient(135deg,var(--pk1),var(--pk2));color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:800;padding:9px 16px;cursor:pointer;box-shadow:0 8px 18px rgba(232,24,90,.2);transition:transform .12s ease,box-shadow .12s ease,filter .12s ease}
+.db-info-btn:hover{transform:translateX(2px);filter:brightness(1.03);box-shadow:0 10px 22px rgba(232,24,90,.24)}
+.db-info-btn:active{transform:translateX(2px) translateY(1px);box-shadow:0 3px 8px rgba(232,24,90,.22)}
+@keyframes dbModalIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 
 /* Top 3 podium list */
 .db-pod-rank{width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
@@ -296,10 +313,10 @@
                     <div class="db-ql-icon">🌸</div>
                     <div><div class="db-ql-title">Produk</div><div class="db-ql-sub">Kelola jenis bunga</div></div>
                 </a>
-                <a href="#" class="db-ql">
+                <button type="button" class="db-ql db-ql-button" onclick="showImportInfo()">
                     <div class="db-ql-icon">📥</div>
                     <div><div class="db-ql-title">Import Data</div><div class="db-ql-sub">Upload dataset baru</div></div>
-                </a>
+                </button>
             </div>
         </div>
     </div>
@@ -395,8 +412,45 @@
     </div>
 </div>
 
+<div id="db-import-info-modal" class="db-info-modal" role="dialog" aria-modal="true" aria-labelledby="db-import-info-title">
+    <div class="db-info-box">
+        <div class="db-info-head">
+            <div class="db-info-icon">📥</div>
+            <div>
+                <div id="db-import-info-title" class="db-info-title">Import Dataset Perlu Validasi</div>
+                <div class="db-info-sub">Data penjualan memengaruhi hasil prediksi FloraPredict</div>
+            </div>
+        </div>
+        <div class="db-info-body">
+            Fitur import dataset belum dibuka langsung dari dashboard. Untuk menjaga kualitas data dan hasil prediksi, penambahan atau perubahan dataset perlu divalidasi oleh developer/pengembang terlebih dahulu.
+            <div class="db-info-note">
+                Validasi meliputi format tanggal, product_id, jumlah, harga, promo, weekday, month, data duplikat, dan kesesuaian produk. Ke depannya fitur ini bisa dikembangkan menjadi halaman import dengan preview data, validasi otomatis, dan log perubahan.
+            </div>
+        </div>
+        <div class="db-info-actions">
+            <button type="button" class="db-info-btn" onclick="closeImportInfo()">Saya Mengerti</button>
+        </div>
+    </div>
+</div>
+
 <script>
 const trendData = @json($monthlySalesTrend ?? []);
+
+function showImportInfo() {
+    document.getElementById('db-import-info-modal')?.classList.add('is-open');
+}
+
+function closeImportInfo() {
+    document.getElementById('db-import-info-modal')?.classList.remove('is-open');
+}
+
+document.getElementById('db-import-info-modal')?.addEventListener('click', function (event) {
+    if (event.target === this) closeImportInfo();
+});
+
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') closeImportInfo();
+});
 
 function renderTrend(months) {
     const data = trendData.slice(-parseInt(months));
