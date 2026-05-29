@@ -54,7 +54,10 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     ]);
 
     // ==================== MANAJEMEN USER ====================
-    Route::resource('users', UserController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])
+        ->name('users.status');
+
+    Route::resource('users', UserController::class)->only(['index', 'store', 'update']);
 
     // ==================== PROFILE ====================
     Route::get('/profile', [ProfileController::class, 'edit'])

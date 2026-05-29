@@ -221,14 +221,22 @@
                         </td>
                         <td>
                             <div class="fp-actions" style="justify-content:center">
-                                <button type="button" class="fp-btn fp-btn-outline fp-btn-sm" title="Edit"
-                                    onclick="openEdit({{ $user->id }},'{{ addslashes($user->name) }}','{{ $user->email }}')">
+                                <button type="button"
+                                    class="fp-btn fp-btn-outline fp-btn-sm"
+                                    title="Edit"
+                                    data-cashier-edit
+                                    data-user-id="{{ (string) $user->getKey() }}"
+                                    data-user-name="{{ $user->name }}"
+                                    data-user-email="{{ $user->email }}">
                                     ✏️
                                 </button>
                                 <button type="button"
                                     class="fp-btn fp-btn-sm {{ $user->status === 'aktif' ? 'fp-btn-deactivate' : 'fp-btn-activate' }}"
                                     title="{{ $user->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' }}"
-                                    onclick="openStatusModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ $user->status }}')">
+                                    data-cashier-status
+                                    data-user-id="{{ (string) $user->getKey() }}"
+                                    data-user-name="{{ $user->name }}"
+                                    data-user-status="{{ $user->status }}">
                                     {{ $user->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' }}
                                 </button>
                             </div>
@@ -307,7 +315,7 @@
         </div>
         <form id="form-status" action="" method="POST" class="fp-action-form" data-loading-message="Memproses status kasir...">
             @csrf
-            @method('DELETE')
+            @method('PATCH')
             <div class="fp-modal-footer">
                 <button type="button" class="fp-btn fp-btn-outline" onclick="closeModal('modal-status')">Batal</button>
                 <button type="submit" class="fp-btn" id="status-submit-button">Ya, Lanjutkan</button>
@@ -364,6 +372,26 @@ document.querySelectorAll('.fp-action-form').forEach(form => {
     });
 });
 
+document.querySelectorAll('[data-cashier-edit]').forEach(button => {
+    button.addEventListener('click', () => {
+        openEdit(
+            button.dataset.userId,
+            button.dataset.userName || '',
+            button.dataset.userEmail || ''
+        );
+    });
+});
+
+document.querySelectorAll('[data-cashier-status]').forEach(button => {
+    button.addEventListener('click', () => {
+        openStatusModal(
+            button.dataset.userId,
+            button.dataset.userName || '',
+            button.dataset.userStatus || 'aktif'
+        );
+    });
+});
+
 function openEdit(id, name, email) {
     document.getElementById('edit-name').value = name;
     document.getElementById('edit-email').value = email;
@@ -378,7 +406,7 @@ function openStatusModal(id, name, status) {
     const submitButton = document.getElementById('status-submit-button');
     const warning = document.getElementById('status-modal-warning');
 
-    document.getElementById('form-status').action = `${usersBaseUrl}/${id}`;
+    document.getElementById('form-status').action = `${usersBaseUrl}/${id}/status`;
     document.getElementById('status-name-label').textContent = name;
     document.getElementById('status-modal-icon').textContent = isActive ? '!' : 'i';
     document.getElementById('status-modal-title').textContent = isActive ? 'Nonaktifkan Akun Kasir?' : 'Aktifkan Akun Kasir?';
