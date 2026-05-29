@@ -115,9 +115,20 @@
 /* ── Section ── */
 .pr-sec{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;min-width:0}
 .pr-sec-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.pr-detail-head{align-items:flex-start}
+.pr-detail-title{padding-top:4px;min-width:260px}
 .pr-sec-title{font-size:12.5px;font-weight:700;color:var(--dark)}
 .pr-sec-sub{font-size:10.5px;color:var(--muted);margin-top:2px}
 .pr-badge{display:inline-flex;align-items:center;gap:5px;background:var(--pk5);color:var(--pk1);font-size:10px;font-weight:700;border-radius:7px;padding:3px 9px;border:1px solid var(--border)}
+.pr-table-tools{display:flex;flex-direction:column;align-items:flex-end;gap:7px;min-width:0}
+.pr-table-actions{display:flex;gap:7px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.pr-count-note{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:10.5px;font-weight:700;cursor:default;white-space:nowrap}
+.pr-count-note::before{content:"";width:6px;height:6px;border-radius:999px;background:var(--pk3)}
+.pr-export-help{display:flex;align-items:center;gap:8px;max-width:560px;padding:6px 9px;background:#FFF8FC;border:1px solid var(--border);border-radius:9px;color:#8E5B73;font-size:10.2px;line-height:1.35;text-align:left}
+.pr-export-help-title{font-weight:800;color:var(--pk1);white-space:nowrap}
+.pr-export-help-chip{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid #F8C9DA;border-radius:7px;padding:2px 7px;white-space:nowrap}
+.pr-export-help-chip strong{color:var(--pk1);font-weight:800}
+.pr-export-help-note{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
 
 /* Search */
 .pr-search-wrap{position:relative;display:flex;align-items:center}
@@ -151,8 +162,24 @@
 .pr-dist-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--pk1),var(--pk3))}
 
 .pr-empty{text-align:center;padding:28px 16px;color:var(--muted);font-size:11.5px}
-.pr-export-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--pk6);border:1px solid var(--border);border-radius:8px;font-size:10.5px;font-weight:700;color:var(--pk1);text-decoration:none;cursor:pointer;transition:all .15s}
-.pr-export-btn:hover{background:var(--pk5)}
+.pr-export-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:linear-gradient(135deg,#0EA765,#16C784);border:1px solid #0C9A5D;border-radius:9px;font-size:11px;font-weight:800;color:#fff;text-decoration:none;cursor:pointer;box-shadow:0 8px 16px rgba(14,167,101,.22);transition:all .15s}
+.pr-export-btn:hover{transform:translateY(-1px);filter:brightness(1.03);box-shadow:0 10px 20px rgba(14,167,101,.28)}
+.pr-export-btn:active{transform:translateY(1px);box-shadow:0 5px 12px rgba(14,167,101,.2)}
+.pr-detail-btn{min-width:54px;background:var(--pk5);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;color:var(--pk1);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s}
+.pr-detail-btn:hover{background:var(--pk1);border-color:var(--pk1);color:#fff;transform:translateY(-1px);box-shadow:0 7px 14px rgba(232,24,90,.16)}
+.pr-detail-popup{border-radius:18px!important;border:1px solid var(--border)!important;padding:0!important;overflow:hidden!important}
+.pr-detail-popup .swal2-html-container{margin:0!important;padding:0!important}
+.pr-detail-popup .swal2-title{padding:18px 22px 8px!important;font-size:17px!important;color:var(--dark)!important;text-align:left!important}
+.pr-detail-content{padding:0 22px 20px;text-align:left;color:#6F4056;font-family:'Plus Jakarta Sans',sans-serif}
+.pr-detail-meta{font-size:11px;color:var(--muted);margin-bottom:12px}
+.pr-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:12px}
+.pr-detail-card{background:#FFF8FC;border:1px solid var(--border);border-radius:11px;padding:10px 11px}
+.pr-detail-label{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:800;margin-bottom:4px}
+.pr-detail-value{font-size:17px;color:var(--pk1);font-weight:800;font-family:'DM Mono',monospace;line-height:1.1}
+.pr-detail-desc{font-size:11px;line-height:1.55;background:var(--pk6);border:1px solid var(--border);border-radius:11px;padding:11px 12px}
+.pr-detail-desc strong{color:var(--pk1)}
+.pr-detail-confirm{background:var(--pk5)!important;border:1px solid var(--border)!important;border-radius:10px!important;color:var(--pk1)!important;font-family:'Plus Jakarta Sans',sans-serif!important;font-size:12px!important;font-weight:800!important;padding:9px 18px!important;box-shadow:none!important;transition:all .15s!important}
+.pr-detail-confirm:hover{background:var(--pk1)!important;border-color:var(--pk1)!important;color:#fff!important;transform:translateY(-1px)!important;box-shadow:0 8px 18px rgba(232,24,90,.2)!important}
 
 .pr-vs-tbl{width:100%;border-collapse:collapse;font-size:12px}
 .pr-vs-tbl th{text-align:left;color:var(--muted);font-size:9.5px;font-weight:700;padding:0 10px 9px;border-bottom:1px solid var(--border);background:var(--pk6);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
@@ -311,9 +338,9 @@
             <div class="pr-eval-sub">jenis bunga</div>
         </div>
         <div class="pr-eval">
-            <div class="pr-eval-lbl">Total Prediksi</div>
+            <div class="pr-eval-lbl">Total Estimasi Kebutuhan</div>
             <div class="pr-eval-val rose">{{ number_format($prediction ?? 0) }}</div>
-            <div class="pr-eval-sub">tangkai</div>
+            <div class="pr-eval-sub">tangkai untuk {{ $nextMonthLabel ?? 'periode aktif' }}</div>
         </div>
         <div class="pr-eval">
             <div class="pr-eval-lbl">Rata-rata MAE</div>
@@ -349,18 +376,27 @@
     <div class="pr-main">
         {{-- Tabel Detail --}}
         <div class="pr-sec">
-            <div class="pr-sec-head">
-                <div>
-                    <div class="pr-sec-title">Hasil Prediksi per Produk</div>
-                    <div class="pr-sec-sub">Estimasi tangkai per jenis bunga — {{ $nextMonthLabel ?? 'bulan depan' }}</div>
+            <div class="pr-sec-head pr-detail-head">
+                <div class="pr-detail-title">
+                    <div class="pr-sec-title">Estimasi Kebutuhan per Produk</div>
+                    <div class="pr-sec-sub">Perkiraan jumlah tangkai yang perlu disiapkan untuk {{ $nextMonthLabel ?? 'periode aktif' }}</div>
                 </div>
-                <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
-                    <div class="pr-search-wrap">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#CCA8BA" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                        <input type="text" placeholder="Cari produk..." id="pr-search-input" oninput="filterTable(this.value)">
+                <div class="pr-table-tools">
+                    <div class="pr-table-actions">
+                        <div class="pr-search-wrap">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#CCA8BA" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input type="text" placeholder="Cari produk..." id="pr-search-input" oninput="filterTable(this.value)">
+                        </div>
+                        <a href="{{ route('predictions.export', ['periode' => $selectedPeriod]) }}" class="pr-export-btn">⬇ Export Excel (.xlsx)</a>
+                        <span class="pr-count-note">{{ number_format($totalProducts ?? 0) }} produk diprediksi</span>
                     </div>
-                    <a href="{{ route('predictions.export') }}" class="pr-export-btn">⬇ Export</a>
-                    <span class="pr-badge">{{ number_format($totalProducts ?? 0) }} produk</span>
+                    <div class="pr-export-help">
+                        <span class="pr-export-help-title">Keterangan Excel</span>
+                        <span class="pr-export-help-note">
+                            <span class="pr-export-help-chip"><strong>MAE</strong> rata-rata selisih prediksi</span>
+                            <span class="pr-export-help-chip"><strong>RMSE</strong> selisih besar yang perlu diperhatikan</span>
+                        </span>
+                    </div>
                 </div>
             </div>
             <div class="pr-scroll pr-detail-scroll">
@@ -380,7 +416,7 @@
                             <th style="padding-left:12px">#</th>
                             <th>Nama Bunga</th>
                             <th>Kategori</th>
-                            <th>Prediksi (tangkai)</th>
+                            <th>Kebutuhan (tgk)</th>
                             <th>MAE</th>
                             <th>RMSE</th>
                             <th>Akurasi</th>
@@ -395,7 +431,7 @@
                                     : null;
                                 $accColor = $accuracy >= 80 ? '#065F46' : ($accuracy >= 60 ? '#B45309' : 'var(--pk1)');
                             @endphp
-                            <tr data-detail-row data-row-index="{{ $loop->iteration }}">
+                            <tr data-detail-row data-row-index="{{ $loop->iteration }}" data-search="{{ strtolower(($item['product_name'] ?? '') . ' ' . ($item['category'] ?? 'Bunga Potong')) }}">
                                 <td class="pr-row-num" style="padding-left:12px;color:var(--muted);font-size:10.5px">{{ $loop->iteration }}</td>
                                 <td style="font-weight:600;color:var(--dark)">{{ $item['product_name'] }}</td>
                                 <td style="color:var(--muted);font-size:11px">{{ $item['category'] ?? 'Bunga Potong' }}</td>
@@ -410,12 +446,26 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <button style="min-width:54px;background:var(--pk5);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;color:var(--pk1);cursor:pointer">Detail</button>
+                                    <button
+                                        type="button"
+                                        class="pr-detail-btn"
+                                        data-name="{{ e($item['product_name']) }}"
+                                        data-category="{{ e($item['category'] ?? 'Bunga Potong') }}"
+                                        data-period="{{ e($nextMonthLabel ?? 'periode aktif') }}"
+                                        data-prediction="{{ number_format($item['prediction']) }}"
+                                        data-mae="{{ number_format($item['mae'] ?? 0, 2) }}"
+                                        data-rmse="{{ number_format($item['rmse'] ?? 0, 2) }}"
+                                        data-accuracy="{{ $accuracy !== null ? number_format($accuracy, 1) . '%' : '-' }}"
+                                        onclick="openPredictionDetail(this)"
+                                    >Detail</button>
                                 </td>
                             </tr>
                         @empty
                             <tr><td colspan="8"><div class="pr-empty">Belum ada data prediksi — jalankan Generate Prediksi terlebih dahulu</div></td></tr>
                         @endforelse
+                        <tr id="pr-search-empty" style="display:none">
+                            <td colspan="8"><div class="pr-empty" style="padding:18px">Produk tidak ditemukan</div></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -466,7 +516,7 @@
             <div class="pr-sec-head">
                 <div>
                     <div class="pr-sec-title">Prediksi vs Penjualan Real</div>
-                    <div class="pr-sec-sub">Perbandingan nilai prediksi dengan aktual historis</div>
+                    <div class="pr-sec-sub">Error dihitung jika data real periode tersebut sudah tersedia</div>
                 </div>
             </div>
             <div class="pr-scroll" style="max-height:300px">
@@ -482,15 +532,21 @@
                     </thead>
                     <tbody>
                         @forelse($predictionComparison ?? [] as $row)
-                            @php $isHigh = ($row->error ?? 0) > 1000; @endphp
+                            @php
+                                $hasActual = (bool) ($row->has_actual ?? false);
+                                $isHigh = $hasActual && (($row->error ?? 0) > 1000);
+                                $statusLabel = $hasActual ? ($isHigh ? 'Tinggi' : 'Normal') : 'Belum ada real';
+                                $statusBg = $hasActual ? ($isHigh ? 'var(--pk5)' : '#ECFDF5') : '#F8FAFC';
+                                $statusColor = $hasActual ? ($isHigh ? 'var(--pk1)' : '#065F46') : '#64748B';
+                            @endphp
                             <tr>
                                 <td style="padding-left:12px;font-size:10.5px;color:var(--muted)">{{ $row->tanggal }}</td>
                                 <td style="font-family:'DM Mono',monospace;font-size:11px">{{ number_format($row->predicted_sales) }}</td>
-                                <td style="font-family:'DM Mono',monospace;font-size:11px">{{ number_format($row->actual_sales ?? 0) }}</td>
-                                <td style="color:{{ $isHigh ? 'var(--pk1)' : '#065F46' }};font-weight:700;font-family:'DM Mono',monospace;font-size:11px">{{ number_format($row->error ?? 0) }}</td>
+                                <td style="font-family:'DM Mono',monospace;font-size:11px">{{ $hasActual ? number_format($row->actual_sales ?? 0) : '-' }}</td>
+                                <td style="color:{{ $statusColor }};font-weight:700;font-family:'DM Mono',monospace;font-size:11px">{{ $hasActual ? number_format($row->error ?? 0) : '-' }}</td>
                                 <td>
-                                    <span style="font-size:10px;padding:2px 7px;border-radius:5px;font-weight:700;background:{{ $isHigh ? 'var(--pk5)' : '#ECFDF5' }};color:{{ $isHigh ? 'var(--pk1)' : '#065F46' }}">
-                                        {{ $isHigh ? 'Tinggi' : 'Normal' }}
+                                    <span style="font-size:10px;padding:2px 7px;border-radius:5px;font-weight:700;background:{{ $statusBg }};color:{{ $statusColor }}">
+                                        {{ $statusLabel }}
                                     </span>
                                 </td>
                             </tr>
@@ -506,7 +562,7 @@
             <div class="pr-sec-head">
                 <div>
                     <div class="pr-sec-title">Distribusi Kebutuhan</div>
-                    <div class="pr-sec-sub">Proporsi stok tiap produk dari total</div>
+                    <div class="pr-sec-sub">Proporsi estimasi kebutuhan dari total prediksi</div>
                 </div>
             </div>
             <div style="padding:12px 16px">
@@ -534,9 +590,7 @@
 
 </div>{{-- end .pr-wrapper --}}
 
-@if(session('success') || session('error'))
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-@endif
 <script>
 @if(session('success') || session('error'))
 document.addEventListener('DOMContentLoaded', function () {
@@ -609,6 +663,74 @@ document.addEventListener('keydown', function (event) {
     }
 });
 
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, function (char) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        }[char];
+    });
+}
+
+function openPredictionDetail(button) {
+    const data = button.dataset;
+    const name = escapeHtml(data.name || 'Produk');
+    const category = escapeHtml(data.category || 'Bunga Potong');
+    const period = escapeHtml(data.period || 'periode aktif');
+    const prediction = escapeHtml(data.prediction || '0');
+    const mae = escapeHtml(data.mae || '0.00');
+    const rmse = escapeHtml(data.rmse || '0.00');
+    const accuracy = escapeHtml(data.accuracy || '-');
+
+    const html = `
+        <div class="pr-detail-content">
+            <div class="pr-detail-meta">${category} · Periode ${period}</div>
+            <div class="pr-detail-grid">
+                <div class="pr-detail-card">
+                    <div class="pr-detail-label">Estimasi Kebutuhan</div>
+                    <div class="pr-detail-value">${prediction}</div>
+                </div>
+                <div class="pr-detail-card">
+                    <div class="pr-detail-label">Akurasi Produk</div>
+                    <div class="pr-detail-value">${accuracy}</div>
+                </div>
+                <div class="pr-detail-card">
+                    <div class="pr-detail-label">MAE</div>
+                    <div class="pr-detail-value">${mae}</div>
+                </div>
+                <div class="pr-detail-card">
+                    <div class="pr-detail-label">RMSE</div>
+                    <div class="pr-detail-value">${rmse}</div>
+                </div>
+            </div>
+            <div class="pr-detail-desc">
+                <strong>MAE</strong> menunjukkan rata-rata selisih prediksi. <strong>RMSE</strong> membantu melihat apakah ada selisih besar yang perlu diperhatikan. Nilai ini dipakai untuk membaca performa model, bukan jumlah stok tambahan.
+            </div>
+        </div>
+    `;
+
+    if (window.Swal) {
+        Swal.fire({
+            title: `Detail ${name}`,
+            html,
+            width: 520,
+            showCloseButton: true,
+            confirmButtonText: 'Saya Mengerti',
+            background: '#FFFFFF',
+            customClass: {
+                popup: 'pr-detail-popup',
+                confirmButton: 'pr-detail-confirm'
+            }
+        });
+        return;
+    }
+
+    alert(`Detail ${data.name || 'Produk'}\nEstimasi: ${data.prediction || 0} tangkai\nMAE: ${data.mae || 0}\nRMSE: ${data.rmse || 0}\nAkurasi: ${data.accuracy || '-'}`);
+}
+
 const topBars = @json($topBars ?? []);
 const tblEl = document.getElementById('pr-top10-tbl');
 
@@ -654,7 +776,7 @@ function getDetailRows() {
 
 function getFilteredDetailRows() {
     const query = detailSearchQuery.trim().toLowerCase();
-    return getDetailRows().filter(row => !query || row.textContent.toLowerCase().includes(query));
+    return getDetailRows().filter(row => !query || (row.dataset.search || '').includes(query));
 }
 
 function updateDetailPagination(filteredCount, totalPages, startIndex, endIndex) {
@@ -677,6 +799,7 @@ function updateDetailPagination(filteredCount, totalPages, startIndex, endIndex)
 function renderDetailPage(page = 1) {
     const rows = getDetailRows();
     const filteredRows = getFilteredDetailRows();
+    const emptyRow = document.getElementById('pr-search-empty');
     const totalPages = Math.max(1, Math.ceil(filteredRows.length / detailPageSize));
     detailCurrentPage = Math.min(Math.max(1, page), totalPages);
 
@@ -692,6 +815,10 @@ function renderDetailPage(page = 1) {
             row.style.display = '';
         }
     });
+
+    if (emptyRow) {
+        emptyRow.style.display = filteredRows.length === 0 ? '' : 'none';
+    }
 
     updateDetailPagination(filteredRows.length, totalPages, startIndex, endIndex);
     document.querySelector('#pr-detail-tbl')?.closest('.pr-scroll')?.scrollTo({ top: 0, left: 0 });
