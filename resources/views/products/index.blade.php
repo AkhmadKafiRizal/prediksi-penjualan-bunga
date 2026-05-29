@@ -3,17 +3,22 @@
 :root{--pk1:#E8185A;--pk2:#F04E8A;--pk3:#F87FB5;--pk4:#FDB8D4;--pk5:#FDE8F2;--pk6:#FFF2F8;--dark:#1A0A12}
 *{box-sizing:border-box}
 
-.fp-page-products{height:100%;min-height:0;padding-top:20px;padding-bottom:16px;display:flex;flex-direction:column}
-.fp-page-products .products-page{height:100%;min-height:0;display:flex;flex-direction:column}
+.fp-page-products{min-height:100%;padding-top:20px;padding-bottom:16px;display:block}
+.fp-page-products .products-page{min-height:0;display:block}
 .fp-page-products .fp-title{margin-bottom:14px}
 .fp-page-products .fp-alert{margin-bottom:12px}
-.fp-page-products .fp-card{flex:1;min-height:0;display:flex;flex-direction:column}
-.fp-page-products .fp-stok-info{padding:9px 14px}
-.fp-page-products .fp-table-wrap{flex:1;min-height:0;overflow-x:auto;overflow-y:hidden}
-.fp-page-products .fp-table th{position:sticky;top:0;background:var(--pk6);z-index:1}
-.fp-page-products .fp-table th{padding:.68rem 1.1rem}
-.fp-page-products .fp-table td{padding:.66rem 1.1rem}
-.fp-page-products .fp-pagination{padding:.75rem 1.25rem}
+.fp-page-products .fp-card{min-height:0;display:block}
+.fp-page-products .fp-toolbar{padding:.75rem 1.15rem}
+.fp-page-products .fp-filter-bar{padding:.65rem 1.15rem}
+.fp-page-products .fp-stok-info{padding:.55rem 1rem}
+.fp-page-products .fp-table-wrap{min-height:0;overflow-x:auto;overflow-y:visible}
+.fp-page-products .fp-table th{background:var(--pk6)}
+.fp-page-products .fp-table th{padding:.5rem 1rem}
+.fp-page-products .fp-table td{padding:.43rem 1rem}
+.fp-page-products .fp-prod-icon{width:30px;height:30px;border-radius:8px}
+.fp-page-products .fp-prod-icon svg{width:19px;height:19px}
+.fp-page-products .fp-actions .fp-btn-sm{padding:.24rem .52rem;font-size:.72rem}
+.fp-page-products .fp-pagination{padding:.58rem 1.15rem}
 
 .fp-eyebrow{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--pk1);margin-bottom:3px}
 .fp-title{font-size:22px;font-weight:800;color:var(--dark);margin-bottom:20px}
@@ -21,6 +26,8 @@
 .fp-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1.1rem;border:none;border-radius:10px;font-family:inherit;font-size:.84rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .2s}
 .fp-btn-primary{background:linear-gradient(135deg,var(--pk1),var(--pk2));color:#fff;box-shadow:0 4px 14px rgba(232,24,90,.3)}
 .fp-btn-primary:hover{box-shadow:0 6px 20px rgba(232,24,90,.4);transform:translateY(-1px)}
+.fp-btn-success{background:#10B981;color:#fff;box-shadow:0 4px 14px rgba(16,185,129,.22)}
+.fp-btn-success:hover{background:#059669;box-shadow:0 6px 20px rgba(16,185,129,.3);transform:translateY(-1px)}
 .fp-btn-outline{background:#fff;color:#7A2A4A;border:1px solid #FCE4EF}
 .fp-btn-outline:hover{border-color:var(--pk3);background:var(--pk6)}
 .fp-btn-secondary{background:var(--pk5);color:var(--pk1);border:1px solid #FBCEDE}
@@ -40,10 +47,20 @@
 .fp-submit-toast.show{display:flex}
 .fp-submit-toast-dot{width:9px;height:9px;border-radius:999px;background:var(--pk1);box-shadow:0 0 0 5px rgba(232,24,90,.12)}
 .fp-btn.is-loading{opacity:.75;pointer-events:none}
+.fp-export-toast{position:fixed;right:24px;bottom:24px;z-index:1100;display:flex;align-items:flex-start;gap:.7rem;max-width:360px;padding:.85rem 1rem;border-radius:14px;background:#fff;border:1px solid #A7F3D0;box-shadow:0 16px 40px rgba(6,95,70,.16);color:#065F46;opacity:0;pointer-events:none;transform:translateY(14px);transition:opacity .18s ease,transform .18s ease}
+.fp-export-toast.is-visible{opacity:1;transform:translateY(0)}
+.fp-export-toast.is-error{border-color:#FCA5A5;box-shadow:0 16px 40px rgba(153,27,27,.14);color:#991B1B}
+.fp-export-toast-icon{width:30px;height:30px;border-radius:10px;background:#ECFDF5;color:#16A34A;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0}
+.fp-export-toast.is-error .fp-export-toast-icon{background:#FEF2F2;color:#DC2626}
+.fp-export-toast-title{font-size:.86rem;font-weight:800;color:#064E3B;margin-bottom:2px}
+.fp-export-toast-text{font-size:.78rem;line-height:1.4;color:#047857}
+.fp-export-toast.is-error .fp-export-toast-title{color:#991B1B}
+.fp-export-toast.is-error .fp-export-toast-text{color:#B91C1C}
 
 .fp-card{background:#fff;border-radius:16px;border:1px solid #FCE4EF;overflow:hidden}
 .fp-toolbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid #FCE4EF;flex-wrap:wrap;gap:.7rem}
 .fp-toolbar-left{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}
+.fp-toolbar-actions{display:flex;align-items:center;justify-content:flex-end;gap:.55rem;flex-wrap:wrap}
 .fp-toolbar-title-group{display:flex;flex-direction:column;gap:.15rem;min-width:230px}
 .fp-toolbar-title{font-size:.9rem;font-weight:700;color:var(--dark)}
 .fp-toolbar-meta{font-size:.75rem;color:#9B6A80;font-weight:500;line-height:1.35}
@@ -84,6 +101,9 @@
 .stok-ok{background:#ECFDF5;border:1px solid #6EE7B7;color:#065F46}
 
 .num-cell{font-family:'DM Mono',monospace;font-size:.84rem;color:var(--dark)}
+.fp-updated-cell{display:flex;flex-direction:column;gap:2px;min-width:112px}
+.fp-updated-date{font-size:.78rem;font-weight:700;color:#7A4060;white-space:nowrap}
+.fp-updated-note{font-size:.68rem;color:#CCA8BA;white-space:nowrap}
 
 .fp-pagination{padding:.9rem 1.25rem;border-top:1px solid #FCE4EF;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 
@@ -130,7 +150,7 @@
         <div class="fp-alert fp-alert-error">⚠ {{ session('error') }}</div>
     @endif
     @if($errors->any())
-        <div class="fp-alert fp-alert-error">⚠ Periksa kembali input produk. Harga jual minimal Rp 5.000 dan semua kolom wajib harus valid.</div>
+        <div class="fp-alert fp-alert-error">⚠ Periksa kembali input produk. Harga jual minimal Rp 5.000, stok minimum tidak boleh kurang dari 1, dan semua kolom wajib harus valid.</div>
     @endif
 
     <div class="fp-card">
@@ -145,9 +165,16 @@
                 <span class="fp-badge-count">{{ $totalInactive ?? 0 }} nonaktif</span>
                 <span class="fp-badge-count">10 data per halaman</span>
             </div>
-            <button class="fp-btn fp-btn-primary" onclick="openModal('modal-tambah')">
-                + Tambah Produk
-            </button>
+            <div class="fp-toolbar-actions">
+                <a href="{{ route('products.export') }}"
+                   class="fp-btn fp-btn-success fp-export-products-btn"
+                   data-loading-label="Menyiapkan file...">
+                    Export Produk (.xlsx)
+                </a>
+                <button type="button" class="fp-btn fp-btn-primary" onclick="openModal('modal-tambah')">
+                    + Tambah Produk
+                </button>
+            </div>
         </div>
 
         <form method="GET" action="{{ route('products.index') }}" id="product-filter-form">
@@ -219,6 +246,7 @@
                         <th>Stok Saat Ini</th>
                         <th>Stok Minimum</th>
                         <th>Status</th>
+                        <th>Terakhir Diperbarui</th>
                         <th style="text-align:center;width:170px">Aksi</th>
                     </tr>
                 </thead>
@@ -275,6 +303,12 @@
                                 @endif
                             </td>
                             <td>
+                                <div class="fp-updated-cell" title="Waktu terakhir data produk ini berubah">
+                                    <span class="fp-updated-date">{{ $product->updated_at_label ?? 'Belum tercatat' }}</span>
+                                    <span class="fp-updated-note">waktu update produk</span>
+                                </div>
+                            </td>
+                            <td>
                                 <div class="fp-actions">
                                     <button class="fp-btn fp-btn-outline fp-btn-sm" title="Edit"
                                         onclick="openEdit(
@@ -303,7 +337,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">
+                            <td colspan="9">
                                 <div class="fp-empty"><p>{{ $emptyProductMessage }}</p></div>
                             </td>
                         </tr>
@@ -378,7 +412,7 @@
                 <div class="fp-form-group">
                     <label>Stok Minimum</label>
                     <input type="number" name="stok_minimum" placeholder="contoh: 10" min="1" required>
-                    <div class="fp-form-hint">Batas stok minimum</div>
+                    <div class="fp-form-hint">Standar project saat ini 10 tangkai, tetapi nilai tidak boleh kurang dari 1.</div>
                 </div>
             </div>
             <div class="fp-form-note">
@@ -435,7 +469,7 @@
                 <div class="fp-form-group">
                     <label>Stok Minimum</label>
                     <input type="number" id="edit-stok" name="stok_minimum" min="1" required>
-                    <div class="fp-form-hint">Dipakai untuk menandai status Stok Rendah.</div>
+                    <div class="fp-form-hint">Standar project saat ini 10 tangkai dan dipakai untuk menandai status Stok Rendah.</div>
                 </div>
             </div>
 
@@ -444,6 +478,33 @@
                 <button type="submit" class="fp-btn fp-btn-primary">Simpan Perubahan</button>
             </div>
         </form>
+    </div>
+</div>
+
+{{-- MODAL NAME CHANGE CONFIRM --}}
+<div class="fp-modal-overlay" id="modal-name-change">
+    <div class="fp-modal" style="max-width:430px">
+        <div class="fp-modal-icon">i</div>
+
+        <div class="fp-modal-title" style="margin-bottom:.5rem">
+            Ubah Nama Produk?
+        </div>
+
+        <div class="fp-modal-body-text">
+            Kamu akan mengubah nama produk dari
+            <span class="fp-modal-body-name" id="name-change-old"></span>
+            menjadi
+            <span class="fp-modal-body-name" id="name-change-new"></span>.
+
+            <div class="fp-modal-warning">
+                <strong>Dampak:</strong> nama yang tampil di laporan, halaman prediksi, Asisten AI, dan aplikasi kasir mobile dapat ikut berubah karena data produk memakai product_id yang sama. Pastikan perubahan nama ini memang disengaja.
+            </div>
+        </div>
+
+        <div class="fp-modal-footer">
+            <button type="button" class="fp-btn fp-btn-outline" onclick="closeModal('modal-name-change')">Batal</button>
+            <button type="button" class="fp-btn fp-btn-primary" onclick="confirmNameChange()">Ya, Lanjut Simpan</button>
+        </div>
     </div>
 </div>
 
@@ -515,8 +576,118 @@
     <span id="product-submit-toast-text">Memproses...</span>
 </div>
 
+<div class="fp-export-toast" id="product-export-toast" role="status" aria-live="polite">
+    <span class="fp-export-toast-icon">✓</span>
+    <div>
+        <div class="fp-export-toast-title">File sedang disiapkan</div>
+        <div class="fp-export-toast-text">Export daftar produk sedang dibuat. Mohon tunggu sampai download dimulai.</div>
+    </div>
+</div>
+
 <script>
 const baseUrl = "{{ url('products') }}";
+const productExportButton = document.querySelector('.fp-export-products-btn');
+const productExportToast = document.getElementById('product-export-toast');
+let productExportToastTimer = null;
+
+function showProductExportToast(type, title, text) {
+    if (! productExportToast) return;
+
+    const toastIcon = productExportToast.querySelector('.fp-export-toast-icon');
+    const toastTitle = productExportToast.querySelector('.fp-export-toast-title');
+    const toastText = productExportToast.querySelector('.fp-export-toast-text');
+    const isError = type === 'error';
+
+    productExportToast.classList.toggle('is-error', isError);
+    if (toastIcon) toastIcon.textContent = isError ? '!' : '✓';
+    if (toastTitle) toastTitle.textContent = title;
+    if (toastText) toastText.textContent = text;
+
+    productExportToast.classList.add('is-visible');
+    window.clearTimeout(productExportToastTimer);
+
+    productExportToastTimer = window.setTimeout(function() {
+        productExportToast.classList.remove('is-visible');
+    }, 4200);
+}
+
+function productExportFilename(response) {
+    const disposition = response.headers.get('content-disposition') || '';
+    const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    const plainMatch = disposition.match(/filename="?([^"]+)"?/i);
+
+    if (utf8Match) return decodeURIComponent(utf8Match[1]);
+    if (plainMatch) return plainMatch[1];
+
+    return 'daftar-produk-bunga.xlsx';
+}
+
+if (productExportButton) {
+    const originalProductExportLabel = productExportButton.textContent.trim();
+
+    function resetProductExportButton() {
+        productExportButton.classList.remove('is-loading');
+        productExportButton.removeAttribute('aria-disabled');
+        productExportButton.textContent = originalProductExportLabel;
+    }
+
+    productExportButton.addEventListener('click', async function(e) {
+        if (! window.fetch || ! window.URL || productExportButton.classList.contains('is-loading')) {
+            return;
+        }
+
+        e.preventDefault();
+        showProductExportToast(
+            'success',
+            'File sedang disiapkan',
+            'Export daftar produk sedang dibuat. Mohon tunggu sampai download dimulai.'
+        );
+
+        productExportButton.classList.add('is-loading');
+        productExportButton.setAttribute('aria-disabled', 'true');
+        productExportButton.textContent = productExportButton.dataset.loadingLabel || 'Menyiapkan file...';
+
+        try {
+            const response = await fetch(productExportButton.href, {
+                credentials: 'same-origin',
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+            });
+            const contentType = response.headers.get('content-type') || '';
+
+            if (! response.ok || ! contentType.includes('spreadsheetml.sheet')) {
+                throw new Error('Export response is not an Excel file.');
+            }
+
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const downloadLink = document.createElement('a');
+
+            downloadLink.href = downloadUrl;
+            downloadLink.download = productExportFilename(response);
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            downloadLink.remove();
+
+            window.setTimeout(function() {
+                window.URL.revokeObjectURL(downloadUrl);
+            }, 1000);
+
+            showProductExportToast(
+                'success',
+                'File siap diunduh',
+                'Download Excel daftar produk sudah dimulai. Tombol export sudah bisa dipakai lagi.'
+            );
+        } catch (error) {
+            showProductExportToast(
+                'error',
+                'Export belum berhasil',
+                'File produk belum bisa disiapkan. Coba ulangi atau periksa koneksi MongoDB.'
+            );
+        } finally {
+            resetProductExportButton();
+        }
+    });
+}
 
 function openModal(id) {
     document.getElementById(id).classList.add('open');
@@ -525,7 +696,7 @@ function openModal(id) {
 
 function closeModal(id) {
     document.getElementById(id).classList.remove('open');
-    document.body.style.overflow = '';
+    document.body.style.overflow = document.querySelector('.fp-modal-overlay.open') ? 'hidden' : '';
 }
 
 document.querySelectorAll('.fp-modal-overlay').forEach(el => {
@@ -538,13 +709,26 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
         closeModal('modal-tambah');
         closeModal('modal-edit');
+        closeModal('modal-name-change');
         closeModal('modal-delete');
         closeModal('modal-activate');
     }
 });
 
 document.querySelectorAll('.fp-action-form').forEach(form => {
-    form.addEventListener('submit', function () {
+    form.addEventListener('submit', function (event) {
+        if (this.id === 'form-edit') {
+            const originalName = this.dataset.originalName || '';
+            const currentName = document.getElementById('edit-nama')?.value || '';
+            const nameChanged = normalizeProductName(originalName) !== normalizeProductName(currentName);
+
+            if (nameChanged && this.dataset.nameChangeConfirmed !== '1') {
+                event.preventDefault();
+                openNameChangeConfirm(originalName, currentName);
+                return;
+            }
+        }
+
         const toast = document.getElementById('product-submit-toast');
         const toastText = document.getElementById('product-submit-toast-text');
         const submitButton = this.querySelector('button[type="submit"]');
@@ -563,13 +747,33 @@ document.querySelectorAll('.fp-action-form').forEach(form => {
     });
 });
 
+function normalizeProductName(name) {
+    return String(name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function openNameChangeConfirm(oldName, newName) {
+    document.getElementById('name-change-old').textContent = oldName || '-';
+    document.getElementById('name-change-new').textContent = newName || '-';
+    openModal('modal-name-change');
+}
+
+function confirmNameChange() {
+    const form = document.getElementById('form-edit');
+    form.dataset.nameChangeConfirmed = '1';
+    closeModal('modal-name-change');
+    form.requestSubmit();
+}
+
 function openEdit(id, nama, satuan, harga, stokMin, stokSaatIni) {
     document.getElementById('edit-nama').value           = nama;
     document.getElementById('edit-satuan').value         = String(satuan || 'tangkai').toLowerCase();
     document.getElementById('edit-harga').value          = harga;
     document.getElementById('edit-stok').value           = stokMin;
     document.getElementById('edit-stok-saat-ini').value  = stokSaatIni;
-    document.getElementById('form-edit').action = baseUrl + '/' + id;
+    const form = document.getElementById('form-edit');
+    form.action = baseUrl + '/' + id;
+    form.dataset.originalName = nama;
+    form.dataset.nameChangeConfirmed = '0';
     openModal('modal-edit');
 }
 

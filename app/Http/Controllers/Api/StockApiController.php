@@ -58,7 +58,7 @@ class StockApiController extends Controller
                     $product->stok_minimum
                     ?? $product->minimum_stock
                     ?? $product->min_stock
-                    ?? 0
+                    ?? 10
                 );
 
                 $category = $product->category
@@ -162,9 +162,9 @@ class StockApiController extends Controller
             'harga_modal'    => 'nullable|numeric|min:0',
             'stok_saat_ini'  => 'nullable|integer|min:0',
             'stock'          => 'nullable|integer|min:0',
-            'stok_minimum'   => 'nullable|integer|min:0',
-            'minimum_stock'  => 'nullable|integer|min:0',
-            'min_stock'      => 'nullable|integer|min:0',
+            'stok_minimum'   => 'nullable|integer|min:1',
+            'minimum_stock'  => 'nullable|integer|min:1',
+            'min_stock'      => 'nullable|integer|min:1',
             'image_url'      => 'nullable|string|max:500',
         ]);
 
@@ -213,9 +213,16 @@ class StockApiController extends Controller
 
         $newId = ((int) $lastId) + 1;
 
-        $satuan = $validated['satuan']
+        $satuan = mb_strtolower(trim((string) ($validated['satuan']
             ?? $validated['unit']
-            ?? 'tangkai';
+            ?? 'tangkai')));
+
+        if ($satuan !== 'tangkai') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Satuan produk harus tangkai agar konsisten dengan dataset dan aplikasi kasir.',
+            ], 422);
+        }
 
         $category = $validated['category']
             ?? $validated['kategori']
@@ -243,7 +250,7 @@ class StockApiController extends Controller
         $stokMinimum = $validated['stok_minimum']
             ?? $validated['minimum_stock']
             ?? $validated['min_stock']
-            ?? 1;
+            ?? 10;
 
         $imageUrl = $validated['image_url'] ?? null;
 

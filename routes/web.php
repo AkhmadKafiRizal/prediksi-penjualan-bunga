@@ -43,6 +43,9 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         ->name('sales.export.excel');
 
     // ==================== MASTER DATA PRODUK ====================
+    Route::get('/products/export', [ProductController::class, 'export'])
+        ->name('products.export');
+
     Route::patch('/products/{product}/activate', [ProductController::class, 'activate'])
         ->name('products.activate');
 
@@ -51,7 +54,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     ]);
 
     // ==================== MANAJEMEN USER ====================
-    Route::resource('users', UserController::class);
+    Route::resource('users', UserController::class)->only(['index', 'store', 'update', 'destroy']);
 
     // ==================== PROFILE ====================
     Route::get('/profile', [ProfileController::class, 'edit'])

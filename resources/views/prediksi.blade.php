@@ -165,6 +165,16 @@
 .pr-export-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:linear-gradient(135deg,#0EA765,#16C784);border:1px solid #0C9A5D;border-radius:9px;font-size:11px;font-weight:800;color:#fff;text-decoration:none;cursor:pointer;box-shadow:0 8px 16px rgba(14,167,101,.22);transition:all .15s}
 .pr-export-btn:hover{transform:translateY(-1px);filter:brightness(1.03);box-shadow:0 10px 20px rgba(14,167,101,.28)}
 .pr-export-btn:active{transform:translateY(1px);box-shadow:0 5px 12px rgba(14,167,101,.2)}
+.pr-export-btn.is-loading{opacity:.78;pointer-events:none;transform:none;box-shadow:0 6px 14px rgba(14,167,101,.16)}
+.pr-export-toast{position:fixed;right:24px;bottom:24px;z-index:9999;display:flex;align-items:flex-start;gap:.7rem;max-width:360px;padding:.85rem 1rem;border-radius:14px;background:#fff;border:1px solid #A7F3D0;box-shadow:0 16px 40px rgba(6,95,70,.16);color:#065F46;opacity:0;pointer-events:none;transform:translateY(14px);transition:opacity .18s ease,transform .18s ease}
+.pr-export-toast.is-visible{opacity:1;transform:translateY(0)}
+.pr-export-toast.is-error{border-color:#FCA5A5;box-shadow:0 16px 40px rgba(153,27,27,.14);color:#991B1B}
+.pr-export-toast-icon{width:30px;height:30px;border-radius:10px;background:#ECFDF5;color:#16A34A;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0}
+.pr-export-toast.is-error .pr-export-toast-icon{background:#FEF2F2;color:#DC2626}
+.pr-export-toast-title{font-size:.86rem;font-weight:800;color:#064E3B;margin-bottom:2px}
+.pr-export-toast-text{font-size:.78rem;line-height:1.4;color:#047857}
+.pr-export-toast.is-error .pr-export-toast-title{color:#991B1B}
+.pr-export-toast.is-error .pr-export-toast-text{color:#B91C1C}
 .pr-detail-btn{min-width:54px;background:var(--pk5);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;color:var(--pk1);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s}
 .pr-detail-btn:hover{background:var(--pk1);border-color:var(--pk1);color:#fff;transform:translateY(-1px);box-shadow:0 7px 14px rgba(232,24,90,.16)}
 .pr-detail-popup{border-radius:18px!important;border:1px solid var(--border)!important;padding:0!important;overflow:hidden!important}
@@ -387,7 +397,9 @@
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#CCA8BA" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                             <input type="text" placeholder="Cari produk..." id="pr-search-input" oninput="filterTable(this.value)">
                         </div>
-                        <a href="{{ route('predictions.export', ['periode' => $selectedPeriod]) }}" class="pr-export-btn">⬇ Export Laporan Prediksi (.xlsx)</a>
+                        <a href="{{ route('predictions.export', ['periode' => $selectedPeriod]) }}"
+                           class="pr-export-btn pr-export-report-btn"
+                           data-loading-label="Menyiapkan file...">⬇ Export Laporan Prediksi (.xlsx)</a>
                         <span class="pr-count-note">{{ number_format($totalProducts ?? 0) }} produk diprediksi</span>
                     </div>
                     <div class="pr-export-help">
@@ -590,6 +602,14 @@
 
 </div>{{-- end .pr-wrapper --}}
 
+<div class="pr-export-toast" id="prediction-export-toast" role="status" aria-live="polite">
+    <span class="pr-export-toast-icon">✓</span>
+    <div>
+        <div class="pr-export-toast-title">File sedang disiapkan</div>
+        <div class="pr-export-toast-text">Export laporan prediksi sedang dibuat. Mohon tunggu sampai download dimulai.</div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 @if(session('success') || session('error'))
@@ -613,6 +633,109 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 @endif
+
+const predictionExportButton = document.querySelector('.pr-export-report-btn');
+const predictionExportToast = document.getElementById('prediction-export-toast');
+let predictionExportToastTimer = null;
+
+function showPredictionExportToast(type, title, text) {
+    if (! predictionExportToast) return;
+
+    const toastIcon = predictionExportToast.querySelector('.pr-export-toast-icon');
+    const toastTitle = predictionExportToast.querySelector('.pr-export-toast-title');
+    const toastText = predictionExportToast.querySelector('.pr-export-toast-text');
+    const isError = type === 'error';
+
+    predictionExportToast.classList.toggle('is-error', isError);
+    if (toastIcon) toastIcon.textContent = isError ? '!' : '✓';
+    if (toastTitle) toastTitle.textContent = title;
+    if (toastText) toastText.textContent = text;
+
+    predictionExportToast.classList.add('is-visible');
+    window.clearTimeout(predictionExportToastTimer);
+
+    predictionExportToastTimer = window.setTimeout(function() {
+        predictionExportToast.classList.remove('is-visible');
+    }, 4200);
+}
+
+function predictionExportFilename(response) {
+    const disposition = response.headers.get('content-disposition') || '';
+    const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    const plainMatch = disposition.match(/filename="?([^"]+)"?/i);
+
+    if (utf8Match) return decodeURIComponent(utf8Match[1]);
+    if (plainMatch) return plainMatch[1];
+
+    return 'laporan-prediksi.xlsx';
+}
+
+if (predictionExportButton) {
+    const originalPredictionExportLabel = predictionExportButton.textContent.trim();
+
+    function resetPredictionExportButton() {
+        predictionExportButton.classList.remove('is-loading');
+        predictionExportButton.removeAttribute('aria-disabled');
+        predictionExportButton.textContent = originalPredictionExportLabel;
+    }
+
+    predictionExportButton.addEventListener('click', async function(e) {
+        if (! window.fetch || ! window.URL || predictionExportButton.classList.contains('is-loading')) {
+            return;
+        }
+
+        e.preventDefault();
+        showPredictionExportToast(
+            'success',
+            'File sedang disiapkan',
+            'Export laporan prediksi sedang dibuat. Mohon tunggu sampai download dimulai.'
+        );
+
+        predictionExportButton.classList.add('is-loading');
+        predictionExportButton.setAttribute('aria-disabled', 'true');
+        predictionExportButton.textContent = predictionExportButton.dataset.loadingLabel || 'Menyiapkan file...';
+
+        try {
+            const response = await fetch(predictionExportButton.href, {
+                credentials: 'same-origin',
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+            });
+            const contentType = response.headers.get('content-type') || '';
+
+            if (! response.ok || ! contentType.includes('spreadsheetml.sheet')) {
+                throw new Error('Export response is not an Excel file.');
+            }
+
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const downloadLink = document.createElement('a');
+
+            downloadLink.href = downloadUrl;
+            downloadLink.download = predictionExportFilename(response);
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            downloadLink.remove();
+
+            window.setTimeout(function() {
+                window.URL.revokeObjectURL(downloadUrl);
+            }, 1000);
+
+            showPredictionExportToast(
+                'success',
+                'File siap diunduh',
+                'Download Excel laporan prediksi sudah dimulai. Tombol export sudah bisa dipakai lagi.'
+            );
+        } catch (error) {
+            showPredictionExportToast(
+                'error',
+                'Export belum berhasil',
+                'File laporan prediksi belum bisa disiapkan. Coba ulangi atau periksa koneksi MongoDB.'
+            );
+        } finally {
+            resetPredictionExportButton();
+        }
+    });
+}
 
 let pendingGenerateUrl = null;
 

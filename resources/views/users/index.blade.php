@@ -13,15 +13,19 @@
 .fp-btn-outline:hover{border-color:var(--pk3);background:var(--pk6)}
 .fp-btn-secondary{background:var(--pk5);color:var(--pk1);border:1px solid #FBCEDE}
 .fp-btn-secondary:hover{background:var(--pk4);color:#7A1A3A}
-.fp-btn-danger{background:#FEE2E2;color:#dc2626;border:none}
-.fp-btn-danger:hover{background:#fecaca}
-.fp-btn-success{background:#ecfdf5;color:#065f46;border:none}
-.fp-btn-success:hover{background:#d1fae5}
+.fp-btn-deactivate{background:#fff;color:#B91C1C;border:1px solid #FECACA;box-shadow:none}
+.fp-btn-deactivate:hover{background:#FEF2F2;border-color:#FCA5A5;transform:translateY(-1px)}
+.fp-btn-activate{background:#ECFDF5;color:#047857;border:1px solid #A7F3D0;box-shadow:none}
+.fp-btn-activate:hover{background:#10B981;border-color:#10B981;color:#fff;transform:translateY(-1px)}
+.fp-btn.is-loading{opacity:.75;pointer-events:none}
 .fp-btn-sm{padding:.3rem .7rem;font-size:.78rem}
 
 .fp-alert{display:flex;align-items:center;gap:.6rem;padding:.75rem 1.1rem;border-radius:12px;font-size:.84rem;font-weight:500;margin-bottom:1.1rem}
 .fp-alert-success{background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46}
 .fp-alert-error{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
+.fp-submit-toast{position:fixed;right:24px;top:24px;z-index:1100;display:none;align-items:center;gap:.55rem;padding:.78rem 1rem;border-radius:12px;background:#fff;color:#7A2A4A;border:1px solid #FCE4EF;box-shadow:0 18px 45px rgba(232,24,90,.16);font-size:.82rem;font-weight:700}
+.fp-submit-toast.show{display:flex}
+.fp-submit-toast-dot{width:9px;height:9px;border-radius:999px;background:var(--pk1);box-shadow:0 0 0 5px rgba(232,24,90,.12)}
 
 /* Stat cards */
 .fp-stats-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
@@ -39,8 +43,18 @@
 .fp-card{background:#fff;border-radius:16px;border:1px solid #FCE4EF;overflow:hidden}
 .fp-toolbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid #FCE4EF;flex-wrap:wrap;gap:.7rem}
 .fp-toolbar-left{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}
+.fp-toolbar-title-group{display:flex;flex-direction:column;gap:.15rem;min-width:230px}
 .fp-toolbar-title{font-size:.9rem;font-weight:700;color:var(--dark)}
+.fp-toolbar-meta{font-size:.75rem;color:#9B6A80;font-weight:500;line-height:1.35}
 .fp-badge-count{background:var(--pk5);color:var(--pk1);border-radius:20px;padding:.15rem .65rem;font-size:.72rem;font-weight:700;border:1px solid #FBCEDE}
+
+.fp-filter-bar{display:flex;align-items:center;gap:.55rem;padding:.85rem 1.25rem;border-bottom:1px solid #FCE4EF;flex-wrap:wrap;background:var(--pk6)}
+.fp-filter-label{font-size:.72rem;font-weight:700;color:#7A2A4A;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.fp-filter-select{padding:.42rem .75rem;border:1px solid #FCE4EF;border-radius:9px;font-family:inherit;font-size:.82rem;color:var(--dark);background:#fff;outline:none;cursor:pointer;transition:border .15s}
+.fp-filter-select:focus{border-color:var(--pk2);box-shadow:0 0 0 3px rgba(232,24,90,.08)}
+.fp-search-box{display:flex;align-items:center;gap:.5rem;background:#fff;border:1px solid #FCE4EF;border-radius:10px;padding:.42rem .85rem}
+.fp-search-box input{border:none;background:transparent;font-family:inherit;font-size:.84rem;color:var(--dark);outline:none;width:250px}
+.fp-search-box input::placeholder{color:#CCA8BA}
 
 .fp-table-wrap{overflow-x:auto}
 .fp-table{width:100%;border-collapse:collapse}
@@ -80,16 +94,12 @@
 .fp-form-group input:focus{border-color:var(--pk2);box-shadow:0 0 0 3px rgba(232,24,90,.1);background:#fff}
 .fp-form-hint{font-size:.72rem;color:#CCA8BA;margin-top:.3rem}
 .fp-modal-footer{display:flex;justify-content:flex-end;gap:.55rem;margin-top:1.4rem;padding-top:1.1rem;border-top:1px solid #FCE4EF}
+.fp-modal-icon{width:50px;height:50px;background:var(--pk5);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:.9rem}
+.fp-modal-body-text{font-size:.875rem;color:#4A2A3A;line-height:1.6}
+.fp-modal-body-name{font-weight:700;color:var(--dark)}
+.fp-modal-warning{margin-top:.8rem;padding:.75rem .85rem;border-radius:12px;background:#FFF7ED;border:1px solid #FED7AA;color:#9A3412;font-size:.8rem;line-height:1.55}
+.fp-modal-warning strong{font-weight:800}
 
-/* Toggle switch */
-.fp-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:.6rem .85rem;border:1px solid #FCE4EF;border-radius:10px;background:var(--pk6)}
-.fp-toggle-label{font-size:.84rem;color:#7A2A4A;font-weight:500}
-.fp-toggle{position:relative;width:38px;height:21px;flex-shrink:0}
-.fp-toggle input{opacity:0;width:0;height:0}
-.fp-toggle-slider{position:absolute;inset:0;cursor:pointer;background:#FBCEDE;border-radius:21px;transition:.3s}
-.fp-toggle-slider::before{content:'';position:absolute;width:15px;height:15px;left:3px;top:3px;background:white;border-radius:50%;transition:.3s}
-.fp-toggle input:checked + .fp-toggle-slider{background:var(--pk1)}
-.fp-toggle input:checked + .fp-toggle-slider::before{transform:translateX(17px)}
 </style>
 
 <div>
@@ -108,19 +118,23 @@
     <div class="fp-alert fp-alert-error">⚠ {{ session('error') }}</div>
     @endif
 
+    @if($errors->any())
+    <div class="fp-alert fp-alert-error">Periksa kembali input kasir. Email harus unik dan password minimal 8 karakter.</div>
+    @endif
+
     {{-- Stat cards --}}
     <div class="fp-stats-row">
         <div class="fp-stat-card c-rose">
             <div class="fp-stat-label">Total Kasir</div>
-            <div class="fp-stat-val rose">{{ $users->count() }}</div>
+            <div class="fp-stat-val rose">{{ $totalUsers ?? $users->count() }}</div>
         </div>
         <div class="fp-stat-card c-green">
             <div class="fp-stat-label">Kasir Aktif</div>
-            <div class="fp-stat-val green">{{ $users->where('status', 'aktif')->count() }}</div>
+            <div class="fp-stat-val green">{{ $totalActive ?? $users->where('status', 'aktif')->count() }}</div>
         </div>
         <div class="fp-stat-card c-muted">
             <div class="fp-stat-label">Kasir Nonaktif</div>
-            <div class="fp-stat-val muted">{{ $users->where('status', 'nonaktif')->count() }}</div>
+            <div class="fp-stat-val muted">{{ $totalInactive ?? $users->where('status', 'nonaktif')->count() }}</div>
         </div>
     </div>
 
@@ -128,13 +142,38 @@
     <div class="fp-card">
         <div class="fp-toolbar">
             <div class="fp-toolbar-left">
-                <span class="fp-toolbar-title">Daftar Akun Kasir</span>
+                <div class="fp-toolbar-title-group">
+                    <span class="fp-toolbar-title">Daftar Akun Kasir</span>
+                    <span class="fp-toolbar-meta">Kasir aktif dapat login ke aplikasi mobile dan mencatat transaksi.</span>
+                </div>
                 <span class="fp-badge-count">{{ $users->count() }} kasir</span>
             </div>
-            <button class="fp-btn fp-btn-primary" onclick="openModal('modal-tambah')">
+            <button type="button" class="fp-btn fp-btn-primary" onclick="openModal('modal-tambah')">
                 + Tambah Kasir
             </button>
         </div>
+
+        <form method="GET" action="{{ route('users.index') }}" id="cashier-filter-form">
+            <div class="fp-filter-bar">
+                <span class="fp-filter-label">Filter:</span>
+                <div class="fp-search-box">
+                    🔍 <input type="text" name="search" placeholder="Cari nama atau email kasir..."
+                        value="{{ $search ?? '' }}">
+                </div>
+
+                <button type="submit" class="fp-btn fp-btn-secondary fp-btn-sm">Cari</button>
+
+                <select name="status" class="fp-filter-select" onchange="document.getElementById('cashier-filter-form').submit()">
+                    <option value="">Semua Status</option>
+                    <option value="aktif" {{ ($filterStatus ?? '') === 'aktif' ? 'selected' : '' }}>Aktif</option>
+                    <option value="nonaktif" {{ ($filterStatus ?? '') === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+                </select>
+
+                @if(($search ?? false) || ($filterStatus ?? false))
+                    <a href="{{ route('users.index') }}" class="fp-btn fp-btn-outline fp-btn-sm">✕ Reset Filter</a>
+                @endif
+            </div>
+        </form>
 
         <div class="fp-table-wrap">
             <table class="fp-table">
@@ -144,10 +183,22 @@
                         <th>Kasir</th>
                         <th>Terdaftar</th>
                         <th>Status</th>
-                        <th style="text-align:center;width:120px">Aksi</th>
+                        <th style="text-align:center;width:180px">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
+                    @php
+                        $hasCashierFilters = ($search ?? false) || ($filterStatus ?? false);
+                        $emptyCashierMessage = $hasCashierFilters
+                            ? 'Tidak ada kasir yang cocok dengan filter saat ini.'
+                            : 'Belum ada akun kasir. Tambahkan kasir terlebih dahulu.';
+
+                        if (($filterStatus ?? '') === 'nonaktif' && !($search ?? false)) {
+                            $emptyCashierMessage = 'Tidak ada kasir nonaktif saat ini.';
+                        } elseif (($filterStatus ?? '') === 'aktif' && !($search ?? false)) {
+                            $emptyCashierMessage = 'Tidak ada kasir aktif saat ini.';
+                        }
+                    @endphp
                     @forelse($users as $i => $user)
                     <tr>
                         <td class="row-num">{{ $i + 1 }}</td>
@@ -160,7 +211,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="date-cell">{{ $user->created_at->format('d M Y') }}</td>
+                        <td class="date-cell">{{ optional($user->created_at)->format('d M Y') ?? '-' }}</td>
                         <td>
                             @if($user->status === 'aktif')
                                 <span class="badge-active">Aktif</span>
@@ -170,19 +221,16 @@
                         </td>
                         <td>
                             <div class="fp-actions" style="justify-content:center">
-                                <button class="fp-btn fp-btn-outline fp-btn-sm" title="Edit"
-                                    onclick="openEdit({{ $user->id }},'{{ addslashes($user->name) }}','{{ $user->email }}',{{ $user->status === 'aktif' ? 1 : 0 }})">
+                                <button type="button" class="fp-btn fp-btn-outline fp-btn-sm" title="Edit"
+                                    onclick="openEdit({{ $user->id }},'{{ addslashes($user->name) }}','{{ $user->email }}')">
                                     ✏️
                                 </button>
-                                <form action="{{ route('users.destroy', $user->id) }}" method="POST" style="display:inline">
-                                    @csrf @method('DELETE')
-                                    <button type="submit"
-                                        class="fp-btn fp-btn-sm {{ $user->status === 'aktif' ? 'fp-btn-danger' : 'fp-btn-success' }}"
-                                        title="{{ $user->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' }}"
-                                        onclick="return confirm('{{ $user->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' }} kasir {{ $user->name }}?')">
-                                        {{ $user->status === 'aktif' ? '🔒' : '🔓' }}
-                                    </button>
-                                </form>
+                                <button type="button"
+                                    class="fp-btn fp-btn-sm {{ $user->status === 'aktif' ? 'fp-btn-deactivate' : 'fp-btn-activate' }}"
+                                    title="{{ $user->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' }}"
+                                    onclick="openStatusModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ $user->status }}')">
+                                    {{ $user->status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' }}
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -190,7 +238,7 @@
                     <tr>
                         <td colspan="5">
                             <div class="fp-empty">
-                                <p>Belum ada akun kasir. Tambahkan kasir terlebih dahulu.</p>
+                                <p>{{ $emptyCashierMessage }}</p>
                             </div>
                         </td>
                     </tr>
@@ -208,11 +256,11 @@
             <span class="fp-modal-title">👤 Tambah Akun Kasir</span>
             <button class="fp-modal-close" onclick="closeModal('modal-tambah')">✕</button>
         </div>
-        <form action="{{ route('users.store') }}" method="POST">
+        <form action="{{ route('users.store') }}" method="POST" class="fp-action-form" data-loading-message="Menyimpan akun kasir...">
             @csrf
             <div class="fp-form-group"><label>Nama Lengkap</label><input type="text" name="name" placeholder="contoh: Budi Santoso" required></div>
             <div class="fp-form-group"><label>Email</label><input type="email" name="email" placeholder="contoh: budi@email.com" required></div>
-            <div class="fp-form-group"><label>Password</label><input type="password" name="password" placeholder="Minimal 6 karakter" required></div>
+            <div class="fp-form-group"><label>Password</label><input type="password" name="password" placeholder="Minimal 8 karakter" required></div>
             <div class="fp-form-group"><label>Konfirmasi Password</label><input type="password" name="password_confirmation" placeholder="Ulangi password" required></div>
             <div class="fp-modal-footer">
                 <button type="button" class="fp-btn fp-btn-outline" onclick="closeModal('modal-tambah')">Batal</button>
@@ -229,26 +277,16 @@
             <span class="fp-modal-title">✏️ Edit Akun Kasir</span>
             <button class="fp-modal-close" onclick="closeModal('modal-edit')">✕</button>
         </div>
-        <form id="form-edit" action="" method="POST">
+        <form id="form-edit" action="" method="POST" class="fp-action-form" data-loading-message="Menyimpan perubahan kasir...">
             @csrf @method('PUT')
             <div class="fp-form-group"><label>Nama Lengkap</label><input type="text" id="edit-name" name="name" required></div>
             <div class="fp-form-group"><label>Email</label><input type="email" id="edit-email" name="email" required></div>
             <div class="fp-form-group">
                 <label>Password Baru</label>
-                <input type="password" name="password" placeholder="Kosongkan jika tidak ingin ganti">
-                <div class="fp-form-hint">Isi hanya jika ingin mengganti password</div>
+                <input type="password" id="edit-password" name="password" placeholder="Minimal 8 karakter jika diganti">
+                <div class="fp-form-hint">Isi hanya jika ingin mengganti password. Minimal 8 karakter.</div>
             </div>
-            <div class="fp-form-group"><label>Konfirmasi Password Baru</label><input type="password" name="password_confirmation" placeholder="Ulangi password baru"></div>
-            <div class="fp-form-group">
-                <label>Status Akun</label>
-                <div class="fp-toggle-row">
-                    <span class="fp-toggle-label">Akun aktif</span>
-                    <label class="fp-toggle">
-                        <input type="checkbox" id="edit-active" name="is_active">
-                        <span class="fp-toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
+            <div class="fp-form-group"><label>Konfirmasi Password Baru</label><input type="password" id="edit-password-confirmation" name="password_confirmation" placeholder="Ulangi password baru"></div>
             <div class="fp-modal-footer">
                 <button type="button" class="fp-btn fp-btn-outline" onclick="closeModal('modal-edit')">Batal</button>
                 <button type="submit" class="fp-btn fp-btn-primary">Simpan Perubahan</button>
@@ -257,21 +295,106 @@
     </div>
 </div>
 
+{{-- MODAL STATUS --}}
+<div class="fp-modal-overlay" id="modal-status">
+    <div class="fp-modal" style="max-width:430px">
+        <div class="fp-modal-icon" id="status-modal-icon">i</div>
+        <div class="fp-modal-title" id="status-modal-title" style="margin-bottom:.5rem">Ubah Status Kasir?</div>
+        <div class="fp-modal-body-text">
+            Kamu akan <span id="status-modal-action">mengubah status</span> akun kasir
+            <span class="fp-modal-body-name" id="status-name-label"></span>.
+            <div class="fp-modal-warning" id="status-modal-warning"></div>
+        </div>
+        <form id="form-status" action="" method="POST" class="fp-action-form" data-loading-message="Memproses status kasir...">
+            @csrf
+            @method('DELETE')
+            <div class="fp-modal-footer">
+                <button type="button" class="fp-btn fp-btn-outline" onclick="closeModal('modal-status')">Batal</button>
+                <button type="submit" class="fp-btn" id="status-submit-button">Ya, Lanjutkan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="fp-submit-toast" id="cashier-submit-toast">
+    <span class="fp-submit-toast-dot"></span>
+    <span id="cashier-submit-toast-text">Memproses...</span>
+</div>
+
 <script>
-function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+const usersBaseUrl = "{{ url('users') }}";
+
+function openModal(id) {
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = document.querySelector('.fp-modal-overlay.open') ? 'hidden' : '';
+}
+
 document.querySelectorAll('.fp-modal-overlay').forEach(el => {
-    el.addEventListener('click', function(e) { if (e.target===this) closeModal(this.id); });
+    el.addEventListener('click', function(e) {
+        if (e.target === this) closeModal(this.id);
+    });
 });
+
 document.addEventListener('keydown', e => {
-    if (e.key==='Escape') ['modal-tambah','modal-edit'].forEach(closeModal);
+    if (e.key === 'Escape') ['modal-tambah', 'modal-edit', 'modal-status'].forEach(closeModal);
 });
-function openEdit(id, name, email, isActive) {
+
+document.querySelectorAll('.fp-action-form').forEach(form => {
+    form.addEventListener('submit', function() {
+        const toast = document.getElementById('cashier-submit-toast');
+        const toastText = document.getElementById('cashier-submit-toast-text');
+        const submitButton = this.querySelector('button[type="submit"]');
+
+        if (toast && toastText) {
+            toastText.textContent = this.dataset.loadingMessage || 'Memproses...';
+            toast.classList.add('show');
+        }
+
+        if (submitButton) {
+            submitButton.classList.add('is-loading');
+            submitButton.disabled = true;
+            submitButton.dataset.originalText = submitButton.textContent;
+            submitButton.textContent = 'Memproses...';
+        }
+    });
+});
+
+function openEdit(id, name, email) {
     document.getElementById('edit-name').value = name;
     document.getElementById('edit-email').value = email;
-    document.getElementById('edit-active').checked = isActive == 1;
-    document.getElementById('form-edit').action = '/users/' + id;
+    document.getElementById('edit-password').value = '';
+    document.getElementById('edit-password-confirmation').value = '';
+    document.getElementById('form-edit').action = `${usersBaseUrl}/${id}`;
     openModal('modal-edit');
 }
+
+function openStatusModal(id, name, status) {
+    const isActive = status === 'aktif';
+    const submitButton = document.getElementById('status-submit-button');
+    const warning = document.getElementById('status-modal-warning');
+
+    document.getElementById('form-status').action = `${usersBaseUrl}/${id}`;
+    document.getElementById('status-name-label').textContent = name;
+    document.getElementById('status-modal-icon').textContent = isActive ? '!' : 'i';
+    document.getElementById('status-modal-title').textContent = isActive ? 'Nonaktifkan Akun Kasir?' : 'Aktifkan Akun Kasir?';
+    document.getElementById('status-modal-action').textContent = isActive ? 'menonaktifkan' : 'mengaktifkan';
+
+    warning.innerHTML = isActive
+        ? '<strong>Dampaknya:</strong> kasir ini tidak bisa login ke aplikasi mobile, tidak bisa mencatat transaksi baru, dan token login mobile akan dihapus dari database. Data penjualan lama tetap tersimpan untuk pertanggungjawaban.'
+        : '<strong>Dampaknya:</strong> kasir ini bisa login kembali ke aplikasi mobile dan mencatat transaksi baru. Akun tetap menggunakan email dan password yang sudah tersimpan.';
+
+    submitButton.className = `fp-btn ${isActive ? 'fp-btn-deactivate' : 'fp-btn-activate'}`;
+    submitButton.textContent = isActive ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan';
+    submitButton.disabled = false;
+    submitButton.classList.remove('is-loading');
+
+    openModal('modal-status');
+}
+
 </script>
 </x-app-layout>

@@ -9,6 +9,22 @@ class PredictionApiController extends Controller
 {
     public function index()
     {
+        $activeProducts = DB::connection('mongodb')
+            ->table('products')
+            ->get(['id', 'nama_bunga', 'is_active'])
+            ->filter(fn ($product) => (int) ($product->is_active ?? 1) === 1)
+            ->values();
+
+        $activeProductIds = $activeProducts
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        if (empty($activeProductIds)) {
+            return response()->json([]);
+        }
+
         /*
         |--------------------------------------------------------------------------
         | Ambil hasil prediksi terbaru dari MongoDB
@@ -18,7 +34,8 @@ class PredictionApiController extends Controller
 
         $latestDate = DB::connection('mongodb')
             ->table('prediction_results')
-            ->orderByDesc('updated_at')
+            ->whereIn('product_id', $activeProductIds)
+            ->orderByDesc('tanggal')
             ->value('tanggal');
 
         if (!$latestDate) {
@@ -28,6 +45,7 @@ class PredictionApiController extends Controller
         $predictions = DB::connection('mongodb')
             ->table('prediction_results')
             ->where('tanggal', $latestDate)
+            ->whereIn('product_id', $activeProductIds)
             ->orderBy('product_id', 'asc')
             ->get();
 
@@ -38,9 +56,7 @@ class PredictionApiController extends Controller
         | Join SQL diganti dengan mapping manual product_id => nama_bunga.
         */
 
-        $productNames = DB::connection('mongodb')
-            ->table('products')
-            ->pluck('nama_bunga', 'id');
+        $productNames = $activeProducts->pluck('nama_bunga', 'id');
 
         /*
         |--------------------------------------------------------------------------
