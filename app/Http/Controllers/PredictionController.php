@@ -4,8 +4,15 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class PredictionController extends Controller
 {
@@ -330,9 +337,209 @@ class PredictionController extends Controller
     // =========================================================
     // EXPORT
     // =========================================================
-    public function export()
+    public function export(Request $request)
     {
-        return "Export prediksi berhasil"; // kembangkan sesuai kebutuhan
+        $selectedPeriod = $request->get('periode', $this->getDefaultPredictionPeriod());
+        $targetDate = Carbon::createFromFormat('Y-m', $selectedPeriod)
+            ->endOfMonth()
+            ->format('Y-m-d');
+
+        $rows = DB::connection('mongodb')
+            ->table('prediction_results')
+            ->where('tanggal', $targetDate)
+            ->orderByDesc('predicted_sales')
+            ->orderBy('product_id')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return redirect()
+                ->route('prediksi', ['periode' => $selectedPeriod])
+                ->with('error', "Data prediksi periode {$selectedPeriod} belum tersedia untuk diexport.");
+        }
+
+        $productNames = $this->getProductNames();
+        $periodLabel = Carbon::createFromFormat('Y-m', $selectedPeriod)
+            ->translatedFormat('F Y');
+
+        $exportRows = $rows->values()->map(function ($row, $index) use ($productNames, $selectedPeriod, $targetDate) {
+            $productId = $row->product_id ?? null;
+            $prediction = (float) ($row->predicted_sales ?? 0);
+            $mae = (float) ($row->mae ?? 0);
+            $accuracy = $prediction > 0
+                ? max(0, min(100, 100 - (($mae / $prediction) * 100)))
+                : null;
+
+            return [
+                'no' => $index + 1,
+                'periode' => $selectedPeriod,
+                'tanggal_prediksi' => $targetDate,
+                'product_id' => $productId,
+                'nama_bunga' => $productNames[$productId] ?? $productNames[(string) $productId] ?? ('Produk #' . $productId),
+                'estimasi_kebutuhan_tangkai' => round($prediction),
+                'mae' => $row->mae ?? null,
+                'rmse' => $row->rmse ?? null,
+                'akurasi_persen' => $accuracy !== null ? round($accuracy, 2) : null,
+                'validation_mae' => $row->validation_mae ?? null,
+                'validation_rmse' => $row->validation_rmse ?? null,
+                'updated_at' => isset($row->updated_at) ? (string) $row->updated_at : null,
+            ];
+        });
+
+        $filename = "laporan-prediksi-kebutuhan-{$selectedPeriod}.xlsx";
+        $filePath = $this->createPredictionWorkbook($exportRows, [
+            'period_label' => $periodLabel,
+            'selected_period' => $selectedPeriod,
+            'target_date' => $targetDate,
+            'total_products' => $exportRows->count(),
+            'total_prediction' => $exportRows->sum('estimasi_kebutuhan_tangkai'),
+            'exported_at' => now()->format('d M Y, H:i') . ' WIB',
+        ]);
+
+        return response()
+            ->download($filePath, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])
+            ->deleteFileAfterSend(true);
+    }
+
+    private function createPredictionWorkbook(Collection $rows, array $meta): string
+    {
+        $path = tempnam(storage_path('app'), 'prediksi-');
+
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getProperties()
+            ->setCreator('FloraPredict')
+            ->setLastModifiedBy('FloraPredict')
+            ->setTitle('FloraPredict - Laporan Estimasi Kebutuhan Bunga')
+            ->setSubject('Laporan estimasi kebutuhan bunga')
+            ->setDescription('Hasil prediksi kebutuhan stok bunga berdasarkan model aktif FloraPredict.');
+
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Estimasi Kebutuhan');
+
+        $sheet->mergeCells('A1:K1');
+        $sheet->mergeCells('A2:K2');
+        $sheet->setCellValue('A1', 'FloraPredict - Laporan Estimasi Kebutuhan Bunga');
+        $sheet->setCellValue('A2', 'Hasil prediksi kebutuhan stok bunga berdasarkan model aktif FloraPredict.');
+
+        $sheet->setCellValue('A4', 'Periode Prediksi');
+        $sheet->setCellValue('B4', $meta['period_label']);
+        $sheet->setCellValue('C4', 'Tanggal Prediksi');
+        $sheet->setCellValue('D4', $meta['target_date']);
+        $sheet->setCellValue('E4', 'Total Produk');
+        $sheet->setCellValue('F4', $meta['total_products']);
+        $sheet->setCellValue('G4', 'Total Estimasi');
+        $sheet->setCellValue('H4', $meta['total_prediction']);
+        $sheet->setCellValue('I4', 'Diexport Pada');
+        $sheet->setCellValue('J4', $meta['exported_at']);
+
+        $headers = [
+            'No',
+            'Periode',
+            'Tanggal Prediksi',
+            'Product ID',
+            'Nama Bunga',
+            'Estimasi Kebutuhan',
+            'MAE',
+            'RMSE',
+            'Akurasi (%)',
+            'Validation MAE',
+            'Validation RMSE',
+        ];
+
+        $sheet->fromArray($headers, null, 'A6');
+
+        $rowNumber = 7;
+        foreach ($rows as $row) {
+            $sheet->setCellValue("A{$rowNumber}", $row['no']);
+            $sheet->setCellValueExplicit("B{$rowNumber}", (string) $row['periode'], DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("C{$rowNumber}", (string) $row['tanggal_prediksi'], DataType::TYPE_STRING);
+            $sheet->setCellValue("D{$rowNumber}", $row['product_id']);
+            $sheet->setCellValueExplicit("E{$rowNumber}", (string) $row['nama_bunga'], DataType::TYPE_STRING);
+            $sheet->setCellValue("F{$rowNumber}", $row['estimasi_kebutuhan_tangkai']);
+            $sheet->setCellValue("G{$rowNumber}", $row['mae']);
+            $sheet->setCellValue("H{$rowNumber}", $row['rmse']);
+            $sheet->setCellValue("I{$rowNumber}", $row['akurasi_persen']);
+            $sheet->setCellValue("J{$rowNumber}", $row['validation_mae']);
+            $sheet->setCellValue("K{$rowNumber}", $row['validation_rmse']);
+            $rowNumber++;
+        }
+
+        $lastDataRow = max(6, $rowNumber - 1);
+        $noteRow = $lastDataRow + 2;
+
+        $sheet->mergeCells("A{$noteRow}:K{$noteRow}");
+        $sheet->setCellValue("A{$noteRow}", 'Catatan: Generate prediksi menggunakan model aktif. Dataset historis digunakan pada tahap pelatihan dan evaluasi model.');
+
+        $labelStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => '7A4060']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF2F8']],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'F6C9DA']]],
+        ];
+
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(18)->getColor()->setRGB('E8185A');
+        $sheet->getStyle('A2')->getFont()->setSize(11)->getColor()->setRGB('7A4060');
+
+        foreach (['A4', 'C4', 'E4', 'G4', 'I4'] as $cell) {
+            $sheet->getStyle($cell)->applyFromArray($labelStyle);
+        }
+
+        $sheet->getStyle('B4:J4')->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'F6C9DA']]],
+        ]);
+
+        $sheet->getStyle('A6:K6')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E8185A']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'C2185B']]],
+        ]);
+
+        if ($lastDataRow >= 7) {
+            $sheet->getStyle("A7:K{$lastDataRow}")->applyFromArray([
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'F6C9DA']]],
+            ]);
+
+            for ($row = 8; $row <= $lastDataRow; $row += 2) {
+                $sheet->getStyle("A{$row}:K{$row}")
+                    ->getFill()
+                    ->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()
+                    ->setRGB('FFF7FB');
+            }
+
+            $sheet->getStyle("F7:F{$lastDataRow}")->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->getStyle("G7:K{$lastDataRow}")->getNumberFormat()->setFormatCode('0.00');
+        }
+
+        $sheet->getStyle("A{$noteRow}")->getFont()->getColor()->setRGB('7A4060');
+        $sheet->getStyle("A{$noteRow}")->getAlignment()->setWrapText(true);
+
+        foreach ([
+            'A' => 6,
+            'B' => 14,
+            'C' => 18,
+            'D' => 12,
+            'E' => 24,
+            'F' => 22,
+            'G' => 14,
+            'H' => 14,
+            'I' => 14,
+            'J' => 16,
+            'K' => 16,
+        ] as $column => $width) {
+            $sheet->getColumnDimension($column)->setWidth($width);
+        }
+
+        $sheet->getRowDimension(1)->setRowHeight(28);
+        $sheet->getRowDimension(6)->setRowHeight(24);
+        $sheet->freezePane('A7');
+        $sheet->setAutoFilter("A6:K{$lastDataRow}");
+
+        (new Xlsx($spreadsheet))->save($path);
+        $spreadsheet->disconnectWorksheets();
+
+        return $path;
     }
 
     // =========================================================
@@ -456,19 +663,58 @@ class PredictionController extends Controller
         | Mengelompokkan data prediction_results berdasarkan tanggal.
         |--------------------------------------------------------------------------
         */
-        $predictionComparison = DB::connection('mongodb')
+        $predictionRows = DB::connection('mongodb')
             ->table('prediction_results')
-            ->get()
+            ->get();
+
+        $predictionDates = $predictionRows
+            ->pluck('tanggal')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $actualSalesByDate = collect();
+
+        if (count($predictionDates) > 0) {
+            $actualCursor = DB::connection('mongodb')->getCollection('penjualans')->aggregate([
+                ['$match' => ['tanggal' => ['$in' => $predictionDates]]],
+                [
+                    '$group' => [
+                        '_id' => '$tanggal',
+                        'count' => ['$sum' => 1],
+                        'total' => [
+                            '$sum' => [
+                                '$convert' => [
+                                    'input' => '$jumlah',
+                                    'to' => 'double',
+                                    'onError' => 0,
+                                    'onNull' => 0,
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+
+            $actualSalesByDate = collect(iterator_to_array($actualCursor, false))
+                ->keyBy(fn ($row) => (string) ($row->_id ?? ''));
+        }
+
+        $predictionComparison = $predictionRows
             ->groupBy('tanggal')
-            ->map(function ($rows, $tanggal) {
+            ->map(function ($rows, $tanggal) use ($actualSalesByDate) {
                 $predictedSales = $rows->sum(fn($r) => $r->predicted_sales ?? 0);
-                $actualSales    = $rows->sum(fn($r) => $r->actual_sales ?? 0);
+                $actualRow      = $actualSalesByDate->get((string) $tanggal);
+                $hasActualData  = $actualRow && (($actualRow->count ?? 0) > 0);
+                $actualSales    = $hasActualData ? (float) ($actualRow->total ?? 0) : null;
 
                 return (object) [
                     'tanggal'         => $tanggal,
                     'predicted_sales' => $predictedSales,
                     'actual_sales'    => $actualSales,
-                    'error'           => abs($predictedSales - $actualSales),
+                    'error'           => $hasActualData ? abs($predictedSales - $actualSales) : null,
+                    'has_actual'      => $hasActualData,
                 ];
             })
             ->sortByDesc('tanggal')
