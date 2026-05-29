@@ -146,6 +146,11 @@
     font-size: 16px;
     flex-shrink: 0;
 }
+.fp-pro-card-icon svg {
+    width: 18px;
+    height: 18px;
+    color: var(--pk1);
+}
 .fp-pro-card-title {
     font-size: 14px;
     font-weight: 700;
@@ -198,6 +203,12 @@
     background: #fff;
     box-shadow: 0 0 0 3px rgba(232,24,90,0.08);
 }
+.fp-pro-field-note {
+    margin-top: 2px;
+    font-size: 11px;
+    color: #B08090;
+    line-height: 1.45;
+}
 .fp-pro-hint {
     font-size: 11px;
     color: #CCA8BA;
@@ -229,6 +240,11 @@
     font-weight: 600;
     color: #065F46;
     margin-bottom: 16px;
+}
+.fp-pro-alert svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
 }
 .fp-pro-alert-error {
     background: #FEF2F2;
@@ -280,6 +296,49 @@
     transform: none;
     box-shadow: 0 4px 14px rgba(232,24,90,0.18);
 }
+.fp-pro-btn-soft {
+    background: #FFF2F8;
+    color: var(--pk1);
+    border: 1.5px solid #FBCFE8;
+    box-shadow: none;
+}
+.fp-pro-btn-soft:hover {
+    background: #FDE8F2;
+    border-color: #FDB8D4;
+}
+.fp-pro-btn-soft:disabled:hover {
+    background: #FFF2F8;
+    border-color: #FBCFE8;
+}
+.fp-pro-reset-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 16px;
+    padding: 14px;
+    border: 1px solid #FCE4EF;
+    border-radius: 14px;
+    background: #FFF8FC;
+}
+.fp-pro-reset-title {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: var(--dark);
+}
+.fp-pro-reset-sub {
+    margin-top: 3px;
+    font-size: 11.5px;
+    color: #9A6070;
+    line-height: 1.5;
+}
+.fp-pro-reset-sub strong {
+    color: #7A4060;
+    font-weight: 800;
+}
+.fp-pro-reset-form {
+    flex-shrink: 0;
+}
 
 /* ── Danger zone ── */
 .fp-pro-danger {
@@ -305,6 +364,12 @@
     justify-content: center;
     font-size: 15px;
     flex-shrink: 0;
+}
+.fp-pro-danger-icon svg,
+.fp-pro-modal-icon svg {
+    width: 19px;
+    height: 19px;
+    color: #DC2626;
 }
 .fp-pro-danger-title {
     font-size: 13.5px;
@@ -428,6 +493,63 @@
     transition: background 0.2s;
 }
 .fp-pro-btn-delete:hover { background: #B91C1C; }
+
+@media (max-width: 768px) {
+    .fp-pro-page {
+        max-width: 100%;
+    }
+
+    .fp-pro-banner {
+        border-radius: 16px;
+        padding: 22px;
+    }
+
+    .fp-pro-row {
+        grid-template-columns: 1fr;
+    }
+
+    .fp-pro-card-head,
+    .fp-pro-card-body,
+    .fp-pro-danger {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .fp-pro-footer,
+    .fp-pro-modal-footer,
+    .fp-pro-reset-box {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .fp-pro-btn,
+    .fp-pro-btn-danger,
+    .fp-pro-btn-delete,
+    .fp-pro-btn-outline {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .fp-pro-reset-form {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .fp-pro-banner {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .fp-pro-banner-name {
+        font-size: 18px;
+    }
+
+    .fp-pro-modal {
+        padding: 22px;
+    }
+}
 </style>
 
 <div class="fp-pro-page">
@@ -458,6 +580,7 @@
         $profileNotice = match (session('status')) {
             'profile-updated' => 'Profil berhasil diperbarui.',
             'password-updated' => 'Password berhasil diperbarui.',
+            'password-reset-link-sent' => 'Link reset password sudah dikirim ke Gmail/email akun kamu.',
             default => null,
         };
 
@@ -468,20 +591,35 @@
     @endphp
 
     @if($profileNotice)
-        <div class="fp-pro-alert" role="status">✔ {{ $profileNotice }}</div>
+        <div class="fp-pro-alert" role="status">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.2 7.2a1 1 0 0 1-1.4 0L3.3 9.1a1 1 0 1 1 1.4-1.4l4.1 4.1 6.5-6.5a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/>
+            </svg>
+            {{ $profileNotice }}
+        </div>
     @endif
 
     @if($profileError)
-        <div class="fp-pro-alert fp-pro-alert-error" role="alert">⚠ {{ $profileError }}</div>
+        <div class="fp-pro-alert fp-pro-alert-error" role="alert">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M8.5 3.1a1.7 1.7 0 0 1 3 0l6.2 11.4A1.7 1.7 0 0 1 16.2 17H3.8a1.7 1.7 0 0 1-1.5-2.5L8.5 3.1ZM10 7a.8.8 0 0 0-.8.8v3.4a.8.8 0 0 0 1.6 0V7.8A.8.8 0 0 0 10 7Zm0 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"/>
+            </svg>
+            {{ $profileError }}
+        </div>
     @endif
 
     {{-- Form Informasi Profil --}}
     <div class="fp-pro-card">
         <div class="fp-pro-card-head">
-            <div class="fp-pro-card-icon">👤</div>
+            <div class="fp-pro-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 21a8 8 0 0 0-16 0"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+            </div>
             <div>
-                <div class="fp-pro-card-title">Informasi Profil</div>
-                <div class="fp-pro-card-sub">Perbarui nama dan alamat email akun kamu</div>
+                <div class="fp-pro-card-title">Informasi Profil & Ganti Gmail</div>
+                <div class="fp-pro-card-sub">Ubah nama atau ganti Gmail/email akun kamu</div>
             </div>
         </div>
         <div class="fp-pro-card-body">
@@ -493,17 +631,18 @@
 
                 <div class="fp-pro-row">
                     <div class="fp-pro-field">
-                        <label class="fp-pro-label">Nama Lengkap</label>
+                        <label class="fp-pro-label" for="profile-name">Nama Lengkap</label>
                         <input class="fp-pro-input" type="text" name="name" id="profile-name"
-                               value="{{ old('name', $user->name) }}" required autofocus autocomplete="name">
+                               value="{{ old('name', $user->name) }}" required autocomplete="name">
                         @error('name')
                             <div class="fp-pro-error">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="fp-pro-field">
-                        <label class="fp-pro-label">Alamat Email</label>
+                        <label class="fp-pro-label" for="profile-email">Gmail / Email Akun</label>
                         <input class="fp-pro-input" type="email" name="email" id="profile-email"
                                value="{{ old('email', $user->email) }}" required autocomplete="email">
+                        <div class="fp-pro-field-note">Jika Gmail/email diganti, link verifikasi akan dikirim ke alamat baru.</div>
                         @error('email')
                             <div class="fp-pro-error">{{ $message }}</div>
                         @enderror
@@ -523,7 +662,12 @@
     {{-- Form Ganti Password --}}
     <div class="fp-pro-card">
         <div class="fp-pro-card-head">
-            <div class="fp-pro-card-icon">🔒</div>
+            <div class="fp-pro-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="4" y="11" width="16" height="9" rx="2"/>
+                    <path d="M8 11V8a4 4 0 0 1 8 0v3"/>
+                </svg>
+            </div>
             <div>
                 <div class="fp-pro-card-title">Ganti Password</div>
                 <div class="fp-pro-card-sub">Pastikan akun kamu menggunakan password yang kuat</div>
@@ -536,7 +680,7 @@
 
                 <div class="fp-pro-row single">
                     <div class="fp-pro-field">
-                        <label class="fp-pro-label">Password Saat Ini</label>
+                        <label class="fp-pro-label" for="profile-current-password">Password Saat Ini</label>
                         <input class="fp-pro-input" type="password" name="current_password" id="profile-current-password" required data-password-clear
                                autocomplete="current-password" placeholder="Masukkan password saat ini">
                         @error('current_password', 'updatePassword')
@@ -546,7 +690,7 @@
                 </div>
                 <div class="fp-pro-row">
                     <div class="fp-pro-field">
-                        <label class="fp-pro-label">Password Baru</label>
+                        <label class="fp-pro-label" for="profile-new-password">Password Baru</label>
                         <input class="fp-pro-input" type="password" name="password" id="profile-new-password" required data-password-clear
                                autocomplete="new-password" placeholder="Minimal 8 karakter">
                         @error('password', 'updatePassword')
@@ -554,10 +698,10 @@
                         @enderror
                     </div>
                     <div class="fp-pro-field">
-                        <label class="fp-pro-label">Konfirmasi Password Baru</label>
+                        <label class="fp-pro-label" for="profile-confirm-password">Konfirmasi Password Baru</label>
                         <input class="fp-pro-input" type="password" name="password_confirmation" id="profile-confirm-password" required data-password-clear
                                autocomplete="new-password" placeholder="Ulangi password baru">
-                        <div class="fp-pro-hint" id="profile-password-hint">Minimal 8 karakter</div>
+                        <div class="fp-pro-hint" id="profile-password-hint" aria-live="polite">Minimal 8 karakter</div>
                     </div>
                 </div>
 
@@ -568,13 +712,41 @@
                     </button>
                 </div>
             </form>
+
+            <div class="fp-pro-reset-box">
+                <div>
+                    <div class="fp-pro-reset-title">Lupa password saat ini?</div>
+                    <div class="fp-pro-reset-sub">
+                        Kirim link reset password ke Gmail/email akun ini:
+                        <strong>{{ $user->email }}</strong>
+                    </div>
+                </div>
+                <form method="POST" action="{{ route('profile.password-reset-link') }}" id="profile-reset-link-form" class="fp-pro-reset-form">
+                    @csrf
+                    <button type="submit" class="fp-pro-btn fp-pro-btn-soft" id="profile-reset-link-button">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M4 4h16v16H4z"/>
+                            <path d="m22 6-10 7L2 6"/>
+                            <path d="M16 14h4v4"/>
+                            <path d="m20 14-5 5"/>
+                        </svg>
+                        Kirim Link Reset
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
     {{-- Danger Zone --}}
     <div class="fp-pro-danger">
         <div class="fp-pro-danger-head">
-            <div class="fp-pro-danger-icon">⚠️</div>
+            <div class="fp-pro-danger-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m12 3 10 18H2L12 3Z"/>
+                    <path d="M12 9v4"/>
+                    <path d="M12 17h.01"/>
+                </svg>
+            </div>
             <div class="fp-pro-danger-title">Hapus Akun</div>
         </div>
         <div class="fp-pro-danger-desc">
@@ -595,10 +767,16 @@
 </div>
 
 {{-- Modal Hapus Akun --}}
-<div class="fp-pro-modal-overlay" id="modal-hapus-akun">
+<div class="fp-pro-modal-overlay" id="modal-hapus-akun" role="dialog" aria-modal="true" aria-labelledby="profile-delete-title">
     <div class="fp-pro-modal">
-        <div class="fp-pro-modal-icon">⚠️</div>
-        <div class="fp-pro-modal-title">Hapus Akun?</div>
+        <div class="fp-pro-modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m12 3 10 18H2L12 3Z"/>
+                <path d="M12 9v4"/>
+                <path d="M12 17h.01"/>
+            </svg>
+        </div>
+        <div class="fp-pro-modal-title" id="profile-delete-title">Hapus Akun?</div>
         <div class="fp-pro-modal-body">
             Tindakan ini <strong style="color:#DC2626">tidak bisa dibatalkan</strong>.
             Akun web admin kamu akan dihapus permanen dari sistem, tetapi data operasional
@@ -611,7 +789,7 @@
             @method('delete')
 
             <div class="fp-pro-field" style="margin-bottom:16px">
-                <label class="fp-pro-label">Password Konfirmasi</label>
+                <label class="fp-pro-label" for="profile-delete-password">Password Konfirmasi</label>
                 <input class="fp-pro-input" type="password" name="password" id="profile-delete-password"
                        placeholder="Masukkan password kamu" autocomplete="current-password" required>
                 @error('password', 'userDeletion')
@@ -621,7 +799,7 @@
 
             <div class="fp-pro-modal-footer">
                 <button type="button" class="fp-pro-btn-outline"
-                    onclick="document.getElementById('modal-hapus-akun').classList.remove('open')">
+                    onclick="closeDeleteProfileModal()">
                     Batal
                 </button>
                 <button type="submit" class="fp-pro-btn-delete" id="profile-delete-button" disabled>
@@ -645,6 +823,10 @@ function openDeleteProfileModal() {
 function closeDeleteProfileModal() {
     if (!deleteModal) return;
     deleteModal.classList.remove('open');
+    const passwordInput = document.getElementById('profile-delete-password');
+    const deleteSubmitButton = document.getElementById('profile-delete-button');
+    if (passwordInput) passwordInput.value = '';
+    if (deleteSubmitButton) deleteSubmitButton.disabled = true;
 }
 
 deleteModal?.addEventListener('click', function(e) {
@@ -695,6 +877,8 @@ const newPassword = document.getElementById('profile-new-password');
 const confirmPassword = document.getElementById('profile-confirm-password');
 const passwordButton = document.getElementById('profile-password-button');
 const passwordHint = document.getElementById('profile-password-hint');
+const resetLinkForm = document.getElementById('profile-reset-link-form');
+const resetLinkButton = document.getElementById('profile-reset-link-button');
 
 function updatePasswordButtonState() {
     if (!currentPassword || !newPassword || !confirmPassword || !passwordButton) return;
@@ -744,6 +928,13 @@ passwordForm?.addEventListener('submit', function() {
     if (passwordButton) {
         passwordButton.disabled = true;
         passwordButton.textContent = 'Memperbarui...';
+    }
+});
+
+resetLinkForm?.addEventListener('submit', function() {
+    if (resetLinkButton) {
+        resetLinkButton.disabled = true;
+        resetLinkButton.textContent = 'Mengirim link...';
     }
 });
 

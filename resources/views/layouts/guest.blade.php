@@ -141,6 +141,43 @@
         }
 
         /* ── Card header ── */
+        .fp-auth-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+        .fp-auth-logo {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #E8185A, #F04E8A);
+            border: 1.5px solid rgba(255,255,255,0.85);
+            border-radius: 14px;
+            box-shadow: 0 6px 18px rgba(232,24,90,0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .fp-auth-brand-text {
+            text-align: left;
+        }
+        .fp-auth-brand-name {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1A0A12;
+            letter-spacing: 0;
+            line-height: 1.1;
+        }
+        .fp-auth-brand-role {
+            font-size: 10px;
+            color: #E8185A;
+            margin-top: 3px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
         .fp-card-logo {
             width: 48px;
             height: 48px;
@@ -295,6 +332,39 @@
             margin-top: 16px;
             font-size: 11px;
             color: #B08090;
+        }
+        .fp-auth-return {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            width: 100%;
+            min-height: 42px;
+            margin-top: 14px;
+            padding: 9px 12px;
+            border-radius: 12px;
+            color: #B08090;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            transition: background 0.15s, color 0.15s;
+        }
+        .fp-auth-return strong {
+            color: #E8185A;
+            font-weight: 800;
+        }
+        .fp-auth-return:hover,
+        .fp-auth-return:focus-visible {
+            background: rgba(253,232,242,0.9);
+            color: #7A3A55;
+            outline: none;
+        }
+        .fp-auth-return:focus-visible {
+            box-shadow: 0 0 0 3px rgba(232,24,90,0.12);
         }
     </style>
 </head>

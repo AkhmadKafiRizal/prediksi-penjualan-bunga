@@ -165,13 +165,27 @@
     height: 14px;
 }
 .fp-forgot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    margin: -7px 0;
+    padding: 7px 0 7px 12px;
+    border-radius: 10px;
     font-size: 12.5px;
     font-weight: 700;
     color: #E8185A;
     text-decoration: none;
-    transition: opacity 0.15s;
+    position: relative;
+    z-index: 2;
+    transition: background 0.15s, opacity 0.15s;
 }
-.fp-forgot:hover { opacity: 0.7; }
+.fp-forgot:hover,
+.fp-forgot:focus-visible {
+    background: #FDE8F2;
+    opacity: 1;
+    outline: none;
+}
 
 /* Button */
 .fp-submit {
@@ -392,12 +406,15 @@ document.addEventListener('DOMContentLoaded', function () {
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         Swal.fire({
+            toast: true,
+            position: 'top-end',
             icon: 'success',
             title: 'Logout Berhasil! 👋',
             text: 'Sampai jumpa lagi di FloraPredict.',
             showConfirmButton: false,
             timer: 3000,
             timerProgressBar: true,
+            backdrop: false,
             background: '#FFF8FC',
             color: '#1A0A12',
             iconColor: '#E8185A',
