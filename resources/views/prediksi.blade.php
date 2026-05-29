@@ -493,8 +493,8 @@
                         </button>
                     @endfor
                     @if(ceil(count($productPredictions ?? []) / 10) > 5)
-                        <button style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--pk6);color:var(--muted);font-size:10.5px;cursor:pointer">…</button>
-                        <button onclick="gotoPage({{ ceil(count($productPredictions ?? []) / 10) }})"
+                        <button type="button" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--pk6);color:var(--muted);font-size:10.5px;cursor:pointer">…</button>
+                        <button type="button" onclick="gotoPage({{ ceil(count($productPredictions ?? []) / 10) }})"
                             style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--pk6);color:var(--pk1);font-size:10.5px;font-weight:700;cursor:pointer">
                             {{ ceil(count($productPredictions ?? []) / 10) }}
                         </button>
@@ -615,6 +615,8 @@
 @if(session('success') || session('error'))
 document.addEventListener('DOMContentLoaded', function () {
     Swal.fire({
+        toast: {{ session('success') ? 'true' : 'false' }},
+        position: '{{ session('success') ? 'top-end' : 'center' }}',
         icon: '{{ session('success') ? 'success' : 'error' }}',
         title: '{{ session('success') ? 'Prediksi Berhasil!' : 'Generate Prediksi Gagal' }}',
         text: @json(session('success') ?? session('error')),
@@ -622,6 +624,7 @@ document.addEventListener('DOMContentLoaded', function () {
         confirmButtonText: 'Oke',
         timer: {{ session('success') ? '3800' : 'null' }},
         timerProgressBar: {{ session('success') ? 'true' : 'false' }},
+        backdrop: {{ session('success') ? 'false' : 'true' }},
         background: '#FFF8FC',
         color: '#1A0A12',
         iconColor: '{{ session('success') ? '#E8185A' : '#DC2626' }}',
@@ -680,7 +683,12 @@ if (predictionExportButton) {
     }
 
     predictionExportButton.addEventListener('click', async function(e) {
-        if (! window.fetch || ! window.URL || predictionExportButton.classList.contains('is-loading')) {
+        if (predictionExportButton.classList.contains('is-loading')) {
+            e.preventDefault();
+            return;
+        }
+
+        if (! window.fetch || ! window.URL) {
             return;
         }
 

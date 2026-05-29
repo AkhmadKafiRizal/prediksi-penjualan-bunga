@@ -756,7 +756,7 @@
                 <br><strong style="color:#DC2626">{{ $accountDeleteBlockReason }}</strong>
             @endif
         </div>
-        <button class="fp-pro-btn-danger"
+        <button type="button" class="fp-pro-btn-danger"
             onclick="openDeleteProfileModal()"
             @disabled(! $canDeleteAccount)>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
@@ -917,28 +917,52 @@ deletePassword?.addEventListener('input', function() {
     }
 });
 
-profileForm?.addEventListener('submit', function() {
+profileForm?.addEventListener('submit', function(event) {
+    if (this.dataset.submitting === '1') {
+        event.preventDefault();
+        return;
+    }
+    this.dataset.submitting = '1';
+
     if (profileSaveButton) {
         profileSaveButton.disabled = true;
         profileSaveButton.textContent = 'Menyimpan...';
     }
 });
 
-passwordForm?.addEventListener('submit', function() {
+passwordForm?.addEventListener('submit', function(event) {
+    if (this.dataset.submitting === '1') {
+        event.preventDefault();
+        return;
+    }
+    this.dataset.submitting = '1';
+
     if (passwordButton) {
         passwordButton.disabled = true;
         passwordButton.textContent = 'Memperbarui...';
     }
 });
 
-resetLinkForm?.addEventListener('submit', function() {
+resetLinkForm?.addEventListener('submit', function(event) {
+    if (this.dataset.submitting === '1') {
+        event.preventDefault();
+        return;
+    }
+    this.dataset.submitting = '1';
+
     if (resetLinkButton) {
         resetLinkButton.disabled = true;
         resetLinkButton.textContent = 'Mengirim link...';
     }
 });
 
-document.getElementById('profile-delete-form')?.addEventListener('submit', function() {
+document.getElementById('profile-delete-form')?.addEventListener('submit', function(event) {
+    if (this.dataset.submitting === '1') {
+        event.preventDefault();
+        return;
+    }
+    this.dataset.submitting = '1';
+
     if (deleteButton) {
         deleteButton.disabled = true;
         deleteButton.textContent = 'Menghapus...';

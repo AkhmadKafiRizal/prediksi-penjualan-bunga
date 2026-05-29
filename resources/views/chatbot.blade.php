@@ -501,19 +501,19 @@
 
     {{-- Quick Questions --}}
     <div class="ai-quick-wrap">
-        <button class="ai-quick-btn" onclick="sendQuickQuestion(this)" data-question="Produk apa dengan prediksi tertinggi?">
+        <button type="button" class="ai-quick-btn" onclick="sendQuickQuestion(this)" data-question="Produk apa dengan prediksi tertinggi?">
             <span class="ai-quick-icon">📊</span>
             Produk prediksi tertinggi?
         </button>
-        <button class="ai-quick-btn" onclick="sendQuickQuestion(this)" data-question="Berapa total prediksi pada periode aktif?">
+        <button type="button" class="ai-quick-btn" onclick="sendQuickQuestion(this)" data-question="Berapa total prediksi pada periode aktif?">
             <span class="ai-quick-icon">📈</span>
             Total prediksi periode aktif?
         </button>
-        <button class="ai-quick-btn" onclick="sendQuickQuestion(this)" data-question="Produk apa yang stoknya rendah?">
+        <button type="button" class="ai-quick-btn" onclick="sendQuickQuestion(this)" data-question="Produk apa yang stoknya rendah?">
             <span class="ai-quick-icon">⚠️</span>
             Stok rendah?
         </button>
-        <button class="ai-quick-btn" onclick="sendQuickQuestion(this)" data-question="Ringkas kondisi dashboard saat ini.">
+        <button type="button" class="ai-quick-btn" onclick="sendQuickQuestion(this)" data-question="Ringkas kondisi dashboard saat ini.">
             <span class="ai-quick-icon">🏠</span>
             Ringkasan dashboard
         </button>
@@ -563,7 +563,7 @@
                     rows="1"
                     maxlength="1000"
                 ></textarea>
-                <button class="ai-send-btn" id="ai-send-btn" onclick="sendMessage()" title="Kirim pesan" aria-label="Kirim pesan" disabled>
+                <button type="button" class="ai-send-btn" id="ai-send-btn" onclick="sendMessage()" title="Kirim pesan" aria-label="Kirim pesan" disabled>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="22" y1="2" x2="11" y2="13"/>
                         <polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -745,7 +745,7 @@
                 <div style="font-weight:700;margin-bottom:2px">Respons belum berhasil dibuat</div>
                 <div style="font-size:11px;opacity:0.85">${safeErrorText}</div>
             </div>
-            <button class="ai-error-retry" onclick="retryLastMessage(this)">Coba Lagi</button>
+            <button type="button" class="ai-error-retry" onclick="retryLastMessage(this)">Coba Lagi</button>
         `;
         messagesEl.appendChild(errorDiv);
         scrollToBottom();

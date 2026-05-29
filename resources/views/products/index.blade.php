@@ -310,7 +310,7 @@
                             </td>
                             <td>
                                 <div class="fp-actions">
-                                    <button class="fp-btn fp-btn-outline fp-btn-sm" title="Edit"
+                                    <button type="button" class="fp-btn fp-btn-outline fp-btn-sm" title="Edit"
                                         onclick="openEdit(
                                             {{ $product->id }},
                                             '{{ addslashes($product->nama_bunga) }}',
@@ -322,12 +322,12 @@
                                         ✏️
                                     </button>
                                     @if((int) ($product->is_active ?? 1) === 1)
-                                        <button class="fp-btn fp-btn-deactivate fp-btn-sm" title="Nonaktifkan produk"
+                                        <button type="button" class="fp-btn fp-btn-deactivate fp-btn-sm" title="Nonaktifkan produk"
                                             onclick="openDelete({{ $product->id }}, '{{ addslashes($product->nama_bunga) }}')">
                                             ⏻ Nonaktifkan
                                         </button>
                                     @else
-                                        <button class="fp-btn fp-btn-activate fp-btn-sm" title="Aktifkan kembali produk"
+                                        <button type="button" class="fp-btn fp-btn-activate fp-btn-sm" title="Aktifkan kembali produk"
                                             onclick="openActivate({{ $product->id }}, '{{ addslashes($product->nama_bunga) }}')">
                                             ✓ Aktifkan
                                         </button>
@@ -383,7 +383,7 @@
     <div class="fp-modal">
         <div class="fp-modal-header">
             <span class="fp-modal-title">🌸 Tambah Produk Bunga</span>
-            <button class="fp-modal-close" onclick="closeModal('modal-tambah')">✕</button>
+            <button type="button" class="fp-modal-close" onclick="closeModal('modal-tambah')">✕</button>
         </div>
         <form action="{{ route('products.store') }}" method="POST" class="fp-action-form" data-loading-message="Menyimpan produk bunga...">
             @csrf
@@ -432,7 +432,7 @@
     <div class="fp-modal">
         <div class="fp-modal-header">
             <span class="fp-modal-title">✏️ Edit Produk Bunga</span>
-            <button class="fp-modal-close" onclick="closeModal('modal-edit')">✕</button>
+            <button type="button" class="fp-modal-close" onclick="closeModal('modal-edit')">✕</button>
         </div>
 
         <form id="form-edit" method="POST" class="fp-action-form" data-loading-message="Menyimpan perubahan produk...">
@@ -632,7 +632,12 @@ if (productExportButton) {
     }
 
     productExportButton.addEventListener('click', async function(e) {
-        if (! window.fetch || ! window.URL || productExportButton.classList.contains('is-loading')) {
+        if (productExportButton.classList.contains('is-loading')) {
+            e.preventDefault();
+            return;
+        }
+
+        if (! window.fetch || ! window.URL) {
             return;
         }
 
@@ -717,6 +722,11 @@ document.addEventListener('keydown', e => {
 
 document.querySelectorAll('.fp-action-form').forEach(form => {
     form.addEventListener('submit', function (event) {
+        if (this.dataset.submitting === '1') {
+            event.preventDefault();
+            return;
+        }
+
         if (this.id === 'form-edit') {
             const originalName = this.dataset.originalName || '';
             const currentName = document.getElementById('edit-nama')?.value || '';
@@ -728,6 +738,8 @@ document.querySelectorAll('.fp-action-form').forEach(form => {
                 return;
             }
         }
+
+        this.dataset.submitting = '1';
 
         const toast = document.getElementById('product-submit-toast');
         const toastText = document.getElementById('product-submit-toast-text');

@@ -364,7 +364,10 @@
 const salesSearchInput = document.querySelector('.fp-search-box input');
 if (salesSearchInput) {
     salesSearchInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') document.getElementById('filter-form').submit();
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('filter-form').requestSubmit();
+        }
     });
 }
 
@@ -414,7 +417,12 @@ if (salesExportButton) {
     }
 
     salesExportButton.addEventListener('click', async function(e) {
-        if (! window.fetch || ! window.URL || salesExportButton.classList.contains('is-loading')) {
+        if (salesExportButton.classList.contains('is-loading')) {
+            e.preventDefault();
+            return;
+        }
+
+        if (! window.fetch || ! window.URL) {
             return;
         }
 

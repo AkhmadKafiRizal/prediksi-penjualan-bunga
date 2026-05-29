@@ -411,8 +411,28 @@
 
     </div>
 
-    <!-- Falling stars script (unchanged) -->
     <script>
+        document.querySelectorAll('form').forEach((form) => {
+            form.addEventListener('submit', function (event) {
+                if (this.dataset.submitting === '1') {
+                    event.preventDefault();
+                    return;
+                }
+
+                this.dataset.submitting = '1';
+                const submitButton = this.querySelector('button[type="submit"]');
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.dataset.originalText = submitButton.textContent;
+
+                    if (submitButton.classList.contains('fp-submit')) {
+                        submitButton.textContent = 'Memproses...';
+                    }
+                }
+            });
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('stars-container');
             const numStars = 15;

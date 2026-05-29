@@ -262,7 +262,7 @@
     <div class="fp-modal">
         <div class="fp-modal-header">
             <span class="fp-modal-title">👤 Tambah Akun Kasir</span>
-            <button class="fp-modal-close" onclick="closeModal('modal-tambah')">✕</button>
+            <button type="button" class="fp-modal-close" onclick="closeModal('modal-tambah')">✕</button>
         </div>
         <form action="{{ route('users.store') }}" method="POST" class="fp-action-form" data-loading-message="Menyimpan akun kasir...">
             @csrf
@@ -283,7 +283,7 @@
     <div class="fp-modal">
         <div class="fp-modal-header">
             <span class="fp-modal-title">✏️ Edit Akun Kasir</span>
-            <button class="fp-modal-close" onclick="closeModal('modal-edit')">✕</button>
+            <button type="button" class="fp-modal-close" onclick="closeModal('modal-edit')">✕</button>
         </div>
         <form id="form-edit" action="" method="POST" class="fp-action-form" data-loading-message="Menyimpan perubahan kasir...">
             @csrf @method('PUT')
@@ -353,7 +353,14 @@ document.addEventListener('keydown', e => {
 });
 
 document.querySelectorAll('.fp-action-form').forEach(form => {
-    form.addEventListener('submit', function() {
+    form.addEventListener('submit', function(event) {
+        if (this.dataset.submitting === '1') {
+            event.preventDefault();
+            return;
+        }
+
+        this.dataset.submitting = '1';
+
         const toast = document.getElementById('cashier-submit-toast');
         const toastText = document.getElementById('cashier-submit-toast-text');
         const submitButton = this.querySelector('button[type="submit"]');
