@@ -96,14 +96,20 @@
     transition: all 0.2s ease;
     white-space: nowrap;
 }
-.ai-quick-btn:hover {
+.ai-quick-btn:hover:not(:disabled) {
     background: var(--ai-pk6);
     border-color: var(--ai-pk4);
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(232,24,90,0.08);
 }
-.ai-quick-btn:active {
+.ai-quick-btn:active:not(:disabled) {
     transform: translateY(0);
+}
+.ai-quick-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 .ai-quick-icon {
     font-size: 15px;
@@ -121,6 +127,13 @@
     min-height: 0;
     overflow: hidden;
     box-shadow: 0 4px 24px rgba(232,24,90,0.04);
+}
+.ai-chat-container[data-state="loading"] .ai-status-dot {
+    background: #F59E0B;
+}
+.ai-chat-container[data-state="error"] .ai-status-dot {
+    background: #EF4444;
+    animation: none;
 }
 
 /* ── Chat Header ── */
@@ -266,7 +279,18 @@
     border-top-left-radius: 4px;
     display: flex;
     align-items: center;
+    gap: 10px;
+}
+.ai-typing-dots {
+    display: flex;
+    align-items: center;
     gap: 5px;
+}
+.ai-typing-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: #7A2A4A;
+    white-space: nowrap;
 }
 .ai-typing-dot {
     width: 7px;
@@ -361,8 +385,8 @@
     line-height: 1.5;
 }
 .ai-input::placeholder {
-    color: var(--ai-muted);
-    opacity: 0.6;
+    color: #8A526C;
+    opacity: 1;
 }
 .ai-send-btn {
     width: 40px;
@@ -459,6 +483,9 @@
     .ai-msg {
         max-width: 92%;
     }
+    .ai-typing-text {
+        white-space: normal;
+    }
 }
 </style>
 
@@ -493,7 +520,7 @@
     </div>
 
     {{-- Chat Container --}}
-    <div class="ai-chat-container">
+    <div class="ai-chat-container" data-state="ready">
         {{-- Chat Header --}}
         <div class="ai-chat-header">
             <div class="ai-chat-avatar">
@@ -505,7 +532,7 @@
                 <div class="ai-chat-info-name">Asisten FloraPredict</div>
                 <div class="ai-chat-info-status">
                     <span class="ai-status-dot"></span>
-                    Siap menerima pertanyaan
+                    <span id="ai-status-text">Siap menerima pertanyaan</span>
                 </div>
             </div>
         </div>
@@ -536,7 +563,7 @@
                     rows="1"
                     maxlength="1000"
                 ></textarea>
-                <button class="ai-send-btn" id="ai-send-btn" onclick="sendMessage()" title="Kirim pesan">
+                <button class="ai-send-btn" id="ai-send-btn" onclick="sendMessage()" title="Kirim pesan" aria-label="Kirim pesan" disabled>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="22" y1="2" x2="11" y2="13"/>
                         <polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -557,9 +584,13 @@
     const welcomeEl    = document.getElementById('ai-welcome');
     const inputEl      = document.getElementById('ai-input');
     const sendBtn      = document.getElementById('ai-send-btn');
+    const quickBtns    = document.querySelectorAll('.ai-quick-btn');
+    const statusTextEl = document.getElementById('ai-status-text');
+    const chatEl       = document.querySelector('.ai-chat-container');
     const csrfToken    = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
     let isLoading = false;
+    let hasError = false;
     let lastFailedMessage = null;
 
     // ══════════════════════════════════════════
@@ -568,6 +599,7 @@
     inputEl.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        updateSendState();
     });
 
     // ══════════════════════════════════════════
@@ -594,16 +626,48 @@
         });
     }
 
+    function escapeHtml(text) {
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
     function hideWelcome() {
         if (welcomeEl) {
             welcomeEl.style.display = 'none';
         }
     }
 
+    function setStatus(text, state) {
+        if (statusTextEl) {
+            statusTextEl.textContent = text;
+        }
+        if (chatEl) {
+            chatEl.dataset.state = state;
+        }
+    }
+
+    function updateSendState() {
+        sendBtn.disabled = isLoading || inputEl.value.trim().length === 0;
+    }
+
     function setLoading(state) {
         isLoading = state;
-        sendBtn.disabled = state;
+        if (state) {
+            hasError = false;
+            setStatus('Sedang menganalisis pertanyaan...', 'loading');
+        } else if (hasError) {
+            setStatus('Respons belum berhasil dibuat', 'error');
+        } else {
+            setStatus('Siap menerima pertanyaan', 'ready');
+        }
+
+        updateSendState();
         inputEl.disabled = state;
+        quickBtns.forEach(btn => {
+            btn.disabled = state;
+        });
         if (!state) inputEl.focus();
     }
 
@@ -621,10 +685,7 @@
             : `{{ substr(Auth::user()->name ?? "A", 0, 1) }}`;
 
         // Sanitize text but preserve newlines
-        const sanitized = text
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
+        const sanitized = escapeHtml(text)
             .replace(/\n/g, '<br>');
 
         msgDiv.innerHTML = `
@@ -650,10 +711,13 @@
             <div class="ai-msg-avatar" style="background:linear-gradient(135deg,var(--ai-pk1),var(--ai-pk3));box-shadow:0 3px 10px rgba(232,24,90,0.15);">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L13.09 9.26L20 12L13.09 14.74L12 22L10.91 14.74L4 12L10.91 9.26Z"/></svg>
             </div>
-            <div class="ai-typing-bubble">
-                <div class="ai-typing-dot"></div>
-                <div class="ai-typing-dot"></div>
-                <div class="ai-typing-dot"></div>
+            <div class="ai-typing-bubble" aria-label="Asisten sedang menganalisis">
+                <div class="ai-typing-dots" aria-hidden="true">
+                    <div class="ai-typing-dot"></div>
+                    <div class="ai-typing-dot"></div>
+                    <div class="ai-typing-dot"></div>
+                </div>
+                <div class="ai-typing-text">Menganalisis data...</div>
             </div>
         `;
         messagesEl.appendChild(typingEl);
@@ -669,13 +733,17 @@
     // Error Message
     // ══════════════════════════════════════════
     function showError(errorText) {
+        hasError = true;
+        setStatus('Respons belum berhasil dibuat', 'error');
+
         const errorDiv = document.createElement('div');
         errorDiv.className = 'ai-error';
+        const safeErrorText = escapeHtml(errorText);
         errorDiv.innerHTML = `
             <div class="ai-error-icon">⚠️</div>
             <div style="flex:1">
-                <div style="font-weight:700;margin-bottom:2px">Gagal mendapat respons</div>
-                <div style="font-size:11px;opacity:0.8">${errorText}</div>
+                <div style="font-weight:700;margin-bottom:2px">Respons belum berhasil dibuat</div>
+                <div style="font-size:11px;opacity:0.85">${safeErrorText}</div>
             </div>
             <button class="ai-error-retry" onclick="retryLastMessage(this)">Coba Lagi</button>
         `;
@@ -686,6 +754,11 @@
     // ══════════════════════════════════════════
     // Send Message
     // ══════════════════════════════════════════
+    function clearErrors() {
+        messagesEl.querySelectorAll('.ai-error').forEach(el => el.remove());
+        hasError = false;
+    }
+
     window.sendMessage = async function () {
         const message = inputEl.value.trim();
         if (!message || isLoading) return;
@@ -693,6 +766,7 @@
         // Clear input & reset height
         inputEl.value = '';
         inputEl.style.height = 'auto';
+        updateSendState();
 
         await doSend(message);
     };
@@ -714,6 +788,7 @@
     };
 
     async function doSend(message) {
+        clearErrors();
         setLoading(true);
         lastFailedMessage = message;
 
@@ -757,14 +832,17 @@
 
             addMessage(reply, 'bot');
             lastFailedMessage = null;
+            hasError = false;
 
         } catch (err) {
             hideTyping();
-            showError('Tidak bisa terhubung ke layanan Asisten AI. Pastikan service chatbot aktif dan konfigurasi CHATBOT_API_URL benar.');
+            showError('Koneksi ke Asisten AI belum tersedia. Periksa layanan chatbot atau coba lagi sebentar.');
         }
 
         setLoading(false);
     }
+
+    updateSendState();
 })();
 </script>
 

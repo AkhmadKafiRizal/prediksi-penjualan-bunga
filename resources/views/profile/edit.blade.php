@@ -202,6 +202,14 @@
     font-size: 11px;
     color: #CCA8BA;
 }
+.fp-pro-hint.is-ok {
+    color: #047857;
+    font-weight: 600;
+}
+.fp-pro-hint.is-error {
+    color: #DC2626;
+    font-weight: 600;
+}
 .fp-pro-error {
     font-size: 11px;
     color: var(--pk1);
@@ -221,6 +229,11 @@
     font-weight: 600;
     color: #065F46;
     margin-bottom: 16px;
+}
+.fp-pro-alert-error {
+    background: #FEF2F2;
+    border-color: #FCA5A5;
+    color: #991B1B;
 }
 
 /* ── Footer actions ── */
@@ -254,6 +267,18 @@
 .fp-pro-btn-primary:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 20px rgba(232,24,90,0.38);
+}
+.fp-pro-btn:disabled,
+.fp-pro-btn-danger:disabled,
+.fp-pro-btn-delete:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+.fp-pro-btn-primary:disabled:hover {
+    transform: none;
+    box-shadow: 0 4px 14px rgba(232,24,90,0.18);
 }
 
 /* ── Danger zone ── */
@@ -310,6 +335,10 @@
 .fp-pro-btn-danger:hover {
     background: #FECACA;
     border-color: #FCA5A5;
+}
+.fp-pro-btn-danger:disabled:hover {
+    background: #FEE2E2;
+    border-color: #FECACA;
 }
 
 /* ── Modal ── */
@@ -425,6 +454,27 @@
         </div>
     </div>
 
+    @php
+        $profileNotice = match (session('status')) {
+            'profile-updated' => 'Profil berhasil diperbarui.',
+            'password-updated' => 'Password berhasil diperbarui.',
+            default => null,
+        };
+
+        $profileError = session('error')
+            ?: ($errors->has('name') || $errors->has('email') ? 'Profil belum bisa disimpan. Periksa kembali nama dan email.' : null)
+            ?: ($errors->getBag('updatePassword')->any() ? 'Password belum bisa diperbarui. Periksa kembali password saat ini dan password baru.' : null)
+            ?: ($errors->getBag('userDeletion')->any() ? 'Penghapusan akun belum berhasil. Password konfirmasi perlu diperiksa kembali.' : null);
+    @endphp
+
+    @if($profileNotice)
+        <div class="fp-pro-alert" role="status">✔ {{ $profileNotice }}</div>
+    @endif
+
+    @if($profileError)
+        <div class="fp-pro-alert fp-pro-alert-error" role="alert">⚠ {{ $profileError }}</div>
+    @endif
+
     {{-- Form Informasi Profil --}}
     <div class="fp-pro-card">
         <div class="fp-pro-card-head">
@@ -435,27 +485,25 @@
             </div>
         </div>
         <div class="fp-pro-card-body">
-            @if(session('status') === 'profile-updated')
-                <div class="fp-pro-alert">✅ Profil berhasil diperbarui!</div>
-            @endif
-
-            <form method="POST" action="{{ route('profile.update') }}">
+            <form method="POST" action="{{ route('profile.update') }}" id="profile-info-form"
+                  data-original-name="{{ $user->name }}"
+                  data-original-email="{{ $user->email }}">
                 @csrf
                 @method('patch')
 
                 <div class="fp-pro-row">
                     <div class="fp-pro-field">
                         <label class="fp-pro-label">Nama Lengkap</label>
-                        <input class="fp-pro-input" type="text" name="name"
-                               value="{{ old('name', $user->name) }}" required autofocus>
+                        <input class="fp-pro-input" type="text" name="name" id="profile-name"
+                               value="{{ old('name', $user->name) }}" required autofocus autocomplete="name">
                         @error('name')
                             <div class="fp-pro-error">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="fp-pro-field">
                         <label class="fp-pro-label">Alamat Email</label>
-                        <input class="fp-pro-input" type="email" name="email"
-                               value="{{ old('email', $user->email) }}" required>
+                        <input class="fp-pro-input" type="email" name="email" id="profile-email"
+                               value="{{ old('email', $user->email) }}" required autocomplete="email">
                         @error('email')
                             <div class="fp-pro-error">{{ $message }}</div>
                         @enderror
@@ -463,7 +511,7 @@
                 </div>
 
                 <div class="fp-pro-footer">
-                    <button type="submit" class="fp-pro-btn fp-pro-btn-primary">
+                    <button type="submit" class="fp-pro-btn fp-pro-btn-primary" id="profile-save-button" disabled>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                         Simpan Perubahan
                     </button>
@@ -482,19 +530,15 @@
             </div>
         </div>
         <div class="fp-pro-card-body">
-            @if(session('status') === 'password-updated')
-                <div class="fp-pro-alert">✅ Password berhasil diperbarui!</div>
-            @endif
-
-            <form method="POST" action="{{ route('password.update') }}">
+            <form method="POST" action="{{ route('password.update') }}" id="profile-password-form" autocomplete="off">
                 @csrf
                 @method('put')
 
                 <div class="fp-pro-row single">
                     <div class="fp-pro-field">
                         <label class="fp-pro-label">Password Saat Ini</label>
-                        <input class="fp-pro-input" type="password" name="current_password"
-                               autocomplete="current-password" placeholder="••••••••">
+                        <input class="fp-pro-input" type="password" name="current_password" id="profile-current-password" required data-password-clear
+                               autocomplete="current-password" placeholder="Masukkan password saat ini">
                         @error('current_password', 'updatePassword')
                             <div class="fp-pro-error">{{ $message }}</div>
                         @enderror
@@ -503,22 +547,22 @@
                 <div class="fp-pro-row">
                     <div class="fp-pro-field">
                         <label class="fp-pro-label">Password Baru</label>
-                        <input class="fp-pro-input" type="password" name="password"
-                               autocomplete="new-password" placeholder="••••••••">
+                        <input class="fp-pro-input" type="password" name="password" id="profile-new-password" required data-password-clear
+                               autocomplete="new-password" placeholder="Minimal 8 karakter">
                         @error('password', 'updatePassword')
                             <div class="fp-pro-error">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="fp-pro-field">
                         <label class="fp-pro-label">Konfirmasi Password Baru</label>
-                        <input class="fp-pro-input" type="password" name="password_confirmation"
-                               autocomplete="new-password" placeholder="••••••••">
-                        <div class="fp-pro-hint">Minimal 8 karakter</div>
+                        <input class="fp-pro-input" type="password" name="password_confirmation" id="profile-confirm-password" required data-password-clear
+                               autocomplete="new-password" placeholder="Ulangi password baru">
+                        <div class="fp-pro-hint" id="profile-password-hint">Minimal 8 karakter</div>
                     </div>
                 </div>
 
                 <div class="fp-pro-footer">
-                    <button type="submit" class="fp-pro-btn fp-pro-btn-primary">
+                    <button type="submit" class="fp-pro-btn fp-pro-btn-primary" id="profile-password-button" disabled>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
                         Perbarui Password
                     </button>
@@ -534,11 +578,15 @@
             <div class="fp-pro-danger-title">Hapus Akun</div>
         </div>
         <div class="fp-pro-danger-desc">
-            Setelah akun dihapus, semua data akan hilang secara permanen dan tidak bisa dipulihkan.
-            Tindakan ini tidak dapat dibatalkan.
+            Akun web admin ini akan dihapus permanen dan tidak bisa dipulihkan. Data produk,
+            penjualan, prediksi, dan akun kasir yang sudah tercatat tidak ikut dihapus.
+            @if(! $canDeleteAccount && $accountDeleteBlockReason)
+                <br><strong style="color:#DC2626">{{ $accountDeleteBlockReason }}</strong>
+            @endif
         </div>
         <button class="fp-pro-btn-danger"
-            onclick="document.getElementById('modal-hapus-akun').classList.add('open')">
+            onclick="openDeleteProfileModal()"
+            @disabled(! $canDeleteAccount)>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
             Hapus Akun Saya
         </button>
@@ -553,18 +601,19 @@
         <div class="fp-pro-modal-title">Hapus Akun?</div>
         <div class="fp-pro-modal-body">
             Tindakan ini <strong style="color:#DC2626">tidak bisa dibatalkan</strong>.
-            Semua data akun kamu akan dihapus permanen dari sistem.
-            Masukkan password untuk konfirmasi.
+            Akun web admin kamu akan dihapus permanen dari sistem, tetapi data operasional
+            seperti produk, penjualan, prediksi, dan akun kasir tetap tersimpan. Masukkan password
+            untuk konfirmasi.
         </div>
 
-        <form method="POST" action="{{ route('profile.destroy') }}">
+        <form method="POST" action="{{ route('profile.destroy') }}" id="profile-delete-form">
             @csrf
             @method('delete')
 
             <div class="fp-pro-field" style="margin-bottom:16px">
                 <label class="fp-pro-label">Password Konfirmasi</label>
-                <input class="fp-pro-input" type="password" name="password"
-                       placeholder="Masukkan password kamu" required>
+                <input class="fp-pro-input" type="password" name="password" id="profile-delete-password"
+                       placeholder="Masukkan password kamu" autocomplete="current-password" required>
                 @error('password', 'userDeletion')
                     <div class="fp-pro-error">{{ $message }}</div>
                 @enderror
@@ -575,7 +624,7 @@
                     onclick="document.getElementById('modal-hapus-akun').classList.remove('open')">
                     Batal
                 </button>
-                <button type="submit" class="fp-pro-btn-delete">
+                <button type="submit" class="fp-pro-btn-delete" id="profile-delete-button" disabled>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                     Ya, Hapus Akun
                 </button>
@@ -585,10 +634,129 @@
 </div>
 
 <script>
-document.getElementById('modal-hapus-akun')
-    .addEventListener('click', function(e) {
-        if (e.target === this) this.classList.remove('open');
-    });
+const deleteModal = document.getElementById('modal-hapus-akun');
+
+function openDeleteProfileModal() {
+    if (!deleteModal) return;
+    deleteModal.classList.add('open');
+    document.getElementById('profile-delete-password')?.focus();
+}
+
+function closeDeleteProfileModal() {
+    if (!deleteModal) return;
+    deleteModal.classList.remove('open');
+}
+
+deleteModal?.addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteProfileModal();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDeleteProfileModal();
+});
+
+document.querySelectorAll('[data-password-clear]').forEach(input => {
+    const placeholders = {
+        'profile-current-password': 'Masukkan password saat ini',
+        'profile-new-password': 'Minimal 8 karakter',
+        'profile-confirm-password': 'Ulangi password baru',
+    };
+
+    input.value = '';
+    input.placeholder = placeholders[input.id] || input.placeholder;
+});
+
+const profileForm = document.getElementById('profile-info-form');
+const profileName = document.getElementById('profile-name');
+const profileEmail = document.getElementById('profile-email');
+const profileSaveButton = document.getElementById('profile-save-button');
+
+function updateProfileSaveState() {
+    if (!profileForm || !profileName || !profileEmail || !profileSaveButton) return;
+
+    const originalName = profileForm.dataset.originalName || '';
+    const originalEmail = profileForm.dataset.originalEmail || '';
+    const name = profileName.value.trim();
+    const email = profileEmail.value.trim();
+    const hasChanged = name !== originalName || email !== originalEmail;
+    const isValid = name.length > 0 && profileEmail.checkValidity();
+
+    profileSaveButton.disabled = !hasChanged || !isValid;
+}
+
+[profileName, profileEmail].forEach(input => {
+    input?.addEventListener('input', updateProfileSaveState);
+});
+updateProfileSaveState();
+
+const passwordForm = document.getElementById('profile-password-form');
+const currentPassword = document.getElementById('profile-current-password');
+const newPassword = document.getElementById('profile-new-password');
+const confirmPassword = document.getElementById('profile-confirm-password');
+const passwordButton = document.getElementById('profile-password-button');
+const passwordHint = document.getElementById('profile-password-hint');
+
+function updatePasswordButtonState() {
+    if (!currentPassword || !newPassword || !confirmPassword || !passwordButton) return;
+
+    const hasCurrent = currentPassword.value.length > 0;
+    const longEnough = newPassword.value.length >= 8;
+    const matches = newPassword.value.length > 0 && newPassword.value === confirmPassword.value;
+    passwordButton.disabled = !(hasCurrent && longEnough && matches);
+
+    if (!passwordHint) return;
+    passwordHint.classList.remove('is-ok', 'is-error');
+    if (newPassword.value.length === 0 && confirmPassword.value.length === 0) {
+        passwordHint.textContent = 'Minimal 8 karakter';
+    } else if (!longEnough) {
+        passwordHint.textContent = 'Password baru minimal 8 karakter';
+        passwordHint.classList.add('is-error');
+    } else if (!matches) {
+        passwordHint.textContent = 'Konfirmasi password belum sama';
+        passwordHint.classList.add('is-error');
+    } else {
+        passwordHint.textContent = 'Password baru siap diperbarui';
+        passwordHint.classList.add('is-ok');
+    }
+}
+
+[currentPassword, newPassword, confirmPassword].forEach(input => {
+    input?.addEventListener('input', updatePasswordButtonState);
+});
+updatePasswordButtonState();
+
+const deletePassword = document.getElementById('profile-delete-password');
+const deleteButton = document.getElementById('profile-delete-button');
+deletePassword?.addEventListener('input', function() {
+    if (deleteButton) {
+        deleteButton.disabled = this.value.trim().length === 0;
+    }
+});
+
+profileForm?.addEventListener('submit', function() {
+    if (profileSaveButton) {
+        profileSaveButton.disabled = true;
+        profileSaveButton.textContent = 'Menyimpan...';
+    }
+});
+
+passwordForm?.addEventListener('submit', function() {
+    if (passwordButton) {
+        passwordButton.disabled = true;
+        passwordButton.textContent = 'Memperbarui...';
+    }
+});
+
+document.getElementById('profile-delete-form')?.addEventListener('submit', function() {
+    if (deleteButton) {
+        deleteButton.disabled = true;
+        deleteButton.textContent = 'Menghapus...';
+    }
+});
+
+if (@json($errors->getBag('userDeletion')->any())) {
+    openDeleteProfileModal();
+}
 </script>
 
 </x-app-layout>

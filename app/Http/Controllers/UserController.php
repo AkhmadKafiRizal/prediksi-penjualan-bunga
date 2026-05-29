@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -81,7 +82,11 @@ class UserController extends Controller
 
         $request->validate([
             'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users', 'email')->ignore((string) $user->getKey(), $user->getKeyName()),
+            ],
         ], [
             'name.required'  => 'Nama wajib diisi',
             'email.required' => 'Email wajib diisi',
@@ -112,11 +117,11 @@ class UserController extends Controller
     }
 
     // Nonaktifkan / aktifkan kasir (toggle)
-    public function destroy(User $user)
+    public function updateStatus(User $user)
     {
         $this->ensureCashier($user);
 
-        if ($user->id === auth()->id()) {
+        if ((string) $user->getKey() === (string) auth()->id()) {
             return redirect()->route('users.index')
                 ->with('error', 'Tidak bisa menonaktifkan akun sendiri');
         }
