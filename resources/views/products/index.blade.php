@@ -27,17 +27,36 @@
 .fp-btn-secondary:hover{background:var(--pk4);color:#7A1A3A}
 .fp-btn-danger{background:#FEE2E2;color:#dc2626;border:none}
 .fp-btn-danger:hover{background:#fecaca}
+.fp-btn-deactivate{background:#fff;color:#B91C1C;border:1px solid #FECACA;box-shadow:none;padding:.28rem .58rem}
+.fp-btn-deactivate:hover{background:#FEF2F2;border-color:#FCA5A5;transform:translateY(-1px)}
+.fp-btn-activate{background:#ECFDF5;color:#047857;border:1px solid #A7F3D0;box-shadow:none;padding:.28rem .58rem}
+.fp-btn-activate:hover{background:#10B981;border-color:#10B981;color:#fff;transform:translateY(-1px)}
 .fp-btn-sm{padding:.3rem .7rem;font-size:.78rem}
 
 .fp-alert{display:flex;align-items:center;gap:.6rem;padding:.75rem 1.1rem;border-radius:12px;font-size:.84rem;font-weight:500;margin-bottom:1.1rem}
 .fp-alert-success{background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46}
 .fp-alert-error{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
+.fp-submit-toast{position:fixed;right:24px;top:24px;z-index:1100;display:none;align-items:center;gap:.55rem;padding:.78rem 1rem;border-radius:12px;background:#fff;color:#7A2A4A;border:1px solid #FCE4EF;box-shadow:0 18px 45px rgba(232,24,90,.16);font-size:.82rem;font-weight:700}
+.fp-submit-toast.show{display:flex}
+.fp-submit-toast-dot{width:9px;height:9px;border-radius:999px;background:var(--pk1);box-shadow:0 0 0 5px rgba(232,24,90,.12)}
+.fp-btn.is-loading{opacity:.75;pointer-events:none}
 
 .fp-card{background:#fff;border-radius:16px;border:1px solid #FCE4EF;overflow:hidden}
 .fp-toolbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid #FCE4EF;flex-wrap:wrap;gap:.7rem}
 .fp-toolbar-left{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}
+.fp-toolbar-title-group{display:flex;flex-direction:column;gap:.15rem;min-width:230px}
 .fp-toolbar-title{font-size:.9rem;font-weight:700;color:var(--dark)}
+.fp-toolbar-meta{font-size:.75rem;color:#9B6A80;font-weight:500;line-height:1.35}
 .fp-badge-count{background:var(--pk5);color:var(--pk1);border-radius:20px;padding:.15rem .65rem;font-size:.72rem;font-weight:700;border:1px solid #FBCEDE}
+
+.fp-filter-bar{display:flex;align-items:center;gap:.55rem;padding:.85rem 1.25rem;border-bottom:1px solid #FCE4EF;flex-wrap:wrap;background:var(--pk6)}
+.fp-filter-label{font-size:.72rem;font-weight:700;color:#7A2A4A;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.fp-filter-select{padding:.42rem .75rem;border:1px solid #FCE4EF;border-radius:9px;font-family:inherit;font-size:.82rem;color:var(--dark);background:#fff;outline:none;cursor:pointer;transition:border .15s}
+.fp-filter-select:focus{border-color:var(--pk2);box-shadow:0 0 0 3px rgba(232,24,90,.08)}
+.fp-filter-sep{width:1px;height:18px;background:#FCE4EF;flex-shrink:0}
+.fp-search-box{display:flex;align-items:center;gap:.5rem;background:#fff;border:1px solid #FCE4EF;border-radius:10px;padding:.42rem .85rem}
+.fp-search-box input{border:none;background:transparent;font-family:inherit;font-size:.84rem;color:var(--dark);outline:none;width:220px}
+.fp-search-box input::placeholder{color:#CCA8BA}
 
 .fp-table-wrap{overflow-x:auto}
 .fp-table{width:100%;border-collapse:collapse}
@@ -60,6 +79,7 @@
 .badge-inactive{display:inline-block;background:#f3f4f6;color:#6b7280;border-radius:6px;padding:.2rem .65rem;font-size:.74rem;font-weight:600}
 .stok-current{display:inline-flex;align-items:center;gap:4px;background:var(--pk5);border:1px solid #FBCEDE;border-radius:7px;padding:2px 9px;font-weight:700;color:var(--pk1);font-family:'DM Mono',monospace;font-size:.82rem}
 .stok-minimum{display:inline-flex;align-items:center;font-family:'DM Mono',monospace;font-size:.82rem;font-weight:600;color:#7A4060}
+.stok-empty{background:#FEF2F2;border:1px solid #FCA5A5;color:#B91C1C}
 .stok-low{background:#FEF2F2;border:1px solid #FECACA;color:#991B1B}
 .stok-ok{background:#ECFDF5;border:1px solid #6EE7B7;color:#065F46}
 
@@ -84,9 +104,14 @@
 .fp-modal-icon{width:50px;height:50px;background:var(--pk5);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:.9rem}
 .fp-modal-body-text{font-size:.875rem;color:#4A2A3A;line-height:1.6}
 .fp-modal-body-name{font-weight:700;color:var(--dark)}
+.fp-modal-warning{margin-top:.8rem;padding:.75rem .85rem;border-radius:12px;background:#FFF7ED;border:1px solid #FED7AA;color:#9A3412;font-size:.8rem;line-height:1.55}
+.fp-modal-warning strong{font-weight:800}
+.fp-form-note{display:flex;align-items:flex-start;gap:.55rem;padding:.7rem .85rem;border-radius:12px;background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46;font-size:.78rem;line-height:1.45}
+.fp-form-note strong{font-weight:800}
 
 .fp-stok-info{display:flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(135deg,var(--pk6),#FFF5FA);border-bottom:1px solid #FCE4EF;font-size:11.5px;color:#7A4060}
 .fp-stok-info strong{color:var(--pk1)}
+.fp-action-muted{display:inline-flex;align-items:center;justify-content:center;border-radius:9px;padding:.3rem .65rem;background:#f3f4f6;color:#6b7280;font-size:.76rem;font-weight:700}
 </style>
 
 <div class="products-page">
@@ -104,12 +129,20 @@
     @if(session('error'))
         <div class="fp-alert fp-alert-error">⚠ {{ session('error') }}</div>
     @endif
+    @if($errors->any())
+        <div class="fp-alert fp-alert-error">⚠ Periksa kembali input produk. Harga jual minimal Rp 5.000 dan semua kolom wajib harus valid.</div>
+    @endif
 
     <div class="fp-card">
         <div class="fp-toolbar">
             <div class="fp-toolbar-left">
-                <span class="fp-toolbar-title">Daftar Produk Bunga</span>
+                <div class="fp-toolbar-title-group">
+                    <span class="fp-toolbar-title">Daftar Produk Bunga</span>
+                    <span class="fp-toolbar-meta">Perubahan produk memengaruhi stok aplikasi kasir dan data yang dibaca Asisten AI.</span>
+                </div>
                 <span class="fp-badge-count">{{ $totalProducts }} produk</span>
+                <span class="fp-badge-count">{{ $totalLowStock ?? 0 }} perlu restock</span>
+                <span class="fp-badge-count">{{ $totalInactive ?? 0 }} nonaktif</span>
                 <span class="fp-badge-count">10 data per halaman</span>
             </div>
             <button class="fp-btn fp-btn-primary" onclick="openModal('modal-tambah')">
@@ -117,10 +150,63 @@
             </button>
         </div>
 
+        <form method="GET" action="{{ route('products.index') }}" id="product-filter-form">
+            <div class="fp-filter-bar">
+                <span class="fp-filter-label">Filter:</span>
+
+                <div class="fp-search-box">
+                    🔍 <input type="text" name="search" placeholder="Cari nama bunga, satuan, atau ID..."
+                        value="{{ $search ?? '' }}">
+                </div>
+
+                <div class="fp-filter-sep"></div>
+
+                <select name="status" class="fp-filter-select" onchange="document.getElementById('product-filter-form').submit()">
+                    <option value="">Semua Status</option>
+                    <option value="aktif" {{ ($filterStatus ?? '') === 'aktif' ? 'selected' : '' }}>Aktif</option>
+                    <option value="nonaktif" {{ ($filterStatus ?? '') === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+                </select>
+
+                <select name="stok" class="fp-filter-select" onchange="document.getElementById('product-filter-form').submit()">
+                    <option value="">Semua Stok</option>
+                    <option value="perlu_restock" {{ ($filterStok ?? '') === 'perlu_restock' ? 'selected' : '' }}>Perlu Restock</option>
+                    <option value="habis" {{ ($filterStok ?? '') === 'habis' ? 'selected' : '' }}>Habis</option>
+                    <option value="aman" {{ ($filterStok ?? '') === 'aman' ? 'selected' : '' }}>Aman</option>
+                </select>
+
+                @if(($search ?? false) || ($filterStatus ?? false) || ($filterStok ?? false))
+                    <a href="{{ route('products.index') }}" class="fp-btn fp-btn-outline fp-btn-sm">✕ Reset Filter</a>
+                @endif
+            </div>
+        </form>
+
         <div class="fp-stok-info">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--pk1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            Kolom <strong>Stok Saat Ini</strong> menampilkan jumlah stok yang tersedia sekarang. Jika stok di bawah minimum, akan ditandai <span style="background:#FEF2F2;color:#991B1B;padding:1px 6px;border-radius:4px;font-size:10.5px;font-weight:600">⚠ Low</span>
+            <span>
+                <strong>Stok Saat Ini</strong> adalah stok tersedia sekarang. <strong>Habis</strong> = 0, <strong>Stok Rendah</strong> = stok saat ini <= stok minimum, dan <strong>Aman</strong> = stok di atas minimum.
+            </span>
         </div>
+
+        @php
+            $hasProductFilters = ($search ?? false) || ($filterStatus ?? false) || ($filterStok ?? false);
+            $emptyProductMessage = 'Belum ada produk bunga. Tambahkan produk terlebih dahulu.';
+
+            if ($hasProductFilters) {
+                $emptyProductMessage = 'Tidak ada produk yang cocok dengan filter saat ini.';
+
+                if (($filterStatus ?? '') === 'nonaktif' && ! ($search ?? false) && ! ($filterStok ?? false)) {
+                    $emptyProductMessage = 'Tidak ada produk nonaktif saat ini.';
+                } elseif (($filterStatus ?? '') === 'aktif' && ! ($search ?? false) && ! ($filterStok ?? false)) {
+                    $emptyProductMessage = 'Tidak ada produk aktif saat ini.';
+                } elseif (($filterStok ?? '') === 'aman' && ! ($search ?? false) && ! ($filterStatus ?? false)) {
+                    $emptyProductMessage = 'Tidak ada produk dengan stok aman saat ini.';
+                } elseif (($filterStok ?? '') === 'habis' && ! ($search ?? false) && ! ($filterStatus ?? false)) {
+                    $emptyProductMessage = 'Tidak ada produk yang stoknya habis saat ini.';
+                } elseif (($filterStok ?? '') === 'perlu_restock' && ! ($search ?? false) && ! ($filterStatus ?? false)) {
+                    $emptyProductMessage = 'Tidak ada produk yang perlu restock saat ini.';
+                }
+            }
+        @endphp
 
         <div class="fp-table-wrap">
             <table class="fp-table">
@@ -133,7 +219,7 @@
                         <th>Stok Saat Ini</th>
                         <th>Stok Minimum</th>
                         <th>Status</th>
-                        <th style="text-align:center;width:120px">Aksi</th>
+                        <th style="text-align:center;width:170px">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -141,7 +227,10 @@
                         @php
                             $stokSaatIni = $product->stok_saat_ini ?? 0;
                             $stokMin     = $product->stok_minimum ?? 0;
-                            $isLow       = $stokSaatIni < $stokMin;
+                            $isEmpty     = $stokSaatIni <= 0;
+                            $isLow       = $stokSaatIni <= $stokMin;
+                            $stokClass   = $isEmpty ? 'stok-empty' : ($isLow ? 'stok-low' : 'stok-ok');
+                            $stokLabel   = $isEmpty ? 'Habis' : ($isLow ? 'Stok Rendah' : 'Aman');
                         @endphp
                         <tr>
                             <td class="row-num">{{ ($products->currentPage() - 1) * $products->perPage() + $i + 1 }}</td>
@@ -170,15 +259,16 @@
                                 {{ $product->harga_jual ? 'Rp ' . number_format($product->harga_jual, 0, ',', '.') : '-' }}
                             </td>
                             <td>
-                                <span class="stok-current {{ $isLow ? 'stok-low' : 'stok-ok' }}">
+                                <span class="stok-current {{ $stokClass }}" title="{{ $stokLabel }}">
                                     {{ $isLow ? '⚠ ' : '✓ ' }}{{ number_format($stokSaatIni) }}
                                 </span>
+                                <span style="font-size:.72rem;color:#9B6A80;margin-left:6px">{{ $stokLabel }}</span>
                             </td>
                             <td>
                                 <span class="stok-minimum">{{ number_format($stokMin) }} {{ $product->satuan }}</span>
                             </td>
                             <td>
-                                @if($product->is_active)
+                                @if((int) ($product->is_active ?? 1) === 1)
                                     <span class="badge-active">Aktif</span>
                                 @else
                                     <span class="badge-inactive">Nonaktif</span>
@@ -193,22 +283,28 @@
                                             '{{ addslashes($product->satuan) }}',
                                             '{{ $product->harga_jual }}',
                                             {{ $product->stok_minimum }},
-                                            {{ $product->stok_saat_ini ?? 0 }},
-                                            {{ $product->is_active ? 1 : 0 }}
+                                            {{ $product->stok_saat_ini ?? 0 }}
                                         )">
                                         ✏️
                                     </button>
-                                    <button class="fp-btn fp-btn-danger fp-btn-sm" title="Nonaktifkan"
-                                        onclick="openDelete({{ $product->id }}, '{{ addslashes($product->nama_bunga) }}')">
-                                        🗑️
-                                    </button>
+                                    @if((int) ($product->is_active ?? 1) === 1)
+                                        <button class="fp-btn fp-btn-deactivate fp-btn-sm" title="Nonaktifkan produk"
+                                            onclick="openDelete({{ $product->id }}, '{{ addslashes($product->nama_bunga) }}')">
+                                            ⏻ Nonaktifkan
+                                        </button>
+                                    @else
+                                        <button class="fp-btn fp-btn-activate fp-btn-sm" title="Aktifkan kembali produk"
+                                            onclick="openActivate({{ $product->id }}, '{{ addslashes($product->nama_bunga) }}')">
+                                            ✓ Aktifkan
+                                        </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="8">
-                                <div class="fp-empty"><p>Belum ada produk bunga. Tambahkan produk terlebih dahulu.</p></div>
+                                <div class="fp-empty"><p>{{ $emptyProductMessage }}</p></div>
                             </td>
                         </tr>
                     @endforelse
@@ -255,7 +351,7 @@
             <span class="fp-modal-title">🌸 Tambah Produk Bunga</span>
             <button class="fp-modal-close" onclick="closeModal('modal-tambah')">✕</button>
         </div>
-        <form action="{{ route('products.store') }}" method="POST">
+        <form action="{{ route('products.store') }}" method="POST" class="fp-action-form" data-loading-message="Menyimpan produk bunga...">
             @csrf
             <div class="fp-form-group">
                 <label>Nama Bunga</label>
@@ -264,15 +360,14 @@
             <div class="fp-form-group">
                 <label>Satuan</label>
                 <select name="satuan" required>
-                    <option value="Tangkai">Tangkai</option>
-                    <option value="Pot">Pot</option>
-                    <option value="Ikat">Ikat</option>
+                    <option value="tangkai">Tangkai</option>
                 </select>
+                <div class="fp-form-hint">Dataset saat ini memakai satuan tangkai untuk semua produk.</div>
             </div>
             <div class="fp-form-group">
                 <label>Harga Jual (Rp)</label>
-                <input type="number" name="harga_jual" placeholder="contoh: 10000" min="0">
-                <div class="fp-form-hint">Opsional — bisa diisi nanti</div>
+                <input type="number" name="harga_jual" placeholder="contoh: 10000" min="5000" required>
+                <div class="fp-form-hint">Minimal Rp 5.000 agar produk aman digunakan di kasir mobile.</div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <div class="fp-form-group">
@@ -285,6 +380,10 @@
                     <input type="number" name="stok_minimum" placeholder="contoh: 10" min="1" required>
                     <div class="fp-form-hint">Batas stok minimum</div>
                 </div>
+            </div>
+            <div class="fp-form-note">
+                <span>i</span>
+                <span><strong>Produk baru otomatis aktif</strong> dan akan tampil di aplikasi kasir mobile setelah disimpan.</span>
             </div>
             <div class="fp-modal-footer">
                 <button type="button" class="fp-btn fp-btn-outline" onclick="closeModal('modal-tambah')">Batal</button>
@@ -302,47 +401,42 @@
             <button class="fp-modal-close" onclick="closeModal('modal-edit')">✕</button>
         </div>
 
-        <form id="form-edit" method="POST">
+        <form id="form-edit" method="POST" class="fp-action-form" data-loading-message="Menyimpan perubahan produk...">
             @csrf
             @method('PUT')
 
             <div class="fp-form-group">
                 <label>Nama Bunga</label>
                 <input type="text" id="edit-nama" name="nama_bunga" required>
+                <div class="fp-form-hint">Perubahan nama akan memengaruhi tampilan laporan, prediksi, Asisten AI, dan aplikasi kasir mobile.</div>
             </div>
 
             <div class="fp-form-group">
                 <label>Satuan</label>
                 <select id="edit-satuan" name="satuan" required>
-                    <option value="Tangkai">Tangkai</option>
-                    <option value="Pot">Pot</option>
-                    <option value="Ikat">Ikat</option>
+                    <option value="tangkai">Tangkai</option>
                 </select>
+                <div class="fp-form-hint">Dataset saat ini memakai satuan tangkai untuk semua produk.</div>
             </div>
 
             <div class="fp-form-group">
                 <label>Harga Jual (Rp)</label>
-                <input type="number" id="edit-harga" name="harga_jual" min="0">
+                <input type="number" id="edit-harga" name="harga_jual" min="5000" required>
+                <div class="fp-form-hint">Minimal Rp 5.000.</div>
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <div class="fp-form-group">
                     <label>Stok Saat Ini</label>
                     <input type="number" id="edit-stok-saat-ini" name="stok_saat_ini" min="0" required>
+                    <div class="fp-form-hint">Perubahan stok akan memengaruhi stok yang tampil di aplikasi kasir mobile.</div>
                 </div>
 
                 <div class="fp-form-group">
                     <label>Stok Minimum</label>
                     <input type="number" id="edit-stok" name="stok_minimum" min="1" required>
+                    <div class="fp-form-hint">Dipakai untuk menandai status Stok Rendah.</div>
                 </div>
-            </div>
-
-            <div class="fp-form-group">
-                <label>Status</label>
-                <select id="edit-status" name="is_active">
-                    <option value="1">Aktif</option>
-                    <option value="0">Nonaktif</option>
-                </select>
             </div>
 
             <div class="fp-modal-footer">
@@ -357,7 +451,7 @@
 <div class="fp-modal-overlay" id="modal-delete">
     <div class="fp-modal" style="max-width:400px">
 
-        <div class="fp-modal-icon">🗑️</div>
+        <div class="fp-modal-icon">⏻</div>
 
         <div class="fp-modal-title" style="margin-bottom:.5rem">
             Nonaktifkan Produk?
@@ -366,10 +460,12 @@
         <div class="fp-modal-body-text">
             Kamu yakin ingin menonaktifkan produk
             <span class="fp-modal-body-name" id="delete-name-label"></span>?
-            Produk tidak akan muncul di aplikasi mobile kasir.
+            <div class="fp-modal-warning">
+                <strong>Dampak:</strong> status produk akan berubah menjadi nonaktif di database, produk tidak tampil di aplikasi kasir mobile, dan tidak dipakai untuk transaksi baru. Data produk tetap tersimpan sebagai arsip dan bisa diaktifkan kembali lewat tombol Aktifkan.
+            </div>
         </div>
 
-        <form id="form-delete" method="POST">
+        <form id="form-delete" method="POST" class="fp-action-form" data-loading-message="Menonaktifkan produk...">
             @csrf
             @method('DELETE')
 
@@ -381,7 +477,44 @@
     </div>
 </div>
 
+{{-- MODAL ACTIVATE --}}
+<div class="fp-modal-overlay" id="modal-activate">
+    <div class="fp-modal" style="max-width:420px">
+
+        <div class="fp-modal-icon">✓</div>
+
+        <div class="fp-modal-title" style="margin-bottom:.5rem">
+            Aktifkan Produk?
+        </div>
+
+        <div class="fp-modal-body-text">
+            Kamu yakin ingin mengaktifkan kembali produk
+            <span class="fp-modal-body-name" id="activate-name-label"></span>?
+            <div class="fp-form-note" style="margin-top:.8rem">
+                <span>i</span>
+                <span><strong>Dampak:</strong> status produk akan kembali aktif di database, produk tampil lagi di aplikasi kasir mobile, dan dapat dipakai untuk transaksi baru. Pastikan harga, stok saat ini, dan stok minimum sudah benar sebelum produk digunakan kembali oleh kasir.</span>
+            </div>
+        </div>
+
+        <form id="form-activate" method="POST" class="fp-action-form" data-loading-message="Mengaktifkan produk...">
+            @csrf
+            @method('PATCH')
+
+            <div class="fp-modal-footer">
+                <button type="button" class="fp-btn fp-btn-outline" onclick="closeModal('modal-activate')">Batal</button>
+                <button type="submit" class="fp-btn" style="background:#10B981;color:#fff">Ya, Aktifkan</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
 {{-- SCRIPT --}}
+<div class="fp-submit-toast" id="product-submit-toast">
+    <span class="fp-submit-toast-dot"></span>
+    <span id="product-submit-toast-text">Memproses...</span>
+</div>
+
 <script>
 const baseUrl = "{{ url('products') }}";
 
@@ -406,17 +539,36 @@ document.addEventListener('keydown', e => {
         closeModal('modal-tambah');
         closeModal('modal-edit');
         closeModal('modal-delete');
+        closeModal('modal-activate');
     }
 });
 
-function openEdit(id, nama, satuan, harga, stokMin, stokSaatIni, isActive) {
+document.querySelectorAll('.fp-action-form').forEach(form => {
+    form.addEventListener('submit', function () {
+        const toast = document.getElementById('product-submit-toast');
+        const toastText = document.getElementById('product-submit-toast-text');
+        const submitButton = this.querySelector('button[type="submit"]');
+
+        if (toast && toastText) {
+            toastText.textContent = this.dataset.loadingMessage || 'Memproses perubahan produk...';
+            toast.classList.add('show');
+        }
+
+        if (submitButton) {
+            submitButton.classList.add('is-loading');
+            submitButton.disabled = true;
+            submitButton.dataset.originalText = submitButton.textContent;
+            submitButton.textContent = 'Memproses...';
+        }
+    });
+});
+
+function openEdit(id, nama, satuan, harga, stokMin, stokSaatIni) {
     document.getElementById('edit-nama').value           = nama;
-    document.getElementById('edit-satuan').value         = satuan;
+    document.getElementById('edit-satuan').value         = String(satuan || 'tangkai').toLowerCase();
     document.getElementById('edit-harga').value          = harga;
     document.getElementById('edit-stok').value           = stokMin;
     document.getElementById('edit-stok-saat-ini').value  = stokSaatIni;
-    document.getElementById('edit-status').value         = isActive;
-
     document.getElementById('form-edit').action = baseUrl + '/' + id;
     openModal('modal-edit');
 }
@@ -425,6 +577,12 @@ function openDelete(id, nama) {
     document.getElementById('delete-name-label').textContent = nama;
     document.getElementById('form-delete').action = baseUrl + '/' + id;
     openModal('modal-delete');
+}
+
+function openActivate(id, nama) {
+    document.getElementById('activate-name-label').textContent = nama;
+    document.getElementById('form-activate').action = baseUrl + '/' + id + '/activate';
+    openModal('modal-activate');
 }
 </script>
 

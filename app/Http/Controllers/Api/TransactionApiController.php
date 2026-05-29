@@ -238,6 +238,13 @@ class TransactionApiController extends Controller
                 ], 404);
             }
 
+            if (! $this->productIsActive($product)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Produk ' . ($product->nama_bunga ?? $productId) . ' sedang nonaktif dan tidak bisa dipakai untuk transaksi baru.',
+                ], 422);
+            }
+
             $currentStock = (int) ($product->stok_saat_ini ?? 0);
 
             if ($currentStock < $jumlah) {
@@ -390,6 +397,13 @@ class TransactionApiController extends Controller
             ], 404);
         }
 
+        if (! $this->productIsActive($product)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Produk sedang nonaktif dan tidak bisa dipakai untuk transaksi baru.',
+            ], 422);
+        }
+
         $currentStock = (int) ($product->stok_saat_ini ?? 0);
 
         if ($currentStock < $jumlah) {
@@ -489,6 +503,11 @@ class TransactionApiController extends Controller
                 ],
             ],
         ], 201);
+    }
+
+    private function productIsActive($product): bool
+    {
+        return (int) ($product->is_active ?? 1) === 1;
     }
 
     private function cashierPayload(Request $request): array

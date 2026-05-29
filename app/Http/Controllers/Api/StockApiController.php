@@ -121,6 +121,9 @@ class StockApiController extends Controller
                     'is_active'       => (int) ($product->is_active ?? 1),
                 ];
             })
+            ->filter(function ($product) {
+                return (int) ($product['is_active'] ?? 1) === 1;
+            })
             ->values();
 
         if ($request->boolean('low_stock')) {
@@ -153,8 +156,8 @@ class StockApiController extends Controller
             'unit'           => 'nullable|string|max:50',
             'category'       => 'nullable|string|max:100',
             'kategori'       => 'nullable|string|max:100',
-            'harga_jual'     => 'nullable|numeric|min:0',
-            'price'          => 'nullable|numeric|min:0',
+            'harga_jual'     => 'nullable|numeric|min:5000',
+            'price'          => 'nullable|numeric|min:5000',
             'cost_price'     => 'nullable|numeric|min:0',
             'harga_modal'    => 'nullable|numeric|min:0',
             'stok_saat_ini'  => 'nullable|integer|min:0',
@@ -173,6 +176,23 @@ class StockApiController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Nama bunga wajib diisi.',
+            ], 422);
+        }
+
+        $nameExists = DB::connection('mongodb')
+            ->table('products')
+            ->get()
+            ->contains(function ($product) use ($namaBunga) {
+                $existingName = mb_strtolower(trim(preg_replace('/\s+/', ' ', (string) ($product->nama_bunga ?? ''))));
+                $newName = mb_strtolower(trim(preg_replace('/\s+/', ' ', $namaBunga)));
+
+                return $existingName === $newName;
+            });
+
+        if ($nameExists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nama produk sudah ada. Gunakan nama bunga yang berbeda.',
             ], 422);
         }
 
@@ -204,6 +224,13 @@ class StockApiController extends Controller
         $hargaJual = $validated['harga_jual']
             ?? $validated['price']
             ?? 0;
+
+        if ((float) $hargaJual < 5000) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Harga jual minimal Rp 5.000.',
+            ], 422);
+        }
 
         $costPrice = $validated['cost_price']
             ?? $validated['harga_modal']
