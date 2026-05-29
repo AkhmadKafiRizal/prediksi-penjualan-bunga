@@ -480,8 +480,8 @@
             <div style="font-size:17px;font-weight:800;color:#1A0A12;margin-bottom:6px">Keluar dari FloraPredict?</div>
             <div style="font-size:13px;color:#9A6070;line-height:1.6;margin-bottom:22px">Kamu akan keluar dari sesi ini. Pastikan semua pekerjaan sudah tersimpan.</div>
             <div style="display:flex;gap:8px;justify-content:flex-end">
-                <button onclick="closeLogout()" style="padding:9px 18px;background:#fff;color:#7A4060;border:1.5px solid #FCE4EF;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s">Batal</button>
-                <button onclick="document.getElementById('logout-form').submit()" style="padding:9px 18px;background:linear-gradient(135deg,#E8185A,#F04E8A);color:#fff;border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(232,24,90,0.3)">Ya, Logout</button>
+                <button type="button" onclick="closeLogout()" style="padding:9px 18px;background:#fff;color:#7A4060;border:1.5px solid #FCE4EF;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s">Batal</button>
+                <button type="button" onclick="submitLogout(this)" style="padding:9px 18px;background:linear-gradient(135deg,#E8185A,#F04E8A);color:#fff;border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(232,24,90,0.3)">Ya, Logout</button>
             </div>
         </div>
     </div>
@@ -496,6 +496,13 @@
     <script>
     function confirmLogout() { document.getElementById('logout-modal').style.display = 'flex'; }
     function closeLogout() { document.getElementById('logout-modal').style.display = 'none'; }
+    function submitLogout(button) {
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'Keluar...';
+        }
+        document.getElementById('logout-form')?.submit();
+    }
     document.getElementById('logout-modal').addEventListener('click', function(e) { if (e.target === this) closeLogout(); });
     </script>
 
@@ -529,12 +536,15 @@
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         Swal.fire({
+            toast: true,
+            position: 'top-end',
             icon: 'success',
             title: 'Login Berhasil!',
             text: 'Selamat datang kembali di FloraPredict.',
             showConfirmButton: false,
             timer: 3000,
             timerProgressBar: true,
+            backdrop: false,
             background: '#FFF8FC',
             color: '#1A0A12',
             iconColor: '#E8185A',
