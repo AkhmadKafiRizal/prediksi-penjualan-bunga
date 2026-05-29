@@ -122,6 +122,10 @@ class PredictionController extends Controller
         */
         try {
             $latestSalesPerProduct = $this->getLatestSalesPerProductBefore($periodStart);
+            $activeProductIds = $this->getActiveProductIds();
+            $latestSalesPerProduct = $latestSalesPerProduct
+                ->filter(fn ($row) => in_array((int) ($row->product_id ?? 0), $activeProductIds, true))
+                ->values();
         } catch (\Throwable $e) {
             return redirect()
                 ->route('prediksi', ['periode' => $selectedPeriod])
@@ -131,7 +135,7 @@ class PredictionController extends Controller
         if ($latestSalesPerProduct->count() === 0) {
             return redirect()
                 ->route('prediksi', ['periode' => $selectedPeriod])
-                ->with('error', "Data penjualan sebelum periode {$selectedPeriod} tidak ditemukan.");
+                ->with('error', "Data penjualan produk aktif sebelum periode {$selectedPeriod} tidak ditemukan.");
         }
 
         /*
@@ -351,10 +355,15 @@ class PredictionController extends Controller
             ->orderBy('product_id')
             ->get();
 
+        $activeProductIds = $this->getActiveProductIds();
+        $rows = $rows
+            ->filter(fn ($row) => in_array((int) ($row->product_id ?? 0), $activeProductIds, true))
+            ->values();
+
         if ($rows->isEmpty()) {
             return redirect()
                 ->route('prediksi', ['periode' => $selectedPeriod])
-                ->with('error', "Data prediksi periode {$selectedPeriod} belum tersedia untuk diexport.");
+                ->with('error', "Data prediksi produk aktif periode {$selectedPeriod} belum tersedia untuk diexport.");
         }
 
         $productNames = $this->getProductNames();
@@ -560,6 +569,7 @@ class PredictionController extends Controller
         }
 
         $productNames = $this->getProductNames();
+        $activeProductIds = $this->getActiveProductIds();
         $recentSales = $this->getRecentSales($productNames);
 
         /*
@@ -579,7 +589,9 @@ class PredictionController extends Controller
             ->where('tanggal', $targetDate)
             ->orderByDesc('predicted_sales')
             ->orderBy('product_id')
-            ->get();
+            ->get()
+            ->filter(fn ($row) => in_array((int) ($row->product_id ?? 0), $activeProductIds, true))
+            ->values();
 
         /*
         |--------------------------------------------------------------------------
@@ -665,7 +677,9 @@ class PredictionController extends Controller
         */
         $predictionRows = DB::connection('mongodb')
             ->table('prediction_results')
-            ->get();
+            ->get()
+            ->filter(fn ($row) => in_array((int) ($row->product_id ?? 0), $activeProductIds, true))
+            ->values();
 
         $predictionDates = $predictionRows
             ->pluck('tanggal')
@@ -678,7 +692,12 @@ class PredictionController extends Controller
 
         if (count($predictionDates) > 0) {
             $actualCursor = DB::connection('mongodb')->getCollection('penjualans')->aggregate([
-                ['$match' => ['tanggal' => ['$in' => $predictionDates]]],
+                [
+                    '$match' => [
+                        'tanggal' => ['$in' => $predictionDates],
+                        'product_id' => ['$in' => $activeProductIds],
+                    ],
+                ],
                 [
                     '$group' => [
                         '_id' => '$tanggal',
@@ -889,5 +908,18 @@ class PredictionController extends Controller
         }
 
         return $names;
+    }
+
+    private function getActiveProductIds(): array
+    {
+        return DB::connection('mongodb')
+            ->table('products')
+            ->get()
+            ->filter(fn ($product) => (int) ($product->is_active ?? 1) === 1)
+            ->map(fn ($product) => (int) ($product->id ?? $product->_id ?? 0))
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
     }
 }

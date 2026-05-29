@@ -43,6 +43,9 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
         ->name('sales.export.excel');
 
     // ==================== MASTER DATA PRODUK ====================
+    Route::patch('/products/{product}/activate', [ProductController::class, 'activate'])
+        ->name('products.activate');
+
     Route::resource('products', ProductController::class)->only([
         'index', 'store', 'update', 'destroy'
     ]);

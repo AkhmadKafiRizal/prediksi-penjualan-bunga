@@ -23,6 +23,7 @@
 .fp-btn-secondary:hover{background:var(--pk4);color:#7A1A3A}
 .fp-btn-success{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;box-shadow:0 4px 14px rgba(22,163,74,.25)}
 .fp-btn-success:hover{box-shadow:0 6px 20px rgba(22,163,74,.35);transform:translateY(-1px)}
+.fp-btn-success.is-loading{opacity:.78;pointer-events:none;transform:none;box-shadow:0 4px 14px rgba(22,163,74,.18)}
 .fp-btn-sm{padding:.3rem .7rem;font-size:.78rem}
 
 .fp-alert{display:flex;align-items:center;gap:.6rem;padding:.75rem 1.1rem;border-radius:12px;font-size:.84rem;font-weight:500;margin-bottom:1.1rem}
@@ -45,7 +46,9 @@
 .fp-toolbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid #FCE4EF;flex-wrap:wrap;gap:.7rem}
 .fp-toolbar-left{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}
 .fp-toolbar-actions{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.fp-toolbar-title-group{display:flex;flex-direction:column;gap:.15rem;min-width:230px}
 .fp-toolbar-title{font-size:.9rem;font-weight:700;color:var(--dark)}
+.fp-toolbar-meta{font-size:.75rem;color:#9B6A80;font-weight:500;line-height:1.35}
 .fp-badge-count{background:var(--pk5);color:var(--pk1);border-radius:20px;padding:.15rem .65rem;font-size:.72rem;font-weight:700;border:1px solid #FBCEDE}
 
 .fp-export-scope-panel{display:flex;align-items:flex-start;gap:.75rem;padding:.9rem 1.25rem;border-bottom:1px solid #FCE4EF;background:#FFF8FC;color:#7A4060}
@@ -60,8 +63,22 @@
 .fp-filter-select:focus{border-color:var(--pk2);box-shadow:0 0 0 3px rgba(232,24,90,.08)}
 .fp-filter-sep{width:1px;height:18px;background:#FCE4EF;flex-shrink:0}
 .fp-search-box{display:flex;align-items:center;gap:.5rem;background:#fff;border:1px solid #FCE4EF;border-radius:10px;padding:.42rem .85rem}
-.fp-search-box input{border:none;background:transparent;font-family:inherit;font-size:.84rem;color:var(--dark);outline:none;width:160px}
+.fp-search-box input{border:none;background:transparent;font-family:inherit;font-size:.84rem;color:var(--dark);outline:none;width:210px}
 .fp-search-box input::placeholder{color:#CCA8BA}
+
+.fp-table-note{display:flex;align-items:flex-start;gap:.55rem;padding:.65rem 1.25rem;border-bottom:1px solid #FCE4EF;background:#fff;color:#7A4060;font-size:.78rem;line-height:1.4}
+.fp-table-note-icon{width:22px;height:22px;border-radius:7px;background:var(--pk5);color:var(--pk1);display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0}
+.fp-table-note strong{font-weight:800;color:#5B213D}
+
+.fp-sales-toast{position:fixed;right:24px;bottom:24px;z-index:9999;display:flex;align-items:flex-start;gap:.7rem;max-width:360px;padding:.85rem 1rem;border-radius:14px;background:#fff;border:1px solid #A7F3D0;box-shadow:0 16px 40px rgba(6,95,70,.16);color:#065F46;opacity:0;pointer-events:none;transform:translateY(14px);transition:opacity .18s ease,transform .18s ease}
+.fp-sales-toast.is-visible{opacity:1;transform:translateY(0)}
+.fp-sales-toast.is-error{border-color:#FCA5A5;box-shadow:0 16px 40px rgba(153,27,27,.14);color:#991B1B}
+.fp-sales-toast-icon{width:30px;height:30px;border-radius:10px;background:#ECFDF5;color:#16A34A;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0}
+.fp-sales-toast.is-error .fp-sales-toast-icon{background:#FEF2F2;color:#DC2626}
+.fp-sales-toast-title{font-size:.86rem;font-weight:800;color:#064E3B;margin-bottom:2px}
+.fp-sales-toast-text{font-size:.78rem;line-height:1.4;color:#047857}
+.fp-sales-toast.is-error .fp-sales-toast-title{color:#991B1B}
+.fp-sales-toast.is-error .fp-sales-toast-text{color:#B91C1C}
 
 .fp-table-wrap{overflow-x:auto;max-height:540px}
 .fp-table{width:100%;border-collapse:collapse}
@@ -185,14 +202,18 @@
 
         <div class="fp-toolbar">
             <div class="fp-toolbar-left">
-                <span class="fp-toolbar-title">Dataset Penjualan dari Database</span>
+                <div class="fp-toolbar-title-group">
+                    <span class="fp-toolbar-title">Dataset Penjualan dari Database</span>
+                    <span class="fp-toolbar-meta">Data diurutkan dari transaksi terbaru ke terlama.</span>
+                </div>
                 <span class="fp-badge-count">{{ number_format($totalData ?? 0) }} baris</span>
                 <span class="fp-badge-count">25 data per halaman</span>
             </div>
             <div class="fp-toolbar-actions">
                 <a href="{{ route('sales.export.excel', request()->only(['search','tahun','bulan','tanggal'])) }}"
-                   class="fp-btn fp-btn-success fp-btn-sm"
-                   title="{{ $exportScopeText }}">
+                   class="fp-btn fp-btn-success fp-btn-sm fp-export-sales-btn"
+                   title="{{ $exportScopeText }}"
+                   data-loading-label="Menyiapkan file...">
                     ⬇ Export Data Penjualan (.xlsx)
                 </a>
             </div>
@@ -236,7 +257,7 @@
                 <div class="fp-filter-sep"></div>
 
                 <div class="fp-search-box">
-                    🔍 <input type="text" name="search" placeholder="Cari tanggal / produk / kasir…"
+                    🔍 <input type="text" name="search" placeholder="Cari produk, tanggal, kasir, atau ID..."
                         value="{{ $search ?? '' }}">
                 </div>
 
@@ -247,6 +268,13 @@
             </div>
         </form>
 
+        <div class="fp-table-note">
+            <span class="fp-table-note-icon">i</span>
+            <span>
+                <strong>Catatan:</strong> kolom <strong>Kasir</strong> menampilkan nama kasir untuk transaksi mobile. Label <strong>Data historis</strong> berarti data berasal dari dataset awal, bukan transaksi mobile kasir.
+            </span>
+        </div>
+
         <div class="fp-table-wrap">
             <table class="fp-table">
                 <thead>
@@ -256,7 +284,7 @@
                         <th>Nama Bunga</th>
                         <th>Kasir</th>
                         <th>Tanggal</th>
-                        <th class="right">Jumlah</th>
+                        <th class="right">Jumlah Terjual</th>
                         <th class="right">Harga</th>
                         <th style="text-align:center">Promo</th>
                     </tr>
@@ -324,10 +352,123 @@
     </div>
 </div>
 
+<div class="fp-sales-toast" id="sales-export-toast" role="status" aria-live="polite">
+    <span class="fp-sales-toast-icon">✓</span>
+    <div>
+        <div class="fp-sales-toast-title">File sedang disiapkan</div>
+        <div class="fp-sales-toast-text">Export Excel akan mengikuti filter aktif. Mohon tunggu sampai download dimulai.</div>
+    </div>
+</div>
+
 <script>
-// Submit filter form on Enter in search box
-document.querySelector('.fp-search-box input').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') document.getElementById('filter-form').submit();
-});
+const salesSearchInput = document.querySelector('.fp-search-box input');
+if (salesSearchInput) {
+    salesSearchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') document.getElementById('filter-form').submit();
+    });
+}
+
+const salesExportButton = document.querySelector('.fp-export-sales-btn');
+const salesExportToast = document.getElementById('sales-export-toast');
+let salesExportToastTimer = null;
+
+function showSalesExportToast(type, title, text) {
+    if (! salesExportToast) return;
+
+    const toastIcon = salesExportToast.querySelector('.fp-sales-toast-icon');
+    const toastTitle = salesExportToast.querySelector('.fp-sales-toast-title');
+    const toastText = salesExportToast.querySelector('.fp-sales-toast-text');
+    const isError = type === 'error';
+
+    salesExportToast.classList.toggle('is-error', isError);
+    if (toastIcon) toastIcon.textContent = isError ? '!' : '✓';
+    if (toastTitle) toastTitle.textContent = title;
+    if (toastText) toastText.textContent = text;
+
+    salesExportToast.classList.add('is-visible');
+    window.clearTimeout(salesExportToastTimer);
+
+    salesExportToastTimer = window.setTimeout(function() {
+        salesExportToast.classList.remove('is-visible');
+    }, 4200);
+}
+
+if (salesExportButton) {
+    const originalExportLabel = salesExportButton.textContent.trim();
+
+    function resetSalesExportButton() {
+        salesExportButton.classList.remove('is-loading');
+        salesExportButton.removeAttribute('aria-disabled');
+        salesExportButton.textContent = originalExportLabel;
+    }
+
+    function salesExportFilename(response) {
+        const disposition = response.headers.get('content-disposition') || '';
+        const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+        const plainMatch = disposition.match(/filename="?([^"]+)"?/i);
+
+        if (utf8Match) return decodeURIComponent(utf8Match[1]);
+        if (plainMatch) return plainMatch[1];
+
+        return 'laporan-data-penjualan.xlsx';
+    }
+
+    salesExportButton.addEventListener('click', async function(e) {
+        if (! window.fetch || ! window.URL || salesExportButton.classList.contains('is-loading')) {
+            return;
+        }
+
+        e.preventDefault();
+        showSalesExportToast(
+            'success',
+            'File sedang disiapkan',
+            'Export Excel akan mengikuti filter aktif. Mohon tunggu sampai download dimulai.'
+        );
+
+        salesExportButton.classList.add('is-loading');
+        salesExportButton.setAttribute('aria-disabled', 'true');
+        salesExportButton.textContent = salesExportButton.dataset.loadingLabel || 'Menyiapkan file...';
+
+        try {
+            const response = await fetch(salesExportButton.href, {
+                credentials: 'same-origin',
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+            });
+            const contentType = response.headers.get('content-type') || '';
+
+            if (! response.ok || ! contentType.includes('spreadsheetml.sheet')) {
+                throw new Error('Export response is not an Excel file.');
+            }
+
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const downloadLink = document.createElement('a');
+
+            downloadLink.href = downloadUrl;
+            downloadLink.download = salesExportFilename(response);
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            downloadLink.remove();
+
+            window.setTimeout(function() {
+                window.URL.revokeObjectURL(downloadUrl);
+            }, 1000);
+
+            showSalesExportToast(
+                'success',
+                'File siap diunduh',
+                'Download Excel sudah dimulai. Tombol export sudah bisa dipakai lagi.'
+            );
+        } catch (error) {
+            showSalesExportToast(
+                'error',
+                'Export belum berhasil',
+                'File belum bisa disiapkan. Coba ulangi, gunakan filter lebih kecil, atau periksa koneksi MongoDB.'
+            );
+        } finally {
+            resetSalesExportButton();
+        }
+    });
+}
 </script>
 </x-app-layout>
