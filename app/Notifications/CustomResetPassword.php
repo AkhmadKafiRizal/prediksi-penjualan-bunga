@@ -41,13 +41,32 @@ class CustomResetPassword extends Notification
         ], false));
 
         return (new MailMessage)
-            ->subject('Reset Password | Prediksi Penjualan Bunga')
-            ->greeting('Halo, ' . $notifiable->name)
-            ->line('Kami menerima permintaan untuk mereset password akun Anda pada Sistem Prediksi Penjualan Bunga.')
-            ->line('Klik tombol di bawah ini untuk mengatur ulang password.')
-            ->action('Reset Password Sekarang', $url)
-            ->line('Link reset password memiliki batas waktu tertentu.')
-            ->line('Jika Anda tidak merasa melakukan permintaan ini, silakan abaikan email ini.')
-            ->salutation('Hormat kami, Tim Prediksi Penjualan Bunga');
+            ->subject('Reset Password | FloraPredict')
+            ->view([
+                'html' => 'emails.florapredict-action',
+                'text' => 'emails.florapredict-action-text',
+            ], [
+                'subjectText' => 'Reset Password | FloraPredict',
+                'preheader' => 'Link reset password akun FloraPredict kamu sudah siap digunakan.',
+                'badge' => 'Reset Password',
+                'eyebrow' => 'Keamanan Akun',
+                'title' => 'Reset Password Akun',
+                'subtitle' => 'Gunakan link aman ini untuk membuat password baru dan kembali mengakses dashboard.',
+                'userName' => $notifiable->name,
+                'introLines' => [
+                    'Kami menerima permintaan untuk mereset password akun FloraPredict yang terhubung dengan email ini.',
+                    'Klik tombol di bawah untuk membuat password baru. Setelah berhasil, gunakan password baru saat login berikutnya.',
+                ],
+                'actionLabel' => 'Reset Password Sekarang',
+                'actionUrl' => $url,
+                'noticeTitle' => 'Link berlaku 60 menit',
+                'noticeBody' => 'Jika kamu tidak meminta reset password, abaikan email ini. Password lama tetap aman selama link ini tidak digunakan.',
+                'features' => [
+                    ['icon' => '1', 'title' => 'Aman', 'body' => 'Link dibuat khusus untuk akun kamu.'],
+                    ['icon' => '2', 'title' => 'Cepat', 'body' => 'Atur password baru dalam beberapa langkah.'],
+                    ['icon' => '3', 'title' => 'Terbatas', 'body' => 'Link otomatis kedaluwarsa.'],
+                ],
+                'brandUrl' => config('app.url'),
+            ]);
     }
 }

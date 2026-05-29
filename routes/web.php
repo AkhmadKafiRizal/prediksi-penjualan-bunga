@@ -66,6 +66,9 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])
         ->name('profile.update');
 
+    Route::post('/profile/password-reset-link', [ProfileController::class, 'sendPasswordResetLink'])
+        ->name('profile.password-reset-link');
+
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
 

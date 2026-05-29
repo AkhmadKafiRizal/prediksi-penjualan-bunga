@@ -1,30 +1,42 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}
-    </div>
+    @php
+        $statusMessage = match (session('status')) {
+            'profile-updated-verification-sent' => 'Email profil berhasil diganti. Kami sudah mengirim link verifikasi ke alamat email baru kamu.',
+            'verification-link-sent' => 'Link verifikasi baru sudah dikirim ke email kamu.',
+            default => null,
+        };
+    @endphp
 
-    @if (session('status') == 'verification-link-sent')
-        <div class="mb-4 font-medium text-sm text-green-600">
-            {{ __('A new verification link has been sent to the email address you provided during registration.') }}
+    <div class="fp-card">
+        <div class="fp-card-logo">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="5" width="18" height="14" rx="2"/>
+                <path d="m3 7 9 6 9-6"/>
+                <path d="M16 17h3"/>
+            </svg>
         </div>
-    @endif
 
-    <div class="mt-4 flex items-center justify-between">
-        <form method="POST" action="{{ route('verification.send') }}">
+        <div class="fp-card-title">Verifikasi Email</div>
+        <div class="fp-card-sub">Cek inbox email kamu sebelum lanjut ke dashboard</div>
+
+        @if ($statusMessage)
+            <div class="fp-status">{{ $statusMessage }}</div>
+        @endif
+
+        <div style="font-size:13px;color:#7A4060;line-height:1.65;margin-bottom:18px;text-align:center">
+            Untuk keamanan akun, alamat email kamu perlu diverifikasi lewat link yang kami kirim.
+            Jika email belum masuk, kamu bisa meminta link baru.
+        </div>
+
+        <form method="POST" action="{{ route('verification.send') }}" style="margin-bottom:12px">
             @csrf
-
-            <div>
-                <x-primary-button>
-                    {{ __('Resend Verification Email') }}
-                </x-primary-button>
-            </div>
+            <button type="submit" class="fp-submit">Kirim Ulang Link Verifikasi</button>
         </form>
 
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" style="text-align:center">
             @csrf
-
-            <button type="submit" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                {{ __('Log Out') }}
+            <button type="submit" class="fp-forgot" style="border:0;background:transparent;cursor:pointer">
+                Keluar dari akun
             </button>
         </form>
     </div>
