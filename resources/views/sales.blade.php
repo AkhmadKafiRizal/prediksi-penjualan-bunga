@@ -44,9 +44,16 @@
 .fp-card{background:#fff;border-radius:16px;border:1px solid #FCE4EF;overflow:hidden}
 .fp-toolbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid #FCE4EF;flex-wrap:wrap;gap:.7rem}
 .fp-toolbar-left{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}
+.fp-toolbar-actions{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
 .fp-toolbar-title{font-size:.9rem;font-weight:700;color:var(--dark)}
 .fp-badge-count{background:var(--pk5);color:var(--pk1);border-radius:20px;padding:.15rem .65rem;font-size:.72rem;font-weight:700;border:1px solid #FBCEDE}
 
+.fp-export-scope-panel{display:flex;align-items:flex-start;gap:.75rem;padding:.9rem 1.25rem;border-bottom:1px solid #FCE4EF;background:#FFF8FC;color:#7A4060}
+.fp-export-scope-panel.is-active{background:#ECFDF5;border-bottom-color:#A7F3D0;color:#065F46}
+.fp-export-scope-icon{width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:#fff;border:1px solid currentColor;font-size:.78rem;font-weight:900;line-height:1;flex-shrink:0}
+.fp-export-scope-title{font-size:.8rem;font-weight:800;color:inherit;margin-bottom:2px}
+.fp-export-scope-text{font-size:.82rem;line-height:1.45;color:inherit}
+.fp-export-scope-text strong{font-weight:800}
 .fp-filter-bar{display:flex;align-items:center;gap:.55rem;padding:.85rem 1.25rem;border-bottom:1px solid #FCE4EF;flex-wrap:wrap;background:var(--pk6)}
 .fp-filter-label{font-size:.72rem;font-weight:700;color:#7A2A4A;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
 .fp-filter-select{padding:.42rem .75rem;border:1px solid #FCE4EF;border-radius:9px;font-family:inherit;font-size:.82rem;color:var(--dark);background:#fff;outline:none;cursor:pointer;transition:border .15s}
@@ -104,7 +111,7 @@
 
     <div class="fp-stats-row">
         <div class="fp-stat-card c-rose">
-            <div class="fp-stat-label">Total Data Database</div>
+            <div class="fp-stat-label">Total Data Penjualan</div>
             <div class="fp-stat-val rose">{{ number_format($totalData ?? 0) }}</div>
         </div>
         <div class="fp-stat-card c-blue">
@@ -119,7 +126,7 @@
 
     @if(isset($datasetReady) && $datasetReady)
     <div class="fp-alert fp-alert-success">
-        ✔ Dataset siap untuk training — data tersedia di database dan dapat digunakan oleh model Machine Learning.
+        ✔ Dataset siap digunakan — data tersedia di database dan dapat dipakai untuk analisis serta pelatihan model Machine Learning.
     </div>
     @else
     <div class="fp-alert fp-alert-error">
@@ -128,16 +135,77 @@
     @endif
 
     <div class="fp-card">
+        @php
+            $bulanLabels = [
+                1 => 'Januari',
+                2 => 'Februari',
+                3 => 'Maret',
+                4 => 'April',
+                5 => 'Mei',
+                6 => 'Juni',
+                7 => 'Juli',
+                8 => 'Agustus',
+                9 => 'September',
+                10 => 'Oktober',
+                11 => 'November',
+                12 => 'Desember',
+            ];
+            $activeExportFilters = [];
+
+            if ($filterTahun ?? false) {
+                $activeExportFilters[] = 'Tahun ' . $filterTahun;
+            }
+
+            if ($filterBulan ?? false) {
+                $activeExportFilters[] = 'Bulan ' . ($bulanLabels[(int) $filterBulan] ?? $filterBulan);
+            }
+
+            if ($filterTanggal ?? false) {
+                $tanggalLabel = 'Tanggal ' . $filterTanggal;
+
+                if (($filterTahun ?? false) && ! ($filterBulan ?? false)) {
+                    $tanggalLabel = 'tanggal ' . $filterTanggal . ' di semua bulan';
+                } elseif (! ($filterTahun ?? false) && ! ($filterBulan ?? false)) {
+                    $tanggalLabel = 'tanggal ' . $filterTanggal . ' di semua bulan dan semua tahun';
+                } elseif (! ($filterTahun ?? false) && ($filterBulan ?? false)) {
+                    $tanggalLabel = 'tanggal ' . $filterTanggal . ' di semua tahun';
+                }
+
+                $activeExportFilters[] = $tanggalLabel;
+            }
+
+            if ($search ?? false) {
+                $activeExportFilters[] = 'Pencarian "' . $search . '"';
+            }
+
+            $exportScopeText = empty($activeExportFilters)
+                ? 'Export akan mengambil semua data penjualan karena belum ada filter aktif.'
+                : 'Export akan mengambil data sesuai filter aktif: ' . implode(' - ', $activeExportFilters) . '. Klik Reset Filter jika ingin export semua data.';
+        @endphp
+
         <div class="fp-toolbar">
             <div class="fp-toolbar-left">
                 <span class="fp-toolbar-title">Dataset Penjualan dari Database</span>
                 <span class="fp-badge-count">{{ number_format($totalData ?? 0) }} baris</span>
                 <span class="fp-badge-count">25 data per halaman</span>
             </div>
-            <a href="{{ route('sales.export', request()->only(['search','tahun','bulan','tanggal'])) }}"
-               class="fp-btn fp-btn-success fp-btn-sm">
-                ⬇ Export CSV
-            </a>
+            <div class="fp-toolbar-actions">
+                <a href="{{ route('sales.export.excel', request()->only(['search','tahun','bulan','tanggal'])) }}"
+                   class="fp-btn fp-btn-success fp-btn-sm"
+                   title="{{ $exportScopeText }}">
+                    ⬇ Export Data Penjualan (.xlsx)
+                </a>
+            </div>
+        </div>
+
+        <div class="fp-export-scope-panel {{ empty($activeExportFilters) ? '' : 'is-active' }}">
+            <span class="fp-export-scope-icon">i</span>
+            <div>
+                <div class="fp-export-scope-title">
+                    {{ empty($activeExportFilters) ? 'Export Semua Data' : 'Export Mengikuti Filter Aktif' }}
+                </div>
+                <div class="fp-export-scope-text">{{ $exportScopeText }}</div>
+            </div>
         </div>
 
         <form method="GET" action="{{ route('sales') }}" id="filter-form">
@@ -175,6 +243,7 @@
                 @if(($search ?? false) || ($filterTahun ?? false) || ($filterBulan ?? false) || ($filterTanggal ?? false))
                 <a href="{{ route('sales') }}" class="fp-btn fp-btn-outline fp-btn-sm">✕ Reset Filter</a>
                 @endif
+
             </div>
         </form>
 

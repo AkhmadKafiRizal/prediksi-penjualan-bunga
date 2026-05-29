@@ -39,6 +39,9 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/data-penjualan/export', [SalesController::class, 'export'])
         ->name('sales.export');
 
+    Route::get('/data-penjualan/export-excel', [SalesController::class, 'exportExcel'])
+        ->name('sales.export.excel');
+
     // ==================== MASTER DATA PRODUK ====================
     Route::resource('products', ProductController::class)->only([
         'index', 'store', 'update', 'destroy'
