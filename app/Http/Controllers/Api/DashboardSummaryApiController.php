@@ -12,7 +12,21 @@ class DashboardSummaryApiController extends Controller
         $mongo = DB::connection('mongodb');
 
         $transactions = $mongo->table('penjualans')->count();
-        $flowerTypes = $mongo->table('products')->count();
+        $activeProducts = $mongo->table('products')
+            ->get(['id', 'stok_saat_ini', 'stok_minimum', 'is_active'])
+            ->filter(fn ($product) => (int) ($product->is_active ?? 1) === 1)
+            ->values();
+
+        $activeProductIds = $activeProducts
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        $flowerTypes = $activeProducts->count();
+        $lowStock = $activeProducts->filter(function ($product) {
+            return (int) ($product->stok_saat_ini ?? 0) <= (int) ($product->stok_minimum ?? 0);
+        })->count();
 
         /*
         |--------------------------------------------------------------------------
@@ -22,9 +36,14 @@ class DashboardSummaryApiController extends Controller
         | Untuk ringkasan dashboard mobile, kita ambil tanggal prediksi terbaru,
         | lalu jumlahkan seluruh predicted_sales pada tanggal tersebut.
         */
-        $latestPrediction = $mongo->table('prediction_results')
-            ->orderBy('tanggal', 'desc')
-            ->first();
+        $latestPrediction = null;
+
+        if (! empty($activeProductIds)) {
+            $latestPrediction = $mongo->table('prediction_results')
+                ->whereIn('product_id', $activeProductIds)
+                ->orderBy('tanggal', 'desc')
+                ->first();
+        }
 
         $totalPrediction = 0;
 
@@ -33,6 +52,7 @@ class DashboardSummaryApiController extends Controller
 
             $predictionRows = $mongo->table('prediction_results')
                 ->where('tanggal', $latestPredictionDate)
+                ->whereIn('product_id', $activeProductIds)
                 ->get();
 
             $totalPrediction = $predictionRows->sum(function ($row) {
@@ -46,7 +66,7 @@ class DashboardSummaryApiController extends Controller
                 'transactions' => $transactions,
                 'revenue' => 0,
                 'flower_types' => $flowerTypes,
-                'low_stock' => 0,
+                'low_stock' => $lowStock,
                 'total_prediction' => $totalPrediction,
             ],
         ]);
