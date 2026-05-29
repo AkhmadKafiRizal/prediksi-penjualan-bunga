@@ -387,7 +387,7 @@
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#CCA8BA" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                             <input type="text" placeholder="Cari produk..." id="pr-search-input" oninput="filterTable(this.value)">
                         </div>
-                        <a href="{{ route('predictions.export', ['periode' => $selectedPeriod]) }}" class="pr-export-btn">⬇ Export Excel (.xlsx)</a>
+                        <a href="{{ route('predictions.export', ['periode' => $selectedPeriod]) }}" class="pr-export-btn">⬇ Export Laporan Prediksi (.xlsx)</a>
                         <span class="pr-count-note">{{ number_format($totalProducts ?? 0) }} produk diprediksi</span>
                     </div>
                     <div class="pr-export-help">
