@@ -23,6 +23,9 @@ use App\Http\Controllers\Api\ChatbotController;
 */
 Route::post('/auth/login', [MobileAuthController::class, 'login']);
 Route::post('/auth/logout', [MobileAuthController::class, 'logout']);
+Route::post('/auth/forgot-password', [MobileAuthController::class, 'forgotPassword']);
+Route::post('/auth/verify-otp', [MobileAuthController::class, 'verifyOtp']);
+Route::post('/auth/reset-password', [MobileAuthController::class, 'resetPassword']);
 
 /*
 |--------------------------------------------------------------------------
