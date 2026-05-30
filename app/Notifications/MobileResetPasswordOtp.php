@@ -9,7 +9,7 @@ class MobileResetPasswordOtp extends Notification
 {
     public function __construct(
         private readonly string $otp,
-        private readonly int $expiresInMinutes = 10
+        private readonly int $expiresInMinutes = 5
     ) {
     }
 
