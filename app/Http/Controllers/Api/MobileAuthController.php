@@ -14,7 +14,7 @@ use Throwable;
 
 class MobileAuthController extends Controller
 {
-    private const RESET_OTP_TTL_MINUTES = 10;
+    private const RESET_OTP_TTL_MINUTES = 5;
 
     public function login(Request $request)
     {
@@ -28,7 +28,7 @@ class MobileAuthController extends Controller
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Email atau password salah.',
+                'message' => 'Email atau kata sandi belum sesuai.',
             ], 401);
         }
 
@@ -42,7 +42,7 @@ class MobileAuthController extends Controller
         if (($user->role ?? null) !== 'kasir') {
             return response()->json([
                 'success' => false,
-                'message' => 'Akun admin hanya dapat digunakan melalui website. Silakan login sebagai kasir untuk menggunakan aplikasi mobile.',
+                'message' => 'Akun admin hanya dapat digunakan melalui website. Silakan masuk sebagai kasir untuk menggunakan aplikasi mobile.',
             ], 403);
         }
 
@@ -52,7 +52,7 @@ class MobileAuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Login berhasil.',
+            'message' => 'Masuk berhasil.',
             'data' => [
                 'token' => $token,
                 'user' => [
@@ -79,7 +79,7 @@ class MobileAuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Logout berhasil.',
+            'message' => 'Keluar berhasil.',
         ]);
     }
 
@@ -98,7 +98,7 @@ class MobileAuthController extends Controller
 
             if (! $user || ($user->role ?? null) !== 'kasir') {
                 throw ValidationException::withMessages([
-                    'email' => ['Email kasir tidak ditemukan. Pastikan email sudah terdaftar di Manajemen Kasir.'],
+                    'email' => ['Email kasir tidak terdaftar. Pastikan email sudah dibuat di Manajemen Kasir.'],
                 ]);
             }
 
@@ -121,7 +121,7 @@ class MobileAuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Kode OTP reset kata sandi sudah dikirim ke email kasir.',
+                'message' => 'Kode OTP atur ulang kata sandi sudah dikirim ke email kasir.',
             ]);
         } catch (ValidationException $exception) {
             throw $exception;
@@ -130,7 +130,7 @@ class MobileAuthController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Kode OTP belum bisa dikirim. Periksa koneksi database/email server, lalu coba lagi.',
+                'message' => 'Tidak bisa terhubung ke server. Pastikan internet aktif atau hubungi admin.',
             ], 503);
         }
     }
@@ -179,7 +179,7 @@ class MobileAuthController extends Controller
 
             if (! $user || ($user->role ?? null) !== 'kasir') {
                 throw ValidationException::withMessages([
-                    'email' => ['Email kasir tidak ditemukan.'],
+                    'email' => ['Email kasir tidak terdaftar.'],
                 ]);
             }
 
@@ -192,7 +192,7 @@ class MobileAuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Kata sandi baru berhasil disimpan. Silakan login kembali.',
+                'message' => 'Kata sandi berhasil diubah. Silakan masuk dengan kata sandi baru.',
             ]);
         } catch (ValidationException $exception) {
             throw $exception;
@@ -201,7 +201,7 @@ class MobileAuthController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Kata sandi belum bisa disimpan. Periksa koneksi database, lalu coba lagi.',
+                'message' => 'Tidak bisa terhubung ke server. Pastikan internet aktif atau hubungi admin.',
             ], 503);
         }
     }
