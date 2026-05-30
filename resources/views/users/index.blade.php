@@ -23,6 +23,19 @@
 .fp-alert{display:flex;align-items:center;gap:.6rem;padding:.75rem 1.1rem;border-radius:12px;font-size:.84rem;font-weight:500;margin-bottom:1.1rem}
 .fp-alert-success{background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46}
 .fp-alert-error{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
+.fp-center-notice-backdrop{position:fixed;inset:0;z-index:1400;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(26,10,18,.38);backdrop-filter:blur(5px)}
+.fp-center-notice-backdrop.is-visible{display:flex}
+.fp-center-notice{width:min(480px,100%);background:#fff;border-radius:18px;border:1px solid #FCE4EF;box-shadow:0 26px 70px rgba(26,10,18,.22);padding:1.35rem;animation:noticeIn .2s ease}
+@keyframes noticeIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.fp-center-notice-head{display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem}
+.fp-center-notice-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.05rem;flex-shrink:0}
+.fp-center-notice-title{font-size:1rem;font-weight:800;color:var(--dark)}
+.fp-center-notice-text{font-size:.86rem;line-height:1.55;color:#5B3245;word-break:break-word}
+.fp-center-notice-actions{display:flex;justify-content:flex-end;margin-top:1rem}
+.fp-center-notice-success{border-color:#A7F3D0}
+.fp-center-notice-success .fp-center-notice-icon{background:#ECFDF5;color:#047857}
+.fp-center-notice-error{border-color:#FCA5A5}
+.fp-center-notice-error .fp-center-notice-icon{background:#FEF2F2;color:#B91C1C}
 .fp-submit-toast{position:fixed;right:24px;top:24px;z-index:1100;display:none;align-items:center;gap:.55rem;padding:.78rem 1rem;border-radius:12px;background:#fff;color:#7A2A4A;border:1px solid #FCE4EF;box-shadow:0 18px 45px rgba(232,24,90,.16);font-size:.82rem;font-weight:700}
 .fp-submit-toast.show{display:flex}
 .fp-submit-toast-dot{width:9px;height:9px;border-radius:999px;background:var(--pk1);box-shadow:0 0 0 5px rgba(232,24,90,.12)}
@@ -93,6 +106,12 @@
 .fp-form-group input{width:100%;padding:.6rem .85rem;border:1px solid #FCE4EF;border-radius:10px;font-family:inherit;font-size:.875rem;color:var(--dark);background:var(--pk6);outline:none;box-sizing:border-box;transition:border .15s,box-shadow .15s}
 .fp-form-group input:focus{border-color:var(--pk2);box-shadow:0 0 0 3px rgba(232,24,90,.1);background:#fff}
 .fp-form-hint{font-size:.72rem;color:#CCA8BA;margin-top:.3rem}
+.fp-password-notice{margin-top:.15rem;padding:.72rem .82rem;border-radius:12px;background:#F8FAFC;border:1px solid #E2E8F0;color:#475569;font-size:.78rem;line-height:1.5}
+.fp-password-notice strong{display:block;color:#334155;font-weight:800;margin-bottom:2px}
+.fp-password-notice.is-ready{background:#ECFDF5;border-color:#A7F3D0;color:#047857}
+.fp-password-notice.is-ready strong{color:#065F46}
+.fp-password-notice.is-warning{background:#FFF7ED;border-color:#FED7AA;color:#9A3412}
+.fp-password-notice.is-warning strong{color:#9A3412}
 .fp-modal-footer{display:flex;justify-content:flex-end;gap:.55rem;margin-top:1.4rem;padding-top:1.1rem;border-top:1px solid #FCE4EF}
 .fp-modal-icon{width:50px;height:50px;background:var(--pk5);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:.9rem}
 .fp-modal-body-text{font-size:.875rem;color:#4A2A3A;line-height:1.6}
@@ -111,11 +130,35 @@
         </div>
     </div>
 
+    @php
+        $centerNoticeMessage = session('success') ?: session('error') ?: ($databaseError ?? null);
+        $centerNoticeType = session('success') ? 'success' : ($centerNoticeMessage ? 'error' : null);
+        $centerNoticeTitle = $centerNoticeType === 'success' ? 'Berhasil Disimpan' : 'Belum Berhasil';
+    @endphp
+
+    @if($centerNoticeMessage)
+    <div class="fp-center-notice-backdrop is-visible" id="cashier-center-notice" role="{{ $centerNoticeType === 'success' ? 'status' : 'alert' }}" aria-live="polite">
+        <div class="fp-center-notice fp-center-notice-{{ $centerNoticeType }}">
+            <div class="fp-center-notice-head">
+                <div class="fp-center-notice-icon">{{ $centerNoticeType === 'success' ? '✓' : '!' }}</div>
+                <div class="fp-center-notice-title">{{ $centerNoticeTitle }}</div>
+            </div>
+            <div class="fp-center-notice-text">{{ $centerNoticeMessage }}</div>
+            <div class="fp-center-notice-actions">
+                <button type="button" class="fp-btn fp-btn-primary fp-btn-sm" data-center-notice-close>Mengerti</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
     @if(session('success'))
     <div class="fp-alert fp-alert-success">✔ {{ session('success') }}</div>
     @endif
     @if(session('error'))
     <div class="fp-alert fp-alert-error">⚠ {{ session('error') }}</div>
+    @endif
+    @if($databaseError ?? false)
+    <div class="fp-alert fp-alert-error">⚠ {{ $databaseError }}</div>
     @endif
 
     @if($errors->any())
@@ -266,7 +309,7 @@
         </div>
         <form action="{{ route('users.store') }}" method="POST" class="fp-action-form" data-loading-message="Menyimpan akun kasir...">
             @csrf
-            <div class="fp-form-group"><label>Nama Lengkap</label><input type="text" name="name" placeholder="contoh: Budi Santoso" required></div>
+            <div class="fp-form-group"><label>Nama Panggilan</label><input type="text" name="name" placeholder="contoh: Nayla" required></div>
             <div class="fp-form-group"><label>Email</label><input type="email" name="email" placeholder="contoh: budi@email.com" required></div>
             <div class="fp-form-group"><label>Password</label><input type="password" name="password" placeholder="Minimal 8 karakter" required></div>
             <div class="fp-form-group"><label>Konfirmasi Password</label><input type="password" name="password_confirmation" placeholder="Ulangi password" required></div>
@@ -285,16 +328,23 @@
             <span class="fp-modal-title">✏️ Edit Akun Kasir</span>
             <button type="button" class="fp-modal-close" onclick="closeModal('modal-edit')">✕</button>
         </div>
-        <form id="form-edit" action="" method="POST" class="fp-action-form" data-loading-message="Menyimpan perubahan kasir...">
+        <form id="form-edit" action="" method="POST" class="fp-action-form" data-loading-message="Menyimpan perubahan kasir. Password tetap menggunakan yang lama.">
             @csrf @method('PUT')
-            <div class="fp-form-group"><label>Nama Lengkap</label><input type="text" id="edit-name" name="name" required></div>
+            <div class="fp-form-group"><label>Nama Panggilan</label><input type="text" id="edit-name" name="name" required></div>
             <div class="fp-form-group"><label>Email</label><input type="email" id="edit-email" name="email" required></div>
             <div class="fp-form-group">
                 <label>Password Baru</label>
-                <input type="password" id="edit-password" name="password" placeholder="Minimal 8 karakter jika diganti">
+                <input type="password" id="edit-password" name="password" placeholder="Minimal 8 karakter jika diganti" minlength="8" autocomplete="new-password">
                 <div class="fp-form-hint">Isi hanya jika ingin mengganti password. Minimal 8 karakter.</div>
             </div>
-            <div class="fp-form-group"><label>Konfirmasi Password Baru</label><input type="password" id="edit-password-confirmation" name="password_confirmation" placeholder="Ulangi password baru"></div>
+            <div class="fp-form-group">
+                <label>Konfirmasi Password Baru</label>
+                <input type="password" id="edit-password-confirmation" name="password_confirmation" placeholder="Ulangi password baru" minlength="8" autocomplete="new-password">
+            </div>
+            <div class="fp-password-notice" id="edit-password-notice" aria-live="polite">
+                <strong>Password tidak diubah.</strong>
+                Kasir tetap login dengan password lama setelah data disimpan.
+            </div>
             <div class="fp-modal-footer">
                 <button type="button" class="fp-btn fp-btn-outline" onclick="closeModal('modal-edit')">Batal</button>
                 <button type="submit" class="fp-btn fp-btn-primary">Simpan Perubahan</button>
@@ -331,6 +381,84 @@
 
 <script>
 const usersBaseUrl = "{{ url('users') }}";
+const editForm = document.getElementById('form-edit');
+const editPasswordInput = document.getElementById('edit-password');
+const editPasswordConfirmationInput = document.getElementById('edit-password-confirmation');
+const editPasswordNotice = document.getElementById('edit-password-notice');
+const centerNotice = document.getElementById('cashier-center-notice');
+
+function closeCenterNotice() {
+    if (centerNotice) centerNotice.classList.remove('is-visible');
+}
+
+if (centerNotice) {
+    document.querySelectorAll('[data-center-notice-close]').forEach(button => {
+        button.addEventListener('click', closeCenterNotice);
+    });
+
+    centerNotice.addEventListener('click', event => {
+        if (event.target === centerNotice) closeCenterNotice();
+    });
+
+    setTimeout(closeCenterNotice, 6500);
+}
+
+function setEditPasswordNotice(state, html) {
+    if (!editPasswordNotice) return;
+
+    editPasswordNotice.classList.remove('is-ready', 'is-warning');
+    if (state) editPasswordNotice.classList.add(state);
+    editPasswordNotice.innerHTML = html;
+}
+
+function updateEditPasswordNotice() {
+    if (!editPasswordInput || !editPasswordConfirmationInput || !editForm) return;
+
+    const password = editPasswordInput.value;
+    const confirmation = editPasswordConfirmationInput.value;
+    const wantsPasswordChange = password.length > 0 || confirmation.length > 0;
+
+    if (!wantsPasswordChange) {
+        editForm.dataset.loadingMessage = 'Menyimpan perubahan kasir. Password tetap menggunakan yang lama.';
+        setEditPasswordNotice('', '<strong>Password tidak diubah.</strong> Kasir tetap login dengan password lama setelah data disimpan.');
+        return;
+    }
+
+    editForm.dataset.loadingMessage = 'Menyimpan perubahan kasir dan menyiapkan password baru...';
+
+    if (password.length >= 8 && password === confirmation) {
+        setEditPasswordNotice('is-ready', '<strong>Password akan diganti.</strong> Password baru langsung aktif untuk login mobile setelah disimpan.');
+        return;
+    }
+
+    setEditPasswordNotice('is-warning', '<strong>Lengkapi password baru.</strong> Isi kedua kolom, minimal 8 karakter, dan pastikan konfirmasinya sama.');
+}
+
+function validateEditPasswordBeforeSubmit() {
+    if (!editPasswordInput || !editPasswordConfirmationInput) return true;
+
+    const password = editPasswordInput.value;
+    const confirmation = editPasswordConfirmationInput.value;
+    const wantsPasswordChange = password.length > 0 || confirmation.length > 0;
+
+    if (!wantsPasswordChange) {
+        updateEditPasswordNotice();
+        return true;
+    }
+
+    if (password.length >= 8 && password === confirmation) {
+        updateEditPasswordNotice();
+        return true;
+    }
+
+    updateEditPasswordNotice();
+    editPasswordInput.focus();
+    return false;
+}
+
+[editPasswordInput, editPasswordConfirmationInput].forEach(input => {
+    if (input) input.addEventListener('input', updateEditPasswordNotice);
+});
 
 function openModal(id) {
     document.getElementById(id).classList.add('open');
@@ -349,11 +477,19 @@ document.querySelectorAll('.fp-modal-overlay').forEach(el => {
 });
 
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') ['modal-tambah', 'modal-edit', 'modal-status'].forEach(closeModal);
+    if (e.key === 'Escape') {
+        closeCenterNotice();
+        ['modal-tambah', 'modal-edit', 'modal-status'].forEach(closeModal);
+    }
 });
 
 document.querySelectorAll('.fp-action-form').forEach(form => {
     form.addEventListener('submit', function(event) {
+        if (this.id === 'form-edit' && !validateEditPasswordBeforeSubmit()) {
+            event.preventDefault();
+            return;
+        }
+
         if (this.dataset.submitting === '1') {
             event.preventDefault();
             return;
@@ -405,6 +541,7 @@ function openEdit(id, name, email) {
     document.getElementById('edit-password').value = '';
     document.getElementById('edit-password-confirmation').value = '';
     document.getElementById('form-edit').action = `${usersBaseUrl}/${id}`;
+    updateEditPasswordNotice();
     openModal('modal-edit');
 }
 

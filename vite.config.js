@@ -5,7 +5,8 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
-                'resources/css/flora.css', // ✅ ganti ke flora.css
+                'resources/css/app.css',
+                'resources/css/flora.css',
                 'resources/js/app.js'
             ],
             refresh: true,
