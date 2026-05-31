@@ -486,6 +486,29 @@
         </div>
     </div>
 
+    <!-- Modal Peringatan Sesi Idle -->
+    <div id="idle-timeout-modal" aria-hidden="true" style="display:none;position:fixed;inset:0;z-index:10000;align-items:center;justify-content:center;background:rgba(26,10,18,0.52);backdrop-filter:blur(7px)">
+        <div role="dialog" aria-modal="true" aria-labelledby="idle-timeout-title" style="background:#fff;border-radius:22px;padding:28px;width:100%;max-width:420px;margin:1rem;box-shadow:0 28px 70px rgba(0,0,0,0.22);animation:modalIn .2s ease;border:1px solid #FFE0EE">
+            <div style="width:52px;height:52px;background:#FFF1F7;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;color:#E8185A">
+                <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 7v5l3 2"></path>
+                </svg>
+            </div>
+            <div id="idle-timeout-title" style="font-size:18px;font-weight:800;color:#1A0A12;margin-bottom:7px">Sesi Anda akan berakhir</div>
+            <div style="font-size:13px;color:#9A6070;line-height:1.65;margin-bottom:14px">
+                Tidak ada aktivitas selama hampir 30 menit. Klik <strong style="color:#7A2147">Tetap masuk</strong> jika masih ingin melanjutkan pekerjaan.
+            </div>
+            <div style="background:#FFF7FB;border:1px solid #FFD5E8;border-radius:14px;padding:12px 14px;margin-bottom:22px;color:#7A2147;font-size:13px;font-weight:800">
+                Logout otomatis dalam <span id="idle-countdown">120 detik</span>.
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+                <button type="button" onclick="autoLogout(this)" style="padding:10px 18px;background:#fff;color:#7A4060;border:1.5px solid #FCE4EF;border-radius:11px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s">Keluar sekarang</button>
+                <button type="button" onclick="stayLoggedIn()" style="padding:10px 18px;background:linear-gradient(135deg,#E8185A,#F04E8A);color:#fff;border:none;border-radius:11px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(232,24,90,0.3)">Tetap masuk</button>
+            </div>
+        </div>
+    </div>
+
     <style>
     @keyframes modalIn {
         from { opacity:0; transform:translateY(14px) scale(0.97); }
@@ -494,9 +517,24 @@
     </style>
 
     <script>
+    const adminIdleLimitMs = 30 * 60 * 1000;
+    const adminIdleWarningMs = 28 * 60 * 1000;
+    const adminKeepAliveMs = 2 * 60 * 1000;
+    const adminKeepAliveUrl = @json(route('session.keep-alive'));
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    let idleWarningTimer;
+    let idleLogoutTimer;
+    let idleCountdownTimer;
+    let idleCountdownSeconds = 60;
+    let lastKeepAliveAt = 0;
+    let isLoggingOut = false;
+
     function confirmLogout() { document.getElementById('logout-modal').style.display = 'flex'; }
     function closeLogout() { document.getElementById('logout-modal').style.display = 'none'; }
     function submitLogout(button) {
+        if (isLoggingOut) return;
+        isLoggingOut = true;
         if (button) {
             button.disabled = true;
             button.textContent = 'Keluar...';
@@ -504,6 +542,97 @@
         document.getElementById('logout-form')?.submit();
     }
     document.getElementById('logout-modal').addEventListener('click', function(e) { if (e.target === this) closeLogout(); });
+
+    function renderIdleCountdown() {
+        const countdown = document.getElementById('idle-countdown');
+        if (countdown) countdown.textContent = `${idleCountdownSeconds} detik`;
+    }
+
+    function showIdleWarning() {
+        if (isLoggingOut) return;
+
+        const modal = document.getElementById('idle-timeout-modal');
+        if (!modal) return;
+
+        idleCountdownSeconds = Math.ceil((adminIdleLimitMs - adminIdleWarningMs) / 1000);
+        renderIdleCountdown();
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+
+        clearInterval(idleCountdownTimer);
+        idleCountdownTimer = setInterval(function () {
+            idleCountdownSeconds -= 1;
+            renderIdleCountdown();
+
+            if (idleCountdownSeconds <= 0) {
+                clearInterval(idleCountdownTimer);
+                autoLogout();
+            }
+        }, 1000);
+    }
+
+    function closeIdleWarning() {
+        const modal = document.getElementById('idle-timeout-modal');
+        if (!modal) return;
+
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+        clearInterval(idleCountdownTimer);
+    }
+
+    function keepAdminSessionAlive(force = false) {
+        if (!csrfToken || isLoggingOut) return;
+
+        const now = Date.now();
+        if (!force && now - lastKeepAliveAt < adminKeepAliveMs) return;
+        lastKeepAliveAt = now;
+
+        fetch(adminKeepAliveUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ keep_alive: true })
+        }).then(function (response) {
+            if (response.status === 401) autoLogout();
+        }).catch(function () {
+            // Jika koneksi sedang putus, timer browser tetap menjaga auto logout.
+        });
+    }
+
+    function resetIdleTimers(shouldPing = false) {
+        if (isLoggingOut) return;
+
+        closeIdleWarning();
+        clearTimeout(idleWarningTimer);
+        clearTimeout(idleLogoutTimer);
+
+        idleWarningTimer = setTimeout(showIdleWarning, adminIdleWarningMs);
+        idleLogoutTimer = setTimeout(function () { autoLogout(); }, adminIdleLimitMs);
+
+        if (shouldPing) keepAdminSessionAlive(false);
+    }
+
+    function stayLoggedIn() {
+        keepAdminSessionAlive(true);
+        resetIdleTimers(false);
+    }
+
+    function autoLogout(button = null) {
+        submitLogout(button);
+    }
+
+    ['click', 'keydown', 'scroll', 'touchstart', 'pointerdown'].forEach(function (eventName) {
+        document.addEventListener(eventName, function (event) {
+            const target = event.target instanceof Element ? event.target : null;
+            if (target && (target.closest('#logout-modal') || target.closest('#idle-timeout-modal'))) return;
+            resetIdleTimers(true);
+        }, { passive: true });
+    });
+
+    resetIdleTimers(false);
     </script>
 
     <div class="fp-main-wrapper">

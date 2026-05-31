@@ -6,6 +6,7 @@ use App\Http\Controllers\SalesController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ChatbotPageController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Root redirect
@@ -15,7 +16,15 @@ Route::get('/', function () {
         : redirect()->route('login');
 })->name('home');
 
-Route::middleware(['auth', 'verified', 'admin'])->group(function () {
+Route::middleware(['auth', 'verified', 'admin', 'admin.idle'])->group(function () {
+
+    Route::post('/session/keep-alive', function (Request $request) {
+        $request->session()->put('admin_last_activity_at', time());
+
+        return response()->json([
+            'success' => true,
+        ]);
+    })->name('session.keep-alive');
 
     // ==================== DASHBOARD ====================
     Route::get('/dashboard', [PredictionController::class, 'dashboard'])

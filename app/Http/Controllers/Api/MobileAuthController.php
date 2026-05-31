@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use App\Notifications\MobileResetPasswordOtp;
@@ -15,6 +16,12 @@ use Throwable;
 class MobileAuthController extends Controller
 {
     private const RESET_OTP_TTL_MINUTES = 5;
+    private const LOGIN_MAX_ATTEMPTS = 5;
+    private const LOGIN_DECAY_SECONDS = 60;
+    private const RESET_OTP_MAX_ATTEMPTS = 3;
+    private const RESET_OTP_DECAY_SECONDS = 300;
+    private const RESET_VERIFY_MAX_ATTEMPTS = 5;
+    private const RESET_VERIFY_DECAY_SECONDS = 300;
 
     public function login(Request $request)
     {
@@ -23,19 +30,40 @@ class MobileAuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $credentials['email'])->first();
+        $email = $this->normalizeEmail($credentials['email']);
+        $loginThrottleKey = $this->throttleKey('mobile_login', $email, $request);
+
+        if (RateLimiter::tooManyAttempts($loginThrottleKey, self::LOGIN_MAX_ATTEMPTS)) {
+            return $this->rateLimitResponse(
+                $loginThrottleKey,
+                'Terlalu banyak percobaan masuk.'
+            );
+        }
+
+        $user = User::where('email', $email)->first();
 
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+            RateLimiter::hit($loginThrottleKey, self::LOGIN_DECAY_SECONDS);
+
+            if (RateLimiter::tooManyAttempts($loginThrottleKey, self::LOGIN_MAX_ATTEMPTS)) {
+                return $this->rateLimitResponse(
+                    $loginThrottleKey,
+                    'Terlalu banyak percobaan masuk.'
+                );
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => 'Email atau kata sandi belum sesuai.',
             ], 401);
         }
 
+        RateLimiter::clear($loginThrottleKey);
+
         if (($user->status ?? 'aktif') !== 'aktif') {
             return response()->json([
                 'success' => false,
-                'message' => 'Akun Anda sedang nonaktif. Silakan hubungi admin.',
+                'message' => 'Akun kasir sedang nonaktif. Silakan hubungi admin.',
             ], 403);
         }
 
@@ -94,6 +122,17 @@ class MobileAuthController extends Controller
 
         try {
             $email = $this->normalizeEmail($data['email']);
+            $resetThrottleKey = $this->throttleKey('mobile_reset_otp', $email, $request);
+
+            if (RateLimiter::tooManyAttempts($resetThrottleKey, self::RESET_OTP_MAX_ATTEMPTS)) {
+                return $this->rateLimitResponse(
+                    $resetThrottleKey,
+                    'Terlalu sering meminta kode OTP.'
+                );
+            }
+
+            RateLimiter::hit($resetThrottleKey, self::RESET_OTP_DECAY_SECONDS);
+
             $user = User::where('email', $email)->first();
 
             if (! $user || ($user->role ?? null) !== 'kasir') {
@@ -147,7 +186,20 @@ class MobileAuthController extends Controller
             'otp.digits' => 'Kode OTP harus 6 digit.',
         ]);
 
-        $this->ensureValidResetOtp($data['email'], $data['otp']);
+        $email = $this->normalizeEmail($data['email']);
+        $verifyThrottleKey = $this->throttleKey('mobile_reset_verify', $email, $request);
+
+        if (RateLimiter::tooManyAttempts($verifyThrottleKey, self::RESET_VERIFY_MAX_ATTEMPTS)) {
+            return $this->rateLimitResponse(
+                $verifyThrottleKey,
+                'Terlalu banyak percobaan kode OTP.'
+            );
+        }
+
+        RateLimiter::hit($verifyThrottleKey, self::RESET_VERIFY_DECAY_SECONDS);
+
+        $this->ensureValidResetOtp($email, $data['otp']);
+        RateLimiter::clear($verifyThrottleKey);
 
         return response()->json([
             'success' => true,
@@ -173,7 +225,18 @@ class MobileAuthController extends Controller
 
         try {
             $email = $this->normalizeEmail($data['email']);
+            $verifyThrottleKey = $this->throttleKey('mobile_reset_verify', $email, $request);
+
+            if (RateLimiter::tooManyAttempts($verifyThrottleKey, self::RESET_VERIFY_MAX_ATTEMPTS)) {
+                return $this->rateLimitResponse(
+                    $verifyThrottleKey,
+                    'Terlalu banyak percobaan kode OTP.'
+                );
+            }
+
+            RateLimiter::hit($verifyThrottleKey, self::RESET_VERIFY_DECAY_SECONDS);
             $this->ensureValidResetOtp($email, $data['otp']);
+            RateLimiter::clear($verifyThrottleKey);
 
             $user = User::where('email', $email)->first();
 
@@ -221,6 +284,24 @@ class MobileAuthController extends Controller
     private function resetOtpKey(string $email): string
     {
         return 'mobile_password_reset_otp:' . sha1($this->normalizeEmail($email));
+    }
+
+    private function throttleKey(string $action, string $email, Request $request): string
+    {
+        return $action . ':' . sha1($this->normalizeEmail($email) . '|' . $request->ip());
+    }
+
+    private function rateLimitResponse(string $key, string $message)
+    {
+        $seconds = max(1, RateLimiter::availableIn($key));
+
+        return response()->json([
+            'success' => false,
+            'message' => "{$message} Coba lagi dalam {$seconds} detik.",
+            'retry_after' => $seconds,
+        ], 429)->withHeaders([
+            'Retry-After' => $seconds,
+        ]);
     }
 
     private function normalizeEmail(string $email): string

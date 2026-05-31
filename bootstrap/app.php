@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Middleware\AdminOnly;
+use App\Http\Middleware\AdminIdleTimeout;
+use App\Http\Middleware\MobileCashierOnly;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -15,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => AdminOnly::class,
+            'admin.idle' => AdminIdleTimeout::class,
+            'mobile.cashier' => MobileCashierOnly::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
