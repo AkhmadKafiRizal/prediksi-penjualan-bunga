@@ -33,8 +33,9 @@ Route::post('/auth/reset-password', [MobileAuthController::class, 'resetPassword
 |--------------------------------------------------------------------------
 | Dipakai Flutter untuk membaca ringkasan dashboard dan hasil prediksi.
 */
-Route::get('/dashboard/summary', [DashboardSummaryApiController::class, 'index']);
-Route::get('/predictions', [PredictionApiController::class, 'index']);
+Route::middleware('mobile.cashier')->group(function () {
+    Route::get('/dashboard/summary', [DashboardSummaryApiController::class, 'index']);
+    Route::get('/predictions', [PredictionApiController::class, 'index']);
 
 /*
 |--------------------------------------------------------------------------
@@ -42,9 +43,9 @@ Route::get('/predictions', [PredictionApiController::class, 'index']);
 |--------------------------------------------------------------------------
 | Dipakai Flutter untuk membaca, menambah, dan mengubah stok produk.
 */
-Route::get('/stocks', [StockApiController::class, 'index']);
-Route::post('/stocks', [StockApiController::class, 'store']);
-Route::patch('/stocks/{id}/adjust', [StockApiController::class, 'adjust']);
+    Route::get('/stocks', [StockApiController::class, 'index']);
+    Route::post('/stocks', [StockApiController::class, 'store']);
+    Route::patch('/stocks/{id}/adjust', [StockApiController::class, 'adjust']);
 
 /*
 |--------------------------------------------------------------------------
@@ -52,8 +53,9 @@ Route::patch('/stocks/{id}/adjust', [StockApiController::class, 'adjust']);
 |--------------------------------------------------------------------------
 | Dipakai Flutter untuk menyimpan transaksi kasir ke MongoDB collection penjualans.
 */
-Route::get('/transactions', [TransactionApiController::class, 'index']);
-Route::post('/transactions', [TransactionApiController::class, 'store']);
+    Route::get('/transactions', [TransactionApiController::class, 'index']);
+    Route::post('/transactions', [TransactionApiController::class, 'store']);
+});
 
 /*
 |--------------------------------------------------------------------------

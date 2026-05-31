@@ -428,4 +428,30 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 @endif
 
+@if(session('idle_timeout'))
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'Sesi Berakhir',
+            text: 'Anda keluar otomatis karena tidak ada aktivitas selama 30 menit.',
+            showConfirmButton: false,
+            timer: 4200,
+            timerProgressBar: true,
+            backdrop: false,
+            background: '#FFF8FC',
+            color: '#1A0A12',
+            iconColor: '#F59E0B',
+            customClass: {
+                popup: 'swal-flora-popup',
+                title: 'swal-flora-title',
+                timerProgressBar: 'swal-flora-bar'
+            }
+        });
+    });
+</script>
+@endif
+
 </x-guest-layout>
