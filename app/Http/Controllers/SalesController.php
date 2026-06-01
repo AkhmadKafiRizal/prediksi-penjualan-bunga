@@ -43,10 +43,28 @@ class SalesController extends Controller
         $productId = $row->product_id ?? null;
 
         $row->id = $row->id ?? (isset($row->_id) ? (string) $row->_id : '');
+        $row->display_id = $this->displayIdFor($row);
         $row->nama_bunga = $this->productNameFor($productNames, $productId);
         $row->kasir_name = $this->cashierNameFor($row);
 
         return $row;
+    }
+
+    private function displayIdFor($row): string
+    {
+        $transactionNumber = $row->transaction_number ?? null;
+
+        if ($transactionNumber !== null && $transactionNumber !== '') {
+            return (string) $transactionNumber;
+        }
+
+        $legacyId = $row->id ?? null;
+
+        if ($legacyId !== null && $legacyId !== '') {
+            return (string) $legacyId;
+        }
+
+        return isset($row->_id) ? (string) $row->_id : '';
     }
 
     private function cashierNameFor($row): string
@@ -385,7 +403,7 @@ class SalesController extends Controller
                     $row = $this->withProductName($row, $productNames);
 
                     fputcsv($handle, [
-                        $row->id ?? '',
+                        $row->display_id ?? '',
                         $row->product_id ?? '',
                         $row->nama_bunga ?? '',
                         $row->tanggal ?? '',
@@ -564,7 +582,7 @@ class SalesController extends Controller
                 $style = $rowNumber % 2 === 0 ? 7 : 6;
 
                 $this->salesXlsxRow($writer, $rowNumber++, [
-                    ['type' => 'text', 'value' => $row->id ?? '', 'style' => $style],
+                    ['type' => 'text', 'value' => $row->display_id ?? '', 'style' => $style],
                     ['type' => is_numeric($row->product_id ?? null) ? 'number' : 'text', 'value' => $row->product_id ?? '', 'style' => $style],
                     ['type' => 'text', 'value' => $row->nama_bunga ?? '', 'style' => $style],
                     ['type' => 'text', 'value' => $row->tanggal ?? '', 'style' => $style],
