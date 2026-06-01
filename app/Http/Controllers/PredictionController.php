@@ -370,13 +370,19 @@ class PredictionController extends Controller
         $periodLabel = Carbon::createFromFormat('Y-m', $selectedPeriod)
             ->translatedFormat('F Y');
 
-        $exportRows = $rows->values()->map(function ($row, $index) use ($productNames, $selectedPeriod, $targetDate) {
+        $validationMetricSource = $this->getLatestProductValidationMetrics($targetDate);
+        $validationFallbacks = $validationMetricSource['items'] ?? collect();
+
+        $exportRows = $rows->values()->map(function ($row, $index) use ($productNames, $selectedPeriod, $targetDate, $validationFallbacks) {
             $productId = $row->product_id ?? null;
             $prediction = (float) ($row->predicted_sales ?? 0);
-            $mae = (float) ($row->mae ?? 0);
-            $accuracy = $prediction > 0
+            $fallback = $validationFallbacks->get((string) $productId, []);
+            $mae = $row->mae ?? ($fallback['mae'] ?? null);
+            $rmse = $row->rmse ?? ($fallback['rmse'] ?? null);
+            $accuracy = $fallback['accuracy'] ?? null;
+            $accuracy = $accuracy ?? ($prediction > 0 && $mae !== null
                 ? max(0, min(100, 100 - (($mae / $prediction) * 100)))
-                : null;
+                : null);
 
             return [
                 'no' => $index + 1,
@@ -385,11 +391,11 @@ class PredictionController extends Controller
                 'product_id' => $productId,
                 'nama_bunga' => $productNames[$productId] ?? $productNames[(string) $productId] ?? ('Produk #' . $productId),
                 'estimasi_kebutuhan_tangkai' => round($prediction),
-                'mae' => $row->mae ?? null,
-                'rmse' => $row->rmse ?? null,
+                'mae' => $mae,
+                'rmse' => $rmse,
                 'akurasi_persen' => $accuracy !== null ? round($accuracy, 2) : null,
-                'validation_mae' => $row->validation_mae ?? null,
-                'validation_rmse' => $row->validation_rmse ?? null,
+                'validation_mae' => $row->validation_mae ?? ($fallback['validation_mae'] ?? null),
+                'validation_rmse' => $row->validation_rmse ?? ($fallback['validation_rmse'] ?? null),
                 'updated_at' => isset($row->updated_at) ? (string) $row->updated_at : null,
             ];
         });
@@ -449,11 +455,11 @@ class PredictionController extends Controller
             'Product ID',
             'Nama Bunga',
             'Estimasi Kebutuhan',
-            'MAE',
-            'RMSE',
-            'Akurasi (%)',
-            'Validation MAE',
-            'Validation RMSE',
+            'MAE Validasi',
+            'RMSE Validasi',
+            'Akurasi Validasi (%)',
+            'MAE Validasi Internal',
+            'RMSE Validasi Internal',
         ];
 
         $sheet->fromArray($headers, null, 'A6');
@@ -568,6 +574,23 @@ class PredictionController extends Controller
             $selectedPeriod = $this->getDefaultPredictionPeriod();
         }
 
+        $availablePredictionPeriods = $this->getAvailablePredictionPeriods();
+        $nextPredictionPeriod = $this->getNextPredictionPeriod(
+            $availablePredictionPeriods,
+            $selectedPeriod
+        );
+        if (
+            $availablePredictionPeriods->isNotEmpty()
+            && ! $availablePredictionPeriods->contains(fn ($period) => ($period['value'] ?? null) === $selectedPeriod)
+            && ($nextPredictionPeriod['value'] ?? null) !== $selectedPeriod
+        ) {
+            $selectedPeriod = $availablePredictionPeriods->last()['value'];
+            $nextPredictionPeriod = $this->getNextPredictionPeriod(
+                $availablePredictionPeriods,
+                $selectedPeriod
+            );
+        }
+
         $productNames = $this->getProductNames();
         $activeProductIds = $this->getActiveProductIds();
         $recentSales = $this->getRecentSales($productNames);
@@ -620,27 +643,63 @@ class PredictionController extends Controller
                 'product_id'      => $productId,
                 'product_name'    => $productNames[$productId] ?? ('Produk #' . $productId),
                 'prediction'      => $item->predicted_sales ?? 0,
-                'mae'             => $item->mae ?? 0,
-                'rmse'            => $item->rmse ?? 0,
-                'validation_mae'  => $item->validation_mae ?? 0,
-                'validation_rmse' => $item->validation_rmse ?? 0,
+                'mae'             => $item->mae ?? null,
+                'rmse'            => $item->rmse ?? null,
+                'validation_mae'  => $item->validation_mae ?? null,
+                'validation_rmse' => $item->validation_rmse ?? null,
+                'accuracy'        => null,
             ];
         })->values();
+
+        $validationMetricSource = $this->getLatestProductValidationMetrics($targetDate);
+        $validationFallbacks = $validationMetricSource['items'] ?? collect();
+
+        if ($validationFallbacks->isNotEmpty()) {
+            $productPredictions = $productPredictions->map(function ($item) use ($validationFallbacks) {
+                $fallback = $validationFallbacks->get((string) ($item['product_id'] ?? ''), []);
+
+                $item['mae'] = $item['mae'] ?? ($fallback['mae'] ?? null);
+                $item['rmse'] = $item['rmse'] ?? ($fallback['rmse'] ?? null);
+                $item['validation_mae'] = $item['validation_mae'] ?? ($fallback['validation_mae'] ?? null);
+                $item['validation_rmse'] = $item['validation_rmse'] ?? ($fallback['validation_rmse'] ?? null);
+                $item['accuracy'] = $item['accuracy'] ?? ($fallback['accuracy'] ?? null);
+
+                return $item;
+            })->values();
+        }
 
         $predictionReady = $productPredictions->count() > 0;
         $predictedValue  = $productPredictions->sum('prediction');
         $totalProducts   = $productPredictions->count();
 
-        $mae            = $predictionReady ? round($productPredictions->avg('mae'), 2) : 0;
-        $rmse           = $predictionReady ? round($productPredictions->avg('rmse'), 2) : 0;
-        $validationMae  = $predictionReady ? round($productPredictions->avg('validation_mae'), 2) : 0;
-        $validationRmse = $predictionReady ? round($productPredictions->avg('validation_rmse'), 2) : 0;
+        $maeValues = $productPredictions
+            ->pluck('mae')
+            ->filter(fn ($value) => $value !== null);
+        $rmseValues = $productPredictions
+            ->pluck('rmse')
+            ->filter(fn ($value) => $value !== null);
+        $validationMaeValues = $productPredictions
+            ->pluck('validation_mae')
+            ->filter(fn ($value) => $value !== null);
+        $validationRmseValues = $productPredictions
+            ->pluck('validation_rmse')
+            ->filter(fn ($value) => $value !== null);
+
+        $mae            = $maeValues->isNotEmpty() ? round($maeValues->avg(), 2) : null;
+        $rmse           = $rmseValues->isNotEmpty() ? round($rmseValues->avg(), 2) : null;
+        $validationMae  = $validationMaeValues->isNotEmpty() ? round($validationMaeValues->avg(), 2) : null;
+        $validationRmse = $validationRmseValues->isNotEmpty() ? round($validationRmseValues->avg(), 2) : null;
+        $evaluationReady = $mae !== null && $rmse !== null;
         $productAccuracies = $productPredictions
             ->map(function ($item) {
-                $prediction = (float) ($item['prediction'] ?? 0);
-                $mae        = (float) ($item['mae'] ?? 0);
+                if (($item['accuracy'] ?? null) !== null) {
+                    return (float) $item['accuracy'];
+                }
 
-                if ($prediction <= 0) {
+                $prediction = (float) ($item['prediction'] ?? 0);
+                $mae        = $item['mae'] ?? null;
+
+                if ($prediction <= 0 || $mae === null) {
                     return null;
                 }
 
@@ -747,10 +806,13 @@ class PredictionController extends Controller
             'validationMae'        => $validationMae,
             'validationRmse'       => $validationRmse,
             'modelAccuracy'        => $modelAccuracy,
+            'evaluationReady'      => $evaluationReady,
             'predictionReady'      => $predictionReady,
             'totalData'            => $totalData,
             'nextMonthLabel'       => $nextMonthLabel,
             'selectedPeriod'       => $selectedPeriod,    // untuk tombol generate
+            'availablePredictionPeriods' => $availablePredictionPeriods,
+            'nextPredictionPeriod' => $nextPredictionPeriod,
             'lastRunAt'            => $lastRunAt,          // untuk status terakhir update
             'productPredictions'   => $productPredictions,
             'totalProducts'        => $totalProducts,
@@ -795,7 +857,12 @@ class PredictionController extends Controller
     {
         try {
             $cursor = DB::connection('mongodb')->getCollection('penjualans')->aggregate([
-                ['$match' => ['tanggal' => ['$type' => 'string']]],
+                [
+                    '$match' => [
+                        'tanggal' => ['$type' => 'string'],
+                        'source' => ['$ne' => 'mobile'],
+                    ],
+                ],
                 [
                     '$project' => [
                         'month' => ['$substr' => ['$tanggal', 0, 7]],
@@ -833,6 +900,117 @@ class PredictionController extends Controller
         } catch (\Throwable $e) {
             return collect();
         }
+    }
+
+    private function getLatestProductValidationMetrics(?string $maxDate = null): array
+    {
+        try {
+            $match = [
+                'mae' => ['$ne' => null],
+                'rmse' => ['$ne' => null],
+            ];
+
+            if ($maxDate !== null) {
+                $match['tanggal'] = ['$lte' => $maxDate];
+            }
+
+            $cursor = DB::connection('mongodb')->getCollection('prediction_results')->aggregate([
+                ['$match' => $match],
+                ['$group' => ['_id' => '$tanggal']],
+                ['$sort' => ['_id' => -1]],
+                ['$limit' => 1],
+            ]);
+
+            $latest = collect(iterator_to_array($cursor, false))->first();
+            $latestDate = $latest->_id ?? null;
+
+            if ($latestDate === null) {
+                return [
+                    'period' => null,
+                    'items' => collect(),
+                ];
+            }
+
+            $rows = DB::connection('mongodb')
+                ->table('prediction_results')
+                ->where('tanggal', $latestDate)
+                ->get();
+
+            return [
+                'period' => $latestDate,
+                'items' => collect($rows)
+                    ->filter(fn ($row) => ($row->mae ?? null) !== null && ($row->rmse ?? null) !== null)
+                    ->mapWithKeys(function ($row) {
+                        return [
+                            (string) ($row->product_id ?? '') => [
+                                'mae' => $row->mae ?? null,
+                                'rmse' => $row->rmse ?? null,
+                                'validation_mae' => $row->validation_mae ?? null,
+                                'validation_rmse' => $row->validation_rmse ?? null,
+                                'accuracy' => (($row->predicted_sales ?? 0) > 0 && ($row->mae ?? null) !== null)
+                                    ? max(0, min(100, 100 - (($row->mae / $row->predicted_sales) * 100)))
+                                    : null,
+                            ],
+                        ];
+                    }),
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'period' => null,
+                'items' => collect(),
+            ];
+        }
+    }
+
+    private function getAvailablePredictionPeriods()
+    {
+        try {
+            $cursor = DB::connection('mongodb')->getCollection('prediction_results')->aggregate([
+                ['$match' => ['tanggal' => ['$type' => 'string']]],
+                ['$project' => ['period' => ['$substr' => ['$tanggal', 0, 7]]]],
+                ['$match' => ['period' => ['$regex' => '^[0-9]{4}-[0-9]{2}$']]],
+                ['$group' => ['_id' => '$period']],
+                ['$sort' => ['_id' => 1]],
+            ]);
+
+            Carbon::setLocale('id');
+
+            return collect(iterator_to_array($cursor, false))
+                ->map(function ($row) {
+                    $period = (string) ($row->_id ?? '');
+
+                    if ($period === '') {
+                        return null;
+                    }
+
+                    return [
+                        'value' => $period,
+                        'label' => Carbon::createFromFormat('Y-m', $period)
+                            ->translatedFormat('F Y'),
+                    ];
+                })
+                ->filter()
+                ->values();
+        } catch (\Throwable $e) {
+            return collect();
+        }
+    }
+
+    private function getNextPredictionPeriod(Collection $availablePredictionPeriods, string $selectedPeriod): array
+    {
+        $latestAvailable = $availablePredictionPeriods->last();
+        $basePeriod = $latestAvailable['value'] ?? $selectedPeriod;
+
+        try {
+            $nextPeriod = Carbon::createFromFormat('Y-m', $basePeriod)->addMonth();
+        } catch (\Throwable $e) {
+            $nextPeriod = Carbon::createFromFormat('Y-m', $this->getDefaultPredictionPeriod())->addMonth();
+        }
+
+        return [
+            'value' => $nextPeriod->format('Y-m'),
+            'label' => $nextPeriod->translatedFormat('F Y'),
+        ];
     }
 
     // =========================================================

@@ -35,6 +35,7 @@
 .pr-filter-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
 .pr-filter-select{padding:7px 12px;border:1px solid var(--border);border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--dark);background:var(--pk6);cursor:pointer;outline:none;transition:border .15s}
 .pr-filter-select:focus{border-color:var(--pk2)}
+.pr-period-locked{display:inline-flex;align-items:center;min-width:145px;cursor:default}
 .pr-model-tag{display:inline-flex;align-items:center;gap:6px;background:var(--pk5);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--pk1)}
 .pr-model-dot{width:7px;height:7px;border-radius:50%;background:var(--pk1);box-shadow:0 0 0 2px rgba(232,24,90,.2)}
 .pr-last-run{font-size:10px;color:var(--muted);margin-left:auto;flex-shrink:0}
@@ -232,32 +233,36 @@
     <div class="pr-filterbar">
         <div class="pr-filter-group">
             <div class="pr-filter-label">Pilih Periode Prediksi</div>
-            <select class="pr-filter-select" name="periode"
-                onchange="window.location.href='{{ route('prediksi') }}?periode=' + this.value">
-                @php
-                    $activePeriod = $selectedPeriod ?? null;
-                    try {
-                        $basePeriod = $activePeriod
-                            ? \Carbon\Carbon::createFromFormat('Y-m-d', $activePeriod . '-01')->startOfMonth()
-                            : now()->startOfMonth();
-                    } catch (\Exception $e) {
-                        $basePeriod = now()->startOfMonth();
-                    }
-                    $months = [];
-                    for ($i = 0; $i < 12; $i++) {
-                        $m = $basePeriod->copy()->addMonths($i);
-                        $months[] = [
-                            'value' => $m->format('Y-m'),
-                            'label' => $m->translatedFormat('F Y'),
-                        ];
-                    }
-                @endphp
-                @foreach($months as $m)
-                    <option value="{{ $m['value'] }}" {{ $m['value'] === $basePeriod->format('Y-m') ? 'selected' : '' }}>
-                        {{ $m['label'] }}
-                    </option>
-                @endforeach
-            </select>
+            @php
+                $periodOptions = collect($availablePredictionPeriods ?? []);
+                if (!empty($nextPredictionPeriod['value']) && ! $periodOptions->contains('value', $nextPredictionPeriod['value'])) {
+                    $periodOptions = $periodOptions->push($nextPredictionPeriod);
+                }
+                $activePeriod = $selectedPeriod ?? null;
+                $activeOption = $periodOptions->firstWhere('value', $activePeriod);
+
+                try {
+                    $activePeriodLabel = $activeOption['label']
+                        ?? ($activePeriod
+                            ? \Carbon\Carbon::createFromFormat('Y-m-d', $activePeriod . '-01')->translatedFormat('F Y')
+                            : 'Periode aktif');
+                } catch (\Exception $e) {
+                    $activePeriodLabel = 'Periode aktif';
+                }
+            @endphp
+
+            @if($periodOptions->count() > 1)
+                <select class="pr-filter-select" name="periode"
+                    onchange="window.location.href='{{ route('prediksi') }}?periode=' + this.value">
+                    @foreach($periodOptions as $period)
+                        <option value="{{ $period['value'] }}" {{ $period['value'] === $activePeriod ? 'selected' : '' }}>
+                            {{ $period['label'] }}
+                        </option>
+                    @endforeach
+                </select>
+            @else
+                <div class="pr-filter-select pr-period-locked">{{ $activePeriodLabel }}</div>
+            @endif
         </div>
 
         <div class="pr-filter-group">
@@ -284,7 +289,7 @@
             </div>
         @endif
 
-        <div style="align-self:flex-end;flex-shrink:0">
+        <div style="align-self:flex-end;display:flex;gap:8px;flex-shrink:0">
             @if(isset($predictionReady) && $predictionReady)
                 <a href="{{ route('predictions.generate', ['periode' => $selectedPeriod]) }}"
                    class="pr-btn"
@@ -353,29 +358,35 @@
             <div class="pr-eval-sub">tangkai untuk {{ $nextMonthLabel ?? 'periode aktif' }}</div>
         </div>
         <div class="pr-eval">
-            <div class="pr-eval-lbl">Rata-rata MAE</div>
-            <div class="pr-eval-val">{{ number_format($mae ?? 0, 2) }}</div>
-            <div class="pr-eval-sub">mean absolute error</div>
-            <div class="pr-eval-bar"><div class="pr-eval-bar-fill" style="width:{{ min(100, (($mae ?? 0)/500)*100) }}%"></div></div>
+            <div class="pr-eval-lbl">MAE Validasi</div>
+            <div class="pr-eval-val">{{ $mae !== null ? number_format($mae, 2) : '-' }}</div>
+            <div class="pr-eval-sub">{{ $mae !== null ? 'selisih rata-rata validasi' : 'validasi belum tersedia' }}</div>
+            <div class="pr-eval-bar"><div class="pr-eval-bar-fill" style="width:{{ $mae !== null ? min(100, ($mae/500)*100) : 0 }}%"></div></div>
         </div>
         <div class="pr-eval">
-            <div class="pr-eval-lbl">Rata-rata RMSE</div>
-            <div class="pr-eval-val">{{ number_format($rmse ?? 0, 2) }}</div>
-            <div class="pr-eval-sub">root mean square error</div>
-            <div class="pr-eval-bar"><div class="pr-eval-bar-fill" style="width:{{ min(100, (($rmse ?? 0)/700)*100) }}%"></div></div>
+            <div class="pr-eval-lbl">RMSE Validasi</div>
+            <div class="pr-eval-val">{{ $rmse !== null ? number_format($rmse, 2) : '-' }}</div>
+            <div class="pr-eval-sub">{{ $rmse !== null ? 'selisih besar validasi' : 'validasi belum tersedia' }}</div>
+            <div class="pr-eval-bar"><div class="pr-eval-bar-fill" style="width:{{ $rmse !== null ? min(100, ($rmse/700)*100) : 0 }}%"></div></div>
         </div>
         <div class="pr-eval">
-            <div class="pr-eval-lbl">Akurasi Model</div>
+            <div class="pr-eval-lbl">Akurasi Validasi Model</div>
             @php $accuracy = $modelAccuracy ?? null; @endphp
             <div class="pr-eval-val rose">{{ $accuracy !== null ? number_format($accuracy, 1) . '%' : '-' }}</div>
-            <div class="pr-eval-sub">rata-rata akurasi per produk</div>
+            <div class="pr-eval-sub">{{ $accuracy !== null ? 'performa model pada data validasi' : 'validasi belum tersedia' }}</div>
             <div class="pr-eval-bar"><div class="pr-eval-bar-fill" style="width:{{ $accuracy !== null ? min(100, max(0, $accuracy)) : 0 }}%"></div></div>
         </div>
     </div>
 
+    @if(isset($evaluationReady) && $evaluationReady)
     <div class="pr-alert ok">
-        ✦ Model prediksi aktif — estimasi kebutuhan bunga untuk <strong style="color:var(--pk1)">{{ $nextMonthLabel }}</strong> tersedia
+        Model prediksi aktif: estimasi kebutuhan bunga untuk <strong style="color:var(--pk1)">{{ $nextMonthLabel }}</strong> tersedia. MAE, RMSE, dan akurasi di atas adalah hasil validasi model.
     </div>
+    @else
+    <div class="pr-alert ok">
+        Prediksi <strong style="color:var(--pk1)">{{ $nextMonthLabel }}</strong> berhasil dibuat. Evaluasi aktual menunggu data penjualan real periode ini tersedia.
+    </div>
+    @endif
     @else
     <div class="pr-alert warn">
         ⚠ Prediksi belum dijalankan — klik tombol <strong>Generate Prediksi Baru</strong> di atas untuk memulai
@@ -405,8 +416,8 @@
                     <div class="pr-export-help">
                         <span class="pr-export-help-title">Keterangan Excel</span>
                         <span class="pr-export-help-note">
-                            <span class="pr-export-help-chip"><strong>MAE</strong> rata-rata selisih prediksi</span>
-                            <span class="pr-export-help-chip"><strong>RMSE</strong> selisih besar yang perlu diperhatikan</span>
+                            <span class="pr-export-help-chip"><strong>MAE Validasi</strong> selisih rata-rata model</span>
+                            <span class="pr-export-help-chip"><strong>RMSE Validasi</strong> selisih besar model</span>
                         </span>
                     </div>
                 </div>
@@ -418,9 +429,9 @@
                         <col>
                         <col style="width:130px">
                         <col style="width:130px">
-                        <col style="width:70px">
-                        <col style="width:70px">
-                        <col style="width:75px">
+                        <col style="width:88px">
+                        <col style="width:88px">
+                        <col style="width:96px">
                         <col style="width:78px">
                     </colgroup>
                     <thead>
@@ -429,27 +440,31 @@
                             <th>Nama Bunga</th>
                             <th>Kategori</th>
                             <th>Kebutuhan (tgk)</th>
-                            <th>MAE</th>
-                            <th>RMSE</th>
-                            <th>Akurasi</th>
+                            <th>MAE Validasi</th>
+                            <th>RMSE Validasi</th>
+                            <th>Akurasi Validasi</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($productPredictions ?? [] as $item)
                             @php
-                                $accuracy = isset($item['mae']) && $item['prediction'] > 0
-                                    ? max(0, 100 - (($item['mae'] / $item['prediction']) * 100))
-                                    : null;
-                                $accColor = $accuracy >= 80 ? '#065F46' : ($accuracy >= 60 ? '#B45309' : 'var(--pk1)');
+                                $accuracy = $item['accuracy'] ?? (
+                                    $item['mae'] !== null && $item['prediction'] > 0
+                                        ? max(0, 100 - (($item['mae'] / $item['prediction']) * 100))
+                                        : null
+                                );
+                                $accColor = $accuracy !== null
+                                    ? ($accuracy >= 80 ? '#065F46' : ($accuracy >= 60 ? '#B45309' : 'var(--pk1)'))
+                                    : 'var(--muted)';
                             @endphp
                             <tr data-detail-row data-row-index="{{ $loop->iteration }}" data-search="{{ strtolower(($item['product_name'] ?? '') . ' ' . ($item['category'] ?? 'Bunga Potong')) }}">
                                 <td class="pr-row-num" style="padding-left:12px;color:var(--muted);font-size:10.5px">{{ $loop->iteration }}</td>
                                 <td style="font-weight:600;color:var(--dark)">{{ $item['product_name'] }}</td>
                                 <td style="color:var(--muted);font-size:11px">{{ $item['category'] ?? 'Bunga Potong' }}</td>
                                 <td><span class="pr-pill">✦ {{ number_format($item['prediction']) }}</span></td>
-                                <td style="color:#7A4060;font-family:'DM Mono',monospace;font-size:11px">{{ number_format($item['mae'] ?? 0, 2) }}</td>
-                                <td style="color:#7A4060;font-family:'DM Mono',monospace;font-size:11px">{{ number_format($item['rmse'] ?? 0, 2) }}</td>
+                                <td style="color:#7A4060;font-family:'DM Mono',monospace;font-size:11px">{{ $item['mae'] !== null ? number_format($item['mae'], 2) : '-' }}</td>
+                                <td style="color:#7A4060;font-family:'DM Mono',monospace;font-size:11px">{{ $item['rmse'] !== null ? number_format($item['rmse'], 2) : '-' }}</td>
                                 <td>
                                     @if($accuracy !== null)
                                         <span style="font-size:11px;font-weight:700;color:{{ $accColor }}">{{ number_format($accuracy, 0) }}%</span>
@@ -465,8 +480,8 @@
                                         data-category="{{ e($item['category'] ?? 'Bunga Potong') }}"
                                         data-period="{{ e($nextMonthLabel ?? 'periode aktif') }}"
                                         data-prediction="{{ number_format($item['prediction']) }}"
-                                        data-mae="{{ number_format($item['mae'] ?? 0, 2) }}"
-                                        data-rmse="{{ number_format($item['rmse'] ?? 0, 2) }}"
+                                        data-mae="{{ $item['mae'] !== null ? number_format($item['mae'], 2) : '-' }}"
+                                        data-rmse="{{ $item['rmse'] !== null ? number_format($item['rmse'], 2) : '-' }}"
                                         data-accuracy="{{ $accuracy !== null ? number_format($accuracy, 1) . '%' : '-' }}"
                                         onclick="openPredictionDetail(this)"
                                     >Detail</button>
@@ -825,20 +840,20 @@ function openPredictionDetail(button) {
                     <div class="pr-detail-value">${prediction}</div>
                 </div>
                 <div class="pr-detail-card">
-                    <div class="pr-detail-label">Akurasi Produk</div>
+                    <div class="pr-detail-label">Akurasi Validasi</div>
                     <div class="pr-detail-value">${accuracy}</div>
                 </div>
                 <div class="pr-detail-card">
-                    <div class="pr-detail-label">MAE</div>
+                    <div class="pr-detail-label">MAE Validasi</div>
                     <div class="pr-detail-value">${mae}</div>
                 </div>
                 <div class="pr-detail-card">
-                    <div class="pr-detail-label">RMSE</div>
+                    <div class="pr-detail-label">RMSE Validasi</div>
                     <div class="pr-detail-value">${rmse}</div>
                 </div>
             </div>
             <div class="pr-detail-desc">
-                <strong>MAE</strong> menunjukkan rata-rata selisih prediksi. <strong>RMSE</strong> membantu melihat apakah ada selisih besar yang perlu diperhatikan. Nilai ini dipakai untuk membaca performa model, bukan jumlah stok tambahan.
+                <strong>MAE Validasi</strong>, <strong>RMSE Validasi</strong>, dan akurasi validasi membaca performa model pada data uji. Evaluasi aktual periode ini dilihat di bagian Prediksi vs Penjualan Real.
             </div>
         </div>
     `;
@@ -859,7 +874,7 @@ function openPredictionDetail(button) {
         return;
     }
 
-    alert(`Detail ${data.name || 'Produk'}\nEstimasi: ${data.prediction || 0} tangkai\nMAE: ${data.mae || 0}\nRMSE: ${data.rmse || 0}\nAkurasi: ${data.accuracy || '-'}`);
+    alert(`Detail ${data.name || 'Produk'}\nEstimasi: ${data.prediction || 0} tangkai\nMAE Validasi: ${data.mae || 0}\nRMSE Validasi: ${data.rmse || 0}\nAkurasi Validasi: ${data.accuracy || '-'}`);
 }
 
 const topBars = @json($topBars ?? []);

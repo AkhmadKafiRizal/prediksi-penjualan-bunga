@@ -293,7 +293,7 @@
                     @forelse($rows as $i => $row)
                     <tr>
                         <td class="row-num">{{ ($rows->currentPage() - 1) * $rows->perPage() + $i + 1 }}</td>
-                        <td class="num-cell" style="font-size:.8rem">{{ $row->id }}</td>
+                        <td class="num-cell" style="font-size:.8rem">{{ $row->display_id ?? $row->id }}</td>
                         <td>
                             <div style="font-weight:600;color:var(--dark)">{{ $row->nama_bunga ?? 'Produk #' . $row->product_id }}</div>
                             <div style="font-size:.72rem;color:#CCA8BA">Product ID: {{ $row->product_id }}</div>

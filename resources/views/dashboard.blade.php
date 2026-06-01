@@ -162,8 +162,8 @@
     @if(isset($predictionReady) && $predictionReady)
         @php
             $accuracy = $modelAccuracy ?? null;
-            $roundedMae = (int) round($mae ?? 0);
-            $roundedRmse = (int) round($rmse ?? 0);
+            $roundedMae = $mae !== null ? (int) round($mae) : null;
+            $roundedRmse = $rmse !== null ? (int) round($rmse) : null;
         @endphp
         <div class="db-model-banner active">
             <div class="db-model-left">
@@ -172,11 +172,18 @@
                     <div class="db-model-text-title">Prediksi kebutuhan stok {{ $nextMonthLabel ?? 'periode aktif' }} sudah tersedia</div>
                     <div class="db-model-text-sub">
                         {{ number_format($totalProducts ?? 0) }} jenis bunga diprediksi
-                        @if($accuracy !== null)
-                            · Akurasi model {{ number_format($accuracy, 1) }}%
+                        @if($roundedMae === null || $roundedRmse === null)
+                            . Evaluasi aktual menunggu data penjualan real
                         @endif
-                        · MAE rata-rata selisih {{ number_format($roundedMae) }} tangkai
-                        · RMSE selisih besar terpantau {{ number_format($roundedRmse) }} tangkai
+                        @if($accuracy !== null)
+                            · Akurasi validasi model {{ number_format($accuracy, 1) }}%
+                        @endif
+                        @if($roundedMae !== null)
+                            · MAE validasi {{ number_format($roundedMae) }} tangkai
+                        @endif
+                        @if($roundedRmse !== null)
+                            · RMSE validasi {{ number_format($roundedRmse) }} tangkai
+                        @endif
                     </div>
                 </div>
             </div>
@@ -404,23 +411,23 @@
             @if(isset($predictionReady) && $predictionReady)
                 <div class="db-sec-body">
                     <div class="db-metric-row" style="margin-bottom:4px">
-                        <span class="db-metric-lbl">Rata-rata MAE</span>
-                        <span class="db-metric-val" style="font-size:18px">{{ number_format($mae ?? 0, 2) }}</span>
+                        <span class="db-metric-lbl">MAE Validasi</span>
+                        <span class="db-metric-val" style="font-size:18px">{{ $mae !== null ? number_format($mae, 2) : '-' }}</span>
                     </div>
                     <div class="db-metric-bar">
-                        <div class="db-metric-bar-fill" style="width:{{ min(100, (($mae ?? 0) / 500) * 100) }}%"></div>
+                        <div class="db-metric-bar-fill" style="width:{{ $mae !== null ? min(100, ($mae / 500) * 100) : 0 }}%"></div>
                     </div>
                     <div class="db-metric-row" style="margin-bottom:4px">
-                        <span class="db-metric-lbl">Rata-rata RMSE</span>
-                        <span class="db-metric-val" style="font-size:18px">{{ number_format($rmse ?? 0, 2) }}</span>
+                        <span class="db-metric-lbl">RMSE Validasi</span>
+                        <span class="db-metric-val" style="font-size:18px">{{ $rmse !== null ? number_format($rmse, 2) : '-' }}</span>
                     </div>
                     <div class="db-metric-bar">
-                        <div class="db-metric-bar-fill" style="width:{{ min(100, (($rmse ?? 0) / 700) * 100) }}%"></div>
+                        <div class="db-metric-bar-fill" style="width:{{ $rmse !== null ? min(100, ($rmse / 700) * 100) : 0 }}%"></div>
                     </div>
                     <div class="db-acc-big">
                         @php $accuracy = $modelAccuracy ?? null; @endphp
                         <div class="db-acc-pct">{{ $accuracy !== null ? number_format($accuracy, 1) . '%' : '-' }}</div>
-                        <div class="db-acc-sub">Skor performa prediksi</div>
+                        <div class="db-acc-sub">Akurasi Validasi Model</div>
                         <div class="db-acc-bar-wrap">
                             <div class="db-acc-bar-fill" style="width:{{ $accuracy !== null ? min(100, max(0, $accuracy)) : 0 }}%"></div>
                         </div>
